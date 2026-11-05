@@ -3,6 +3,9 @@
 input adapter -> script IR -> (rewrite check) -> policy -> lexical pass -> chunker -> spoken normalisation ->
 engine, best of maxTakes per chunk -> pauses -> timing fit -> placement -> two-pass loudnorm -> outputs.
 
+An AudioCppBatch engine (narrate/prerender.py) runs out of process: `plan` writes the request batch from the same
+pipeline, and a render with `prerendered` takes every take from the batch's outputs by request id.
+
 Every refusal happens before any audio is made. The run is staged, renamed into place and then checked by
 verify.verify; a run it refuses is renamed .failed-<run_id> and the render raises.
 
@@ -20,15 +23,99 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from . import adapters, audio, chunker, engine, lexical, policy, qa, verify
+from . import adapters, audio, chunker, engine, lexical, policy, prerender, qa, verify
 from .config import guard_out, run
 from .ir import canonical, sha256_bytes, sha256_file, sha256_text
 from .normalise import Normaliser
+from .tempo import apply_tempo, check_voices, voice_tempo
 
 SCHEMA_VERSION = 1
 MAPPING = "narration_v1"
 VOLATILE = ("run_id", "run_dir", "created_utc", "content_sha256")
 EPS = 0.001
+
+
+# CLI / MCP job overrides: name -> (job path, low, high). Booleans only tighten: confidential sets true, no_hosted
+# sets allowHosted false. The gates only tighten too (TIGHTEN): an override may lower maxChunkWer or fitMaxStretch
+# and raise minSim, never the reverse, so a caller cannot pass a run the job would flag. loudness_lufs is the
+# delivery target, not a gate; the loudness pass rule applies around whatever target is recorded. Every override
+# applied is recorded in the manifest's job.overrides.
+OVERRIDES = {
+    "voice": (("voice",), None, None),
+    "input_kind": (("input",), None, None),
+    "confidential": (("confidential",), None, None),
+    "no_hosted": (("allowHosted",), None, None),
+    "max_chunk_wer": (("gates", "maxChunkWer"), 0.0, 1.0),
+    "min_sim": (("gates", "minSim"), -1.0, 1.0),
+    "max_takes": (("gates", "maxTakes"), 1, 3),
+    "chunk_max_codepoints": (("chunkMaxCodepoints",), 40, 1000),
+    "loudness_lufs": (("post", "loudnessLufs"), -30.0, -10.0),
+    "fit_max_stretch": (("post", "fitMaxStretch"), 0.0, 0.08),
+}
+
+
+TIGHTEN = {"max_chunk_wer": "lower", "fit_max_stretch": "lower", "min_sim": "higher"}
+
+
+def overrides_from(values):
+    """{name: value} checked against OVERRIDES; raises RenderError("override_invalid") on a value out of range."""
+    out = {}
+    for name, value in values.items():
+        if name not in OVERRIDES:
+            raise RenderError("override_invalid", f"{name}: not a job override")
+        _, low, high = OVERRIDES[name]
+        if name in ("confidential", "no_hosted"):
+            if value is not True:
+                raise RenderError("override_invalid", f"{name} only tightens the job: true or absent")
+        elif low is not None and not (isinstance(value, (int, float)) and low <= value <= high):
+            raise RenderError("override_invalid", f"{name} = {value!r}: from {low} to {high}")
+        elif low is None and not (isinstance(value, str) and value):
+            raise RenderError("override_invalid", f"{name}: a non-empty id")
+        out[name] = value
+    return out
+
+
+def apply_overrides(job, overrides):
+    """The job with overrides applied. A gate override that would loosen the job's own gate raises RenderError."""
+    job = json.loads(json.dumps(job))
+    for name, value in overrides.items():
+        path = OVERRIDES[name][0]
+        node = job
+        for key in path[:-1]:
+            node = node[key]
+        direction, current = TIGHTEN.get(name), node.get(path[-1])
+        if direction and current is not None and (value > current if direction == "lower" else value < current):
+            raise RenderError(
+                "override_invalid", f"{name} = {value!r} loosens the job's {path[-1]} {current!r}; gates only tighten"
+            )
+        node[path[-1]] = False if name == "no_hosted" else value
+    return job
+
+
+def summary(final, manifest):
+    """What the CLI's --json and the narrate_render tool return: where the run is and what it says of itself."""
+    return {
+        "run_id": manifest["run_id"],
+        "run_dir": str(final),
+        "manifest": str(final / "manifest.json"),
+        "kind": manifest["kind"],
+        "status": manifest["status"],
+        "synthetic": manifest["synthetic"],
+        "verified": True,
+        "engine": manifest["engine"]["id"],
+        "voices": sorted({v["voice"] for v in manifest["voices"]}),
+        "segments": manifest["input"]["segments"],
+        "chunks": manifest["input"]["chunks"],
+        "sample_rate": manifest["timeline"]["sample_rate"],
+        "seconds": round(manifest["timeline"]["total_samples"] / manifest["timeline"]["sample_rate"], 3),
+        "loudness": {**manifest["loudness"]["measured"], "passed": manifest["loudness"]["passed"]},
+        "qa": manifest["qa"]["chunks"],
+        "overruns": manifest["overruns"],
+        "overrides": manifest["job"].get("overrides", {}),
+        "flags": manifest["flags"],
+        "meets_acceptance_gate": not manifest["flags"],
+        "content_sha256": manifest["content_sha256"],
+    }
 
 
 class RenderError(RuntimeError):
@@ -65,9 +152,22 @@ def chunk_spoken(segment, limit, normaliser):
 
 
 class Renderer:
-    def __init__(self, cfg, *, input_path=None, rewrite=None, engine_id=None, seed=None, transcriber=None):
+    def __init__(
+        self,
+        cfg,
+        *,
+        input_path=None,
+        rewrite=None,
+        engine_id=None,
+        seed=None,
+        transcriber=None,
+        overrides=None,
+        prerendered=None,
+        planning=False,
+    ):
         self.cfg = cfg
-        self.job = cfg.job()
+        self.overrides = dict(overrides or {})
+        self.job = apply_overrides(cfg.job(), self.overrides)
         self.registry = cfg.registry()
         self.input_path = Path(input_path).resolve() if input_path else cfg.input
         self.rewrite_path = Path(rewrite).resolve() if rewrite else None
@@ -75,6 +175,10 @@ class Renderer:
         self.seed = self.job["seed"] if seed is None else int(seed)
         self.transcriber = transcriber
         self.flags = []
+        self.session = None  # engine.Session while run() synthesises
+        self.prerendered = Path(prerendered) if prerendered else None
+        self.planning = planning
+        self.pool = None  # prerender.Pool when the engine is an out-of-process batch
 
     # -- before any audio ------------------------------------------------------------------------------
     def prepare(self):
@@ -103,11 +207,12 @@ class Renderer:
         self.engine, self.voices, self.consents = policy.admit(
             job, self.script, self.registry, self.index, self.engine_id
         )
+        check_voices(self.voices.values())
         self.release = lexical.Release(self.cfg.lexical, job["lexical"])
         table = self.registry["pronunciation"].get(job["pronunciation"])
         if table is None:
             raise RenderError("pronunciation_unknown", f"pronunciation table {job['pronunciation']!r}")
-        self.normaliser = Normaliser(table)
+        self.normaliser = Normaliser(table, upstream=self.release.upstream_pronunciation)
         self.refs = {}
         for voice in {v["id"]: v for v in self.voices.values()}.values():
             self.refs[voice["id"]] = {
@@ -118,15 +223,70 @@ class Renderer:
         self.plan = [(segment, chunk_spoken(segment, limit, self.normaliser)) for segment in self.script.segments]
         if not any(chunks for _, chunks in self.plan):
             raise RenderError("input_empty", "nothing to speak")
+        self.prepare_batch()
+
+    def prepare_batch(self):
+        """For an AudioCppBatch engine: check the record and every reference, and outside a plan open the pool,
+        refuse a chunk with no take among its maxTakes seeds, and check every take the render may read (its file,
+        sha256 and WAV sizes). Any other engine refuses --prerendered."""
+        batch = prerender.is_batch(self.engine)
+        if not batch:
+            if self.prerendered is not None or self.planning:
+                raise RenderError(
+                    "engine_not_batch",
+                    f"engine {self.engine['id']} is {self.engine['backend']}; plan and --prerendered are for "
+                    f"{prerender.BACKEND} engines",
+                )
+            return
+        try:
+            prerender.check_engine(self.engine, self.cfg.engine_opts)
+            self.ref_fit = {
+                vid: prerender.reference_fit(self.engine, vid, ref["audio"]) for vid, ref in sorted(self.refs.items())
+            }
+            if self.planning:
+                return
+            if self.prerendered is None:
+                raise RenderError(
+                    "prerendered_required",
+                    f"engine {self.engine['id']} runs out of process: narrate plan, the GPU batch, then "
+                    "render --prerendered DIR",
+                )
+            self.pool = prerender.Pool(self.prerendered, self.engine, self.cfg.engine_opts)
+        except prerender.PrerenderError as error:
+            raise RenderError(error.code, error.detail) from None
+        seeds = range(self.seed, self.seed + max(1, int(self.job["gates"]["maxTakes"])))
+        missing = []
+        for segment, chunks in self.plan:
+            voice = self.voice_for(segment)
+            for chunk, spoken in chunks:
+                present = [rid for rid in (self.request(voice, spoken, s)["id"] for s in seeds) if self.pool.has(rid)]
+                if not present:
+                    missing.append(chunk.id)
+                for rid in present:
+                    try:
+                        self.pool.check(rid)
+                    except prerender.PrerenderError as error:
+                        raise RenderError(error.code, error.detail) from None
+        if missing:
+            raise RenderError(
+                "prerendered_take_missing",
+                f"{len(missing)} chunk(s) have no take in the batch ({', '.join(missing[:5])}); plan again "
+                "from the same inputs and render the batch",
+            )
+
+    def request(self, voice, spoken, seed):
+        return prerender.request(self.engine, self.cfg.engine_opts, voice, self.refs[voice["id"]], spoken, seed)
 
     # -- audio -------------------------------------------------------------------------------------------
-    def measure(self, pcm, text, work):
+    def measure(self, pcm, chunk, spoken, work):
+        """WER scores the transcript against the written chunk and its spoken projection (qa.chunk_wer)."""
+        aliases = self.normaliser.aliases(chunk.text, chunk.segment)
         if self.transcriber is not None:
-            heard = self.transcriber(pcm, text)
-            wer = {"status": "measured", "value": qa.wer(text, heard), "heard": heard}
+            heard = self.transcriber(pcm, spoken)
+            wer = {"status": "measured", "value": qa.chunk_wer(chunk.text, spoken, heard, aliases), "heard": heard}
         elif self.whisper_ready[0]:
             heard = self.whisper.read(pcm)
-            wer = {"status": "measured", "value": qa.wer(text, heard), "heard": heard}
+            wer = {"status": "measured", "value": qa.chunk_wer(chunk.text, spoken, heard, aliases), "heard": heard}
         else:
             wer = qa.not_measured(self.whisper_ready[1])
         return {"wer": wer, "sim": qa.sim(self.cfg)}
@@ -135,15 +295,34 @@ class Renderer:
         rate = self.engine.get("sampleRateHz")
 
         def synth(seed):
-            data, facts = engine.synthesize(
-                self.engine, spoken, voice, self.refs[voice["id"]], seed, speed, self.cfg.engine_opts
-            )
+            if self.pool is not None:
+                try:
+                    data, facts = self.pool.take(self.request(voice, spoken, seed))
+                except prerender.NoTake as missing:
+                    raise qa.NoTake(missing.request_id) from None
+                except prerender.PrerenderError as error:
+                    raise RenderError(error.code, error.detail) from None
+            else:
+                data, facts = engine.synthesize(
+                    self.engine, spoken, voice, self.refs[voice["id"]], seed, speed, self.cfg.engine_opts, self.session
+                )
             pcm, converted = audio.canonical(data, rate or self.rate, work)
             if self.rate is None:
                 self.rate = pcm.rate
+            pcm, facts = apply_tempo(pcm, voice, facts, work)  # the voice's tempo, before QA and the fit
             return pcm, {**facts, "reply_sha256": sha256_bytes(data), "converted": converted}
 
-        return qa.best_of(spoken, synth, lambda pcm, text: self.measure(pcm, text, work), self.job["gates"], self.seed)
+        try:
+            return qa.best_of(
+                spoken,
+                synth,
+                lambda pcm, text: self.measure(pcm, chunk, text, work),
+                self.job["gates"],
+                self.seed,
+                exhaustive=self.pool is not None,
+            )
+        except qa.NoTake as missing:
+            raise RenderError("prerendered_take_missing", f"chunk {chunk.id}: no take {missing}") from None
 
     def assemble(self, segment, synthesized):
         """(segment pcm, [(chunk, start_s, end_s)]) with sentence, paragraph and direction pauses."""
@@ -193,7 +372,7 @@ class Renderer:
         target = segment.target_dur
         if target is not None and pcm.seconds > target + EPS:
             speed = min(pcm.seconds / target, float(self.cfg.fit["speed_max"]))
-            if speed > 1 + 1e-4:
+            if speed > 1 + 1e-4 and engine.honours_speed(self.engine) and self.pool is None:
                 synthesized = synthesize_all(round(speed, 4))
                 pcm, offsets = self.assemble(segment, synthesized)
                 fit["speed"] = round(speed, 4)
@@ -240,7 +419,7 @@ class Renderer:
         final, staging = root / run_id, root / f".staging-{run_id}"
         (staging / "chunks").mkdir(parents=True)
         try:
-            with tempfile.TemporaryDirectory() as work:
+            with tempfile.TemporaryDirectory() as work, engine.session(self.engine, cfg.engine_opts) as self.session:
                 record = self.build(staging, Path(work), run_id, final)
             staging.rename(final)
         except BaseException:
@@ -286,6 +465,7 @@ class Renderer:
                     "id": segment.id,
                     "speaker": segment.speaker,
                     "voice": voice["id"],
+                    "voice_tempo": voice_tempo(voice),
                     "origin": segment.origin,
                     "out_start_s": round(start, 4),
                     "out_end_s": round(end, 4),
@@ -327,8 +507,7 @@ class Renderer:
         # Both forms of the same samples: the job's audio format names the one consumers take first.
         audio.flac(delivered, staging / "narration.flac")
         files = {"narration.wav": delivered, "narration.flac": staging / "narration.flac"}
-        label = any(c["syntheticLabelRequired"] for c in self.consents.values())
-        caption_files = write_captions(staging, chunk_records, job["captions"], label)
+        caption_files = write_captions(staging, chunk_records, job["captions"])
         files.update(caption_files)
         edl = {
             "schema_version": SCHEMA_VERSION,
@@ -364,6 +543,7 @@ class Renderer:
             | unmeasured
             | ({"oversize_chunk"} if any(r["oversize"] for r in chunk_records) else set())
             | ({"input_unpinned"} if not self.input_pinned else set())
+            | ({"prerendered_test_mode"} if self.pool is not None and self.pool.record()["test_mode"] else set())
         )
         statuses = [r["qa"]["status"] for r in chunk_records]
         manifest = {
@@ -389,7 +569,8 @@ class Renderer:
                     "narrationEdl",
                 )
             }
-            | {"seed": self.seed},
+            | {"seed": self.seed}
+            | ({"overrides": self.overrides} if self.overrides else {}),
             "input": {
                 "kind": self.script.kind,
                 "sha256": self.input_sha,
@@ -407,7 +588,8 @@ class Renderer:
                 "vale": lexical.vale(self.release, self.script.segments),
             },
             "pronunciation": self.normaliser.record(),
-            "engine": engine_record(self.engine, self.cfg),
+            "engine": engine_record(self.engine, self.cfg)
+            | ({"synthesis": self.pool.record()} if self.pool is not None else {}),
             "voices": [
                 voice_record(speaker, v, self.consents)
                 for speaker, v in sorted(self.voices.items(), key=lambda kv: str(kv[0]))
@@ -418,6 +600,7 @@ class Renderer:
                     "available": self.whisper_ready[0] or self.transcriber is not None,
                     "how": "injected transcriber" if self.transcriber else self.whisper_ready[1],
                     "max_chunk_wer": job["gates"]["maxChunkWer"],
+                    "normalisation": qa.NORMALISATION,
                     **({} if self.transcriber else self.whisper.identity()),
                 },
                 "sim": qa.sim(self.cfg),
@@ -436,7 +619,7 @@ class Renderer:
                 "output_axis": edl["output_axis"],
                 "source_axis": edl["source_axis"],
             },
-            "captions": {"source": "script_timing", "files": sorted(caption_files), "synthetic_notice": label},
+            "captions": {"source": "script_timing", "files": sorted(caption_files), "synthetic_notice": False},
             "licence_notices": [self.engine["licenceNotice"]] if self.engine.get("licenceNotice") else [],
             "watermark": {"status": "not_applied", "note": "best effort when applied; codecs and resynthesis strip it"},
             "flags": flags,
@@ -464,15 +647,14 @@ def engine_record(eng, cfg):
         "confidentialAllowed",
         "sampleRateHz",
     )
-    return {
-        **{k: eng.get(k) for k in keep},
-        "may_run_confidential": policy.may_run_confidential(eng),
-        "knobs": {
-            "fit_speed_max": cfg.fit["speed_max"],
-            "ref_audio": cfg.engine_opts["ref_audio"],
-            "timeout_s": cfg.engine_opts["timeout_s"],
-        },
+    knobs = {
+        "fit_speed_max": cfg.fit["speed_max"],
+        "ref_audio": cfg.engine_opts["ref_audio"],
+        "timeout_s": cfg.engine_opts["timeout_s"],
     }
+    if prerender.is_batch(eng):
+        knobs = {"fit_speed_max": cfg.fit["speed_max"], "audiocpp_clone": prerender.clone_mode(cfg.engine_opts)}
+    return {**{k: eng.get(k) for k in keep}, "may_run_confidential": policy.may_run_confidential(eng), "knobs": knobs}
 
 
 def voice_record(speaker, voice, consents):
@@ -485,6 +667,7 @@ def voice_record(speaker, voice, consents):
         "consent_id": consent["id"],
         "scope": voice["scope"],
         "fixture": voice["fixture"],
+        "tempo": voice_tempo(voice),
         "synthetic_label_required": consent["syntheticLabelRequired"],
         "hosted_allowed": consent["hostedAllowed"],
     }
@@ -498,20 +681,19 @@ def stamp(seconds, sep):
     return f"{h:02d}:{m:02d}:{s:02d}{sep}{ms:03d}"
 
 
-def write_captions(staging, chunks, formats, label):
-    """SRT and/or WebVTT, one cue per chunk on the output clock, in the written (not the spoken) text."""
+def write_captions(staging, chunks, formats):
+    """SRT and/or WebVTT, one cue per chunk on the output clock, in the written (not the spoken) text.
+
+    Captions carry no synthetic-voice prefix or VTT NOTE (KP-15, TIN-7476 comment 4ab7fc27): no visible synthetic
+    label is required. The manifest keeps synthetic: true, the consent ids and synthetic_label_required."""
     cues = [(c["out_start_s"], c["out_end_s"], c["written"]) for c in chunks]
-    if label and cues:
-        a, b, text = cues[0]
-        cues[0] = (a, b, "[Synthetic voice] " + text)
     files = {}
     if "Srt" in formats:
         body = "".join(f"{i}\n{stamp(a, ',')} --> {stamp(b, ',')}\n{t}\n\n" for i, (a, b, t) in enumerate(cues, 1))
         (staging / "narration.srt").write_text(body)
         files["narration.srt"] = staging / "narration.srt"
     if "Vtt" in formats:
-        note = "NOTE This narration is a synthetic voice.\n\n" if label else ""
-        body = "WEBVTT\n\n" + note + "".join(f"{stamp(a, '.')} --> {stamp(b, '.')}\n{t}\n\n" for a, b, t in cues)
+        body = "WEBVTT\n\n" + "".join(f"{stamp(a, '.')} --> {stamp(b, '.')}\n{t}\n\n" for a, b, t in cues)
         (staging / "narration.vtt").write_text(body)
         files["narration.vtt"] = staging / "narration.vtt"
     return files
@@ -520,6 +702,92 @@ def write_captions(staging, chunks, formats, label):
 def tools():
     version = run("ffmpeg", "-hide_banner", "-version").stdout.splitlines()[0]
     return {"ffmpeg": version, "python": platform.python_version(), "narrate_schema": SCHEMA_VERSION}
+
+
+def plan(cfg, out, takes=None, **kwargs):
+    """Phase A of an AudioCppBatch render (narrate/prerender.py): run the text pipeline and write the request
+    batch to out, a new directory. takes: how many seeds per chunk, 1 to the job's maxTakes (default maxTakes).
+    Return (plan.json path, plan)."""
+    renderer = Renderer(cfg, planning=True, **kwargs)
+    renderer.prepare()
+    job, max_takes = renderer.job, int(renderer.job["gates"]["maxTakes"])
+    takes = max_takes if takes is None else takes
+    if isinstance(takes, bool) or not isinstance(takes, int) or not 1 <= takes <= max_takes:
+        raise RenderError("override_invalid", f"takes = {takes!r}: from 1 to the job's maxTakes {max_takes}")
+    out = guard_out(Path(out).resolve())
+    batches, chunks, seen = {}, [], set()
+    for segment, pieces in renderer.plan:
+        voice = renderer.voice_for(segment)
+        for chunk, spoken in pieces:
+            ids = []
+            for k in range(takes):
+                body = renderer.request(voice, spoken, renderer.seed + k)
+                ids.append({"take": k + 1, "seed": renderer.seed + k, "id": body["id"]})
+                if body["id"] not in seen:
+                    seen.add(body["id"])
+                    batches.setdefault(voice["id"], []).append(body)
+            chunks.append(
+                {
+                    "id": chunk.id,
+                    "segment": segment.id,
+                    "voice": voice["id"],
+                    "codepoints": len(spoken),
+                    "spoken_sha256": sha256_text(spoken),
+                    "requests": ids,
+                }
+            )
+    files = {prerender.batch_name(v): prerender.batch_bytes(reqs) for v, reqs in sorted(batches.items())}
+    if len(files) != len(batches):
+        raise RenderError("plan_invalid", "two voices map to one requests file name")
+    ir = renderer.script.to_json()
+    document = {
+        "schema": prerender.PLAN_SCHEMA,
+        "about": "narrate plan: the request batch of one render; run each requests file with "
+        "narrate/serve/audiocpp_batch.py, then narrate render --prerendered on this directory",
+        "job": {"id": job["id"], "seed": renderer.seed, "gates": job["gates"]}
+        | ({"overrides": renderer.overrides} if renderer.overrides else {}),
+        "engine": engine_record(renderer.engine, renderer.cfg),
+        "input": {
+            "kind": renderer.script.kind,
+            "sha256": renderer.input_sha,
+            "pinned": renderer.input_pinned,
+            "ir_sha256": sha256_text(canonical(ir)),
+            "rewrite": renderer.rewrite,
+        },
+        "pronunciation": renderer.normaliser.record(),
+        "takes": takes,
+        "batches": [
+            {
+                "voice": v,
+                "file": f"requests/{prerender.batch_name(v)}.json",
+                "sha256": sha256_bytes(files[prerender.batch_name(v)]),
+                "requests": len(reqs),
+            }
+            for v, reqs in sorted(batches.items())
+        ],
+        "refs": [
+            {
+                "voice": vid,
+                "file": prerender.ref_file(voice["refClipSha256"]),
+                "sha256": voice["refClipSha256"],
+                "ref_text_sha256": voice["refTextSha256"],
+                **renderer.ref_fit[vid],
+            }
+            for vid, voice in sorted({v["id"]: v for v in renderer.voices.values()}.items())
+        ],
+        "chunks": chunks,
+        "totals": {
+            "chunks": len(chunks),
+            "requests": sum(len(r) for r in batches.values()),
+            "codepoints": sum(len(r["text"]) for reqs in batches.values() for r in reqs),
+        },
+    }
+    refs = {v["refClipSha256"]: renderer.refs[v["id"]]["audio"] for v in renderer.voices.values()}
+    try:
+        path = prerender.write_plan(out, document, files, refs)
+    except prerender.PrerenderError as error:
+        raise RenderError(error.code, error.detail) from None
+    return path, document
 
 
 def render(cfg, **kwargs):

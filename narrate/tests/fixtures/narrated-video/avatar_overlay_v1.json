@@ -1,0 +1,16 @@
+{
+ "fps": {
+  "den": 1,
+  "num": 30
+ },
+ "mapping": "avatar_overlay_v1",
+ "narration": {
+  "content_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "run_id": "20261027T000000Z-narration"
+ },
+ "no_time_stretch": false,
+ "output_axis": "overlay frame index / fps on its segment's narration clock; compose places frame 0 at the segment anchor",
+ "source_axis": "none: the overlay is drawn from narration loudness; no source media is time-stretched",
+ "stretch_applied": false,
+ "total_frames": 300
+}

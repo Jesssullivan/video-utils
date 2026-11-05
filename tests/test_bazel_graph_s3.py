@@ -919,6 +919,20 @@ class GraphFilesTest(unittest.TestCase):
                          "MODULE.bazel.lock was generated against a different registry pin than .bazelrc")
 
 
+class AgentSkillsFilegroupTest(unittest.TestCase):
+    """//:agent_skills exposes every skill to a consuming module by label (TIN-7844)."""
+
+    def test_agent_skills_filegroup_holds_every_skill(self):
+        groups = [call for call in read_build(ROOT, "").named("filegroup")
+                  if call.kwargs.get("name") == "agent_skills"]
+        self.assertEqual(len(groups), 1)
+        srcs = set(groups[0].kwargs["srcs"])
+        skills = sorted(path.parent.name for path in (ROOT / ".agents/skills").glob("*/SKILL.md"))
+        self.assertTrue(skills, "no .agents/skills/<name>/SKILL.md in the tree")
+        self.assertEqual([name for name in skills if f".agents/skills/{name}/SKILL.md" not in srcs], [])
+        self.assertEqual([path for path in srcs if not path.startswith(".agents/skills/")], [])
+
+
 class RegistryOrderTest(unittest.TestCase):
     def test_bazelrc_registry_order_and_no_remote_backend(self):
         self.assertEqual(bazelrc_errors((ROOT / ".bazelrc").read_text()), [])
@@ -1008,12 +1022,18 @@ class RecipesTest(unittest.TestCase):
         self.assertEqual(launcher.refused_flags(["test", "--remote_executor=grpc://x", "--bes_backend=y"]),
                          ["--remote_executor=grpc://x", "--bes_backend=y"])
         self.assertEqual(launcher.refused_flags(["build", "//src:all", "--remote_cache="]), [])
+        self.assertEqual(launcher.refused_flags(["build", "--remote_local_fallback", "--remote_local_fallback=true"]),
+                         ["--remote_local_fallback", "--remote_local_fallback=true"])
+        self.assertEqual(launcher.refused_flags(["build", "--remote_local_fallback=false",
+                                                 "--remote_local_fallback_strategy=x"]), [])
         self.assertEqual(launcher.parse(["--timeout", "30", "mod", "graph"]), (30, False, ["mod", "graph"]))
         self.assertEqual(launcher.DEFAULT_TIMEOUT_S, 1800)
         for bad in ([], ["--timeout", "0", "build"], ["--timeout"]):
             with self.assertRaises(ValueError):
                 launcher.parse(bad)
         self.assertEqual(launcher.main(["build", "--remote_cache=grpc://cache"]), launcher.EXIT_USAGE)
+        self.assertEqual(launcher.main(["test", "--remote_local_fallback"]), launcher.EXIT_USAGE)
+        self.assertIn("local, non-qualifying", launcher.LOCAL_LABEL)
 
 
 class ShimSelfTest(unittest.TestCase):

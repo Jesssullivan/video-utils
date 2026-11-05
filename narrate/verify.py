@@ -9,6 +9,9 @@ The receipt is JSON: ok, the run id, each check and the first failure as `reason
   edl          segments in order, never overlapping, inside the track; total samples equal narration.wav's
   content      content_sha256 equals the digest of the manifest without its volatile fields
   location     the run directory is not under artifacts/runs/ (the guitar runs)
+The receipt also carries the manifest's content_sha256 when the content check holds (null otherwise).
+`--result-line` prints one compact line {ok, run_id, content_sha256} instead (and reason when a check fails), for a
+caller such as a workflow task that adopts the run with `narrate video stage JOB voice --from-run RUN_DIR`.
 Exit 0 when every check holds, 1 when one fails, 2 when the run cannot be read.
 """
 
@@ -86,7 +89,16 @@ def verify(run_dir):
         "checks": checks,
         "reason": reason,
         "flags": manifest.get("flags", []),
+        "content_sha256": manifest.get("content_sha256") if checks["content"] else None,
     }
+
+
+def result_line(ok, run_id, content_sha256, reason=None):
+    """One compact JSON line: what `render --result-line` and `verify --result-line` print on stdout."""
+    value = {"ok": bool(ok), "run_id": run_id, "content_sha256": content_sha256 if ok else None}
+    if not ok:
+        value["reason"] = reason
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
 def edl_ok(run_dir, name, timeline):
@@ -120,7 +132,11 @@ def edl_ok(run_dir, name, timeline):
     return True, ""
 
 
-def main(run_dir):
+def main(run_dir, line=False):
     receipt = verify(run_dir)
-    print(json.dumps(receipt, indent=1, sort_keys=True))
+    if line:
+        # an unreadable or non-object manifest returns early, without run_id or content_sha256
+        print(result_line(receipt["ok"], receipt.get("run_id"), receipt.get("content_sha256"), receipt["reason"]))
+    else:
+        print(json.dumps(receipt, indent=1, sort_keys=True))
     return 0 if receipt["ok"] else 1

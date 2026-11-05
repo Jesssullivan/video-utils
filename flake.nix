@@ -4,7 +4,7 @@
   # Talk condensing keeps the revision its edits were made with: ffmpeg 8.1.2, whisper-cpp 1.8.4.
   inputs.nixpkgs-condense.url = "github:NixOS/nixpkgs/7c8764b7c7b09b34f632464276218ef9090eaa11";
 
-  outputs = { nixpkgs, nixpkgs-condense, ... }: let
+  outputs = { self, nixpkgs, nixpkgs-condense, ... }: let
     systems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
@@ -46,6 +46,8 @@
           ffmpeg-headless whisper-cpp just ruff git gitleaks rustc cargo
           # dhall and dhall-json: `just narrate-dhall-check` runs in the shell the narrate recipes use.
           dhall dhall-json
+          # shellcheck: `just narrate-lint` checks the narrate shell scripts in the same shell.
+          shellcheck
           (python3.withPackages (ps: with ps; [ numpy pytest ]))
         ] ++ cpkgs.lib.optional (cpkgs ? untrunc-anthwlock
           && cpkgs.lib.meta.availableOn cpkgs.stdenv.hostPlatform cpkgs.untrunc-anthwlock) cpkgs.untrunc-anthwlock;
@@ -60,11 +62,23 @@
       # Heavy optional dependencies are excluded from ordinary development.
       ml = pkgs.mkShell {
         packages = builtins.filter (p: p != pkgs.python3) core ++ [
-          (pkgs.python3.withPackages (ps: with ps; [ numpy scipy librosa soundfile torch torchaudio ]))
+          (pkgs.python3.withPackages (ps: with ps; [ numpy scipy librosa soundfile torch torchaudio speechbrain ]))
         ];
         OMP_NUM_THREADS = "2";
         OPENBLAS_NUM_THREADS = "2";
         MKL_NUM_THREADS = "2";
+      };
+    });
+    # audio.cpp 47c2756e audiocpp_cli with the Vulkan backend (narrate/bench/image/audiocpp.nix): the source of
+    # the binary sha256 an AudioCppBatch engine record pins (narrate/serve/audiocpp_batch.py --binary-sha256).
+    # x86_64-linux only: the GPU host is x86_64. Built on demand, never by `just check`.
+    packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (system: {
+      narrate-bench-audiocpp = nixpkgs.legacyPackages.${system}.callPackage ./narrate/bench/image/audiocpp.nix {};
+      # The Cade render worker's CPU image (deploy/cade-render-worker/image.nix, docs/spec/RENDER_STAGE.md): no
+      # private input, no GPU binary. Its tools come from the condense pin; its commit is this flake's revision.
+      cade-render-worker-image = nixpkgs-condense.legacyPackages.${system}.callPackage ./deploy/cade-render-worker/image.nix {
+        src = ./.;
+        commit = self.rev or null;
       };
     });
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);

@@ -1506,6 +1506,61 @@ fn each_verifier_refuses_the_other_mapping() {
     );
 }
 
+// Narrated-video stages (docs/spec/NARRATED_VIDEO.md, TIMELINE_CONTRACT.md narrated-video amendment): every
+// stage manifest carrying narration, an overlay or a bed writes `no_time_stretch: false` and one of three
+// non-identity mappings. Both verifiers refuse each of them.
+#[cfg(unix)]
+#[test]
+fn verify_run_refuses_each_narrated_video_mapping() {
+    let fixture = Fixture::new();
+    let timelines = [
+        (
+            "narrated_video_v1",
+            include_str!("../narrate/tests/fixtures/narrated-video/narrated_video_v1.json"),
+        ),
+        (
+            "avatar_overlay_v1",
+            include_str!("../narrate/tests/fixtures/narrated-video/avatar_overlay_v1.json"),
+        ),
+        (
+            "music_bed_v1",
+            include_str!("../narrate/tests/fixtures/narrated-video/music_bed_v1.json"),
+        ),
+    ];
+    for (mapping, timeline) in timelines {
+        assert!(
+            timeline.contains(&format!("\"mapping\": \"{mapping}\"")),
+            "{mapping}"
+        );
+        assert!(timeline.contains("\"no_time_stretch\": false"), "{mapping}");
+        let run_id = format!("20261027T000000Z-{mapping}");
+        let run_dir = fixture.0.join("narrated").join("nv-fixture").join(&run_id);
+        fs::create_dir_all(&run_dir).unwrap();
+        fs::write(run_dir.join("stage.json"), b"fixture stage bytes").unwrap();
+        let manifest = format!(
+            "{{\n  \"schema_version\": 1,\n  \"kind\": \"nv_stage\",\n  \"status\": \"rendered_unreviewed\",\n  \"synthetic\": true,\n  \"run_id\": {},\n  \"run_dir\": {},\n  \"output_sha256\": {{\"stage.json\": \"{}\"}},\n  \"timeline\": {}\n}}\n",
+            json_string(&run_id),
+            json_string(run_dir.to_str().unwrap()),
+            digest(b"fixture stage bytes").to_hex(),
+            timeline.trim(),
+        );
+        fs::write(run_dir.join("manifest.json"), manifest).unwrap();
+        for (args, reason) in [
+            (&[][..], "time_stretch_not_excluded"),
+            (&["--timeline", "identity"][..], "time_stretch_not_excluded"),
+            (&["--timeline", "edl_v1"][..], "timeline_mapping_invalid"),
+        ] {
+            let (code, receipt, stderr) = verify(&fixture, args, &run_dir);
+            assert_eq!(code, Some(1), "{mapping} {args:?}: {stderr}");
+            assert_eq!(
+                field(&receipt, &["reason"]).as_str(),
+                Some(reason),
+                "{mapping} {args:?}"
+            );
+        }
+    }
+}
+
 // Narration runs (narrate/, docs/spec/TIMELINE_CONTRACT.md narration amendment): a render that applied no stretch
 // at all still writes `no_time_stretch: false` and the `narration_v1` mapping, and both verifiers refuse it.
 #[cfg(unix)]

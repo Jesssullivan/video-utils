@@ -1,5 +1,5 @@
-"""Mono 16-bit PCM WAV in and out, silence, and the FFmpeg steps: canonical form, atempo, two-pass loudnorm,
-EBU R128 measurement and FLAC.
+"""Mono 16-bit PCM WAV in and out, silence, and the FFmpeg steps: canonical form, atempo, a voice's time stretch,
+two-pass loudnorm, EBU R128 measurement and FLAC.
 
 Chunk audio stays at the engine's native rate. Only a reply that is not mono 16-bit PCM at that rate passes
 through FFmpeg to become so; the conversion is recorded by the caller.
@@ -10,6 +10,7 @@ import io
 import json
 import math
 import re
+import shutil
 import sys
 import wave
 from pathlib import Path
@@ -110,12 +111,68 @@ def atempo(pcm, factor, work):
     return read(target)
 
 
+TEMPO_RANGE = (0.5, 2.0)  # one FFmpeg atempo filter; no chain of filters reaches past it
+PCM_CODECS = {1: "pcm_u8", 2: "pcm_s16le", 3: "pcm_s24le", 4: "pcm_s32le"}
+
+
+def wav_format(path):
+    """(channels, sample width in bytes, rate, frames) of a PCM WAV file. Raises ValueError for anything else."""
+    try:
+        with wave.open(str(path)) as w:
+            if w.getcomptype() != "NONE" or w.getsampwidth() not in PCM_CODECS:
+                raise ValueError(f"{path} is not PCM WAV")
+            return w.getnchannels(), w.getsampwidth(), w.getframerate(), w.getnframes()
+    except (wave.Error, EOFError) as error:
+        raise ValueError(f"{path} is not PCM WAV: {error}") from None
+
+
+def time_stretch(path_in, path_out, factor):
+    """path_in played factor times faster into path_out, pitch kept (one FFmpeg atempo), at the input's sample rate,
+    channels and sample width. A factor of None or 1.0 copies the bytes and calls no FFmpeg. Returns path_out's
+    duration in seconds. Raises ValueError for a factor outside TEMPO_RANGE or an input that is not PCM WAV.
+    Measured on 2 s tones: atempo drops about 9 ms of the input's tail at 0.5 and about 4 ms at 0.9, and about none
+    at 1.1, 1.25 and 2.0."""
+    low, high = TEMPO_RANGE
+    if factor is not None and (
+        isinstance(factor, bool) or not isinstance(factor, (int, float)) or not low <= factor <= high
+    ):
+        raise ValueError(f"tempo {factor!r} is outside {low} to {high}")
+    channels, width, rate, frames = wav_format(path_in)
+    if factor is None or factor == 1.0:
+        if Path(path_in).resolve() != Path(path_out).resolve():
+            shutil.copyfile(path_in, path_out)
+        return frames / rate
+    run(
+        *FF,
+        "-v",
+        "error",
+        "-i",
+        path_in,
+        "-af",
+        f"atempo={factor:.6f}",
+        "-ac",
+        str(channels),
+        "-ar",
+        str(rate),
+        "-c:a",
+        PCM_CODECS[width],
+        "-fflags",
+        "+bitexact",
+        "-flags:a",
+        "+bitexact",
+        path_out,
+    )
+    _, _, out_rate, out_frames = wav_format(path_out)
+    return out_frames / out_rate
+
+
 def loudnorm_json(stderr):
     block = stderr[stderr.rindex("{") : stderr.rindex("}") + 1]
     return json.loads(block)
 
 
-LIMIT_ATTEMPTS = 4
+LIMIT_ATTEMPTS = 8  # each pass lowers the limit by what is still over, and a speech take can need 6
+LRA_MAX = 20.0  # widest LRA target a linear pass may use. A wider take goes dynamic: loudnorm_dynamic
 
 
 def measure_loudnorm(source, chain, lufs, tp, lra):
@@ -123,20 +180,56 @@ def measure_loudnorm(source, chain, lufs, tp, lra):
     return loudnorm_json(run(*FF, "-nostats", "-i", source, "-af", first, "-f", "null", "-").stderr)
 
 
+R128_I = re.compile(r"lavfi\.r128\.I=(-?[0-9.]+)")
+
+
+def integrated_lufs(source, chain=""):
+    """Integrated loudness of source through chain by the meter the loudness gate reads (FFmpeg ebur128), to a
+    thousandth of a LU, or None when it reports no finite value above its -70 LUFS absolute gate.
+
+    loudnorm's own first pass does not agree with that meter on a short take. Its analysis pass buffers 3 s, and
+    on 4 s synthetic takes it reads within 0.05 LU of ebur128 over the take with its last 3 s appended, as if the
+    buffered tail is metered twice. A take whose tail is quieter than its head then reads low, the linear gain
+    lands it loud, and the second pass reads the same input higher (TIN-7879: -24.49 against -23.87 LUFS)."""
+    af = f"{chain}ebur128=metadata=1,ametadata=mode=print:key=lavfi.r128.I"
+    values = R128_I.findall(run(*FF, "-nostats", "-i", source, "-af", af, "-f", "null", "-").stderr)
+    if not values or not -70.0 < float(values[-1]) < 0.0:
+        return None
+    return float(values[-1])
+
+
+def lra_fit(input_lra, lra):
+    """The LRA target for a linear second pass: lra, or the measured range rounded up to the next tenth when it is
+    wider, capped at LRA_MAX."""
+    if input_lra <= lra:
+        return lra
+    return min(LRA_MAX, math.ceil(round(input_lra * 10, 6)) / 10)
+
+
 def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
     """Two-pass FFmpeg loudnorm of source into target at rate, linear. When the one linear gain would carry a
     peak past the ceiling, a limiter (alimiter, latency compensated) first holds the source's peaks to where the
     gain lands them headroom_db under it, as condense's delivery chain does; the source is measured again through
-    it. Returns both passes' measured values and the limiter, if any."""
-    measured = measure_loudnorm(source, "", lufs, tp, lra)
+    it. FFmpeg keeps linear mode only when the measured loudness range fits the LRA target. Linear mode applies one
+    gain and leaves the range as it is, so the second pass raises the target to the measured range, at most LRA_MAX,
+    and never lowers it. The gain, and with it the limiter, follows integrated_lufs, the gate's meter, through the
+    same chain. loudnorm's first pass still gives the peak, range and threshold. Returns both passes' measured
+    values, the metered input loudness the gain used, the LRA target applied and the limiter, if any."""
+
+    def measure(chain):
+        found = measure_loudnorm(source, chain, lufs, tp, lra)
+        metered = integrated_lufs(source, chain)
+        return found, float(found["input_i"]) if metered is None else metered
+
     chain, limiter, limit_db = "", None, None
+    measured, input_i = measure(chain)
     for attempt in range(1, LIMIT_ATTEMPTS + 1):
-        over = float(measured["input_tp"]) + lufs - float(measured["input_i"]) - (tp - 0.1)
+        over = float(measured["input_tp"]) + lufs - input_i - (tp - 0.1)
         if over <= 0:
             break
         # first: the source peak the gain lands headroom_db under the ceiling; then lower it by what is still over
         if limit_db is None:
-            limit_db = tp - headroom_db - (lufs - float(measured["input_i"]))
+            limit_db = tp - headroom_db - (lufs - input_i)
         else:
             limit_db -= over + headroom_db / 2
         level = min(1.0, max(0.0625, 10 ** (limit_db / 20)))
@@ -146,9 +239,10 @@ def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
             "attempts": attempt,
             "reason": "one linear gain would carry a peak over the ceiling",
         }
-        measured = measure_loudnorm(source, chain, lufs, tp, lra)
+        measured, input_i = measure(chain)
+    lra_target = lra_fit(float(measured["input_lra"]), lra)
     second = (
-        f"{chain}loudnorm=I={lufs}:TP={tp}:LRA={lra}:measured_I={measured['input_i']}:"
+        f"{chain}loudnorm=I={lufs}:TP={tp}:LRA={lra_target}:measured_I={input_i}:"
         f"measured_TP={measured['input_tp']}:measured_LRA={measured['input_lra']}:"
         f"measured_thresh={measured['input_thresh']}:offset={measured['target_offset']}:linear=true:"
         "print_format=json"
@@ -178,7 +272,9 @@ def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
     return {
         "first_pass": {k: float(measured[k]) for k in keep},
         "second_pass": {k: float(applied[k]) for k in (*keep, "output_i", "output_tp", "output_lra")},
+        "metered_input_i": input_i,
         "normalization_type": applied.get("normalization_type"),
+        "lra_target": lra_target,
         "limiter": limiter,
     }
 

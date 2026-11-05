@@ -133,4 +133,40 @@ let hostedConsistent =
               )
         ===  True
 
+let audioCppBatchDirectConsistent =
+        assert
+      :     Engine.consistent
+              (     base
+                //  { endpoint = "audiocpp://voxcpm2"
+                    , backend = Engine.Backend.AudioCppBatch
+                    }
+              )
+        ===  True
+
+let audioCppBatchDirectMayRunConfidential =
+        assert
+      :     Engine.mayRunConfidential
+              (base // { backend = Engine.Backend.AudioCppBatch })
+        ===  True
+
+let audioCppBatchBehindSwitchIsInconsistent =
+        assert
+      :     Engine.consistent
+              (     base
+                //  { profile = Engine.Profile.GpuSwitch
+                    , backend = Engine.Backend.AudioCppBatch
+                    }
+              )
+        ===  False
+
+let audioCppBatchBehindMacIsInconsistent =
+        assert
+      :     Engine.consistent
+              (     base
+                //  { profile = Engine.Profile.MacMlx
+                    , backend = Engine.Backend.AudioCppBatch
+                    }
+              )
+        ===  False
+
 in  True

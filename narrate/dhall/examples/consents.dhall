@@ -13,6 +13,7 @@ in    [ { id = "consent-fixture-sine"
         , evidenceSha256 =
             "7564736f7cb7bb107e7eb648370100d2ba2fe46f2223a84cd887ba94f4cfb7a9"
         , syntheticLabelRequired = True
+        , persona = None Text
         }
       ]
     : List Consent.Type

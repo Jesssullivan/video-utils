@@ -18,15 +18,21 @@ LEXICAL = Path(__file__).resolve().parent / "fixtures" / "lexical"
 
 
 @pytest.fixture(autouse=True)
-def hermetic_env(monkeypatch):
+def hermetic_env(monkeypatch, tmp_path):
     """The fixtures name every input. `just` exports WHISPER_MODEL (just/condense.just), and an operator may export
-    the private store, lexical release or engine token; none of them may reach a test."""
+    the private store, lexical release or engine token; none of them may reach a test. Each test has its own
+    one-scorer lock file, so a scorer running on the host never turns a test's SIM into not_measured."""
+    monkeypatch.setenv("NARRATE_SCORER_LOCK", str(tmp_path / "scorer.lock"))
+    monkeypatch.setenv("NARRATE_RUNS_DIR", str(tmp_path / "narrate-runs"))  # GPU run records (serve/finalize.py)
     for name in (
+        "NARRATE_LEASE_HOLDER",
         "WHISPER_MODEL",
         "NARRATE_WHISPER_MODEL",
         "NARRATE_STORE",
         "NARRATE_LEXICAL_DIR",
         "NARRATE_ENGINE_TOKEN",
+        "NARRATE_SIM_MODEL",
+        "NARRATE_SIM_PYTHON",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -55,6 +61,41 @@ def fixture_pin():
     }
 
 
+FIXTURE_UPSTREAM = {
+    "id": "fixture-upstream",
+    "language": "en",
+    "entries": [
+        {
+            "id": "fixture-1",
+            "written": "ABC",
+            "spoken": "A B C",
+            "caseSensitive": True,
+            "wholeWord": True,
+            "note": None,
+        },
+    ],
+}
+
+
+def narration_fixture(directory, table=None):
+    """A synthetic narration-register release in directory and its pin: the fixture lexicon with a public
+    pronunciation table (FIXTURE_UPSTREAM unless table is given), never a vendored private lexical table."""
+    directory = Path(directory)
+    shutil.copytree(LEXICAL, directory, dirs_exist_ok=True)
+    data = json.loads((directory / "estate-lexicon.json").read_text())
+    data["pronunciation"] = copy.deepcopy(table or FIXTURE_UPSTREAM)
+    (directory / "estate-lexicon.json").write_text(json.dumps(data))
+    (directory / "prompt-digest-narration.txt").write_text("# fixture narration-only prompt\n")
+    register = directory / "vale" / "registers" / "narration.ini"
+    register.write_text("BasedOnStyles = FixtureNarration\n")
+    return fixture_pin() | {
+        "valeRegister": "narration",
+        "lexiconSha256": sha((directory / "estate-lexicon.json").read_bytes()),
+        "promptDigestSha256": sha((directory / "prompt-digest-narration.txt").read_bytes()),
+        "valeRegisterSha256": sha(register.read_bytes()),
+    }
+
+
 class Workspace:
     """A narrate.toml with its rendered records, a fixture store and the fixture lexicon, all under one directory.
     Records are the committed examples, edited per test before write()."""
@@ -75,6 +116,12 @@ class Workspace:
         self.pronunciation = load("pronunciation.json")
         self.options = {}
         self.extra = ""
+        self.lexical = LEXICAL
+
+    def use_narration(self, table=None):
+        """Pin a synthetic narration-register release (narration_fixture) instead of the slides fixture."""
+        self.lexical = self.base / "lexical-narration"
+        self.job["lexical"] = narration_fixture(self.lexical, table)
 
     def add_voice(self, voice_id, consent_id=None):
         """A second consented fixture voice bound to the same generated sine and consent evidence."""
@@ -109,7 +156,7 @@ class Workspace:
         toml = (
             f'input = "{path.name}"\njob = "jobs.json"\nengines = "engines.json"\nvoices = "voices.json"\n'
             f'consents = "consents.json"\npronunciation = "pronunciation.json"\nstore = "store"\n'
-            f'lexical = "{LEXICAL}"\nout = "runs"\n'
+            f'lexical = "{self.lexical}"\nout = "runs"\n'
             f'[whisper]\nmodel = "{self.base / "no-such-model.bin"}"\n'
             + (f"[input_options]\n{options}" if options else "")
             + self.extra

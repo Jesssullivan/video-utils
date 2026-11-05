@@ -168,13 +168,13 @@ class S4BToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze ----------------------------------------------------
     def test_first_48_descriptors_frozen_and_nine_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 57)
+        self.assertEqual(len(tools), 61)  # tools[57:] admitted by tests/test_s5_tool_admission.py
         self.assertEqual(digest(tools, 48, False), ADMITTED_48_SHA256)
         self.assertEqual(digest(tools, 48, True), ADMITTED_48_ASCII_SHA256)
         self.assertEqual(digest(tools, 57, False), ADMITTED_57_SHA256)
         self.assertEqual(digest(tools, 57, True), ADMITTED_57_ASCII_SHA256)
-        self.assertEqual([tool['name'] for tool in tools[48:]], list(NEW))
-        self.assertEqual(len({tool['name'] for tool in tools}), 57)
+        self.assertEqual([tool['name'] for tool in tools[48:57]], list(NEW))
+        self.assertEqual(len({tool['name'] for tool in tools}), 61)
 
     def test_revision_1_changed_only_its_declared_fields(self):
         tools = copy.deepcopy(tool_api.descriptors())
@@ -206,8 +206,8 @@ class S4BToolAdmissionTests(unittest.TestCase):
     def test_admitted_descriptors_equal_the_draft(self):
         draft = json.loads((ROOT / 'program/tool-drafts/condense.json').read_text(encoding='utf-8'))['tools']
         tools = tool_api.descriptors()
-        self.assertEqual(tools[48:], draft[2:])
-        for tool in tools[48:]:
+        self.assertEqual(tools[48:57], draft[2:])
+        for tool in tools[48:57]:
             self.assertEqual(list(tool), list(tools[0]))
 
     def test_descriptors_closed_bounded_experimental_and_skills_pinned(self):
@@ -393,9 +393,9 @@ class S4BToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=60)
         self.assertEqual(stderr, '')
         tools = {row['name'] for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 57)
+        self.assertEqual(len(tools), 61)  # 58-61 by tests/test_s5_tool_admission.py
         names = [row['name'] for row in replies[2]['result']['prompts']]
-        self.assertEqual(len(names), 55)
+        self.assertEqual(len(names), 59)
         for offset, name in enumerate(NEW):
             with self.subTest(name=name):
                 self.assertIn(name, tools)

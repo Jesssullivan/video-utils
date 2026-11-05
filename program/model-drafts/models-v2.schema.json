@@ -37,6 +37,7 @@
     "backend": {
       "enum": [
         "VulkanAudioCpp",
+        "AudioCppBatch",
         "QwenTtsCpp",
         "LlamaTts",
         "MlxAudio",

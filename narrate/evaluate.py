@@ -3,24 +3,33 @@
 Metrics: loudness (EBU R128 of narration.wav against the job's target, with render's own pass rule), overruns
 (from the EDL), wer and sim. WER scores the delivered audio: each chunk's out_start_s..out_end_s span is cut from
 narration.wav (after timing fit and loudnorm, as consumers hear it) and read back through condense's whisper path
-when it is available, else not_measured. SIM is not_measured until a speaker-verification model is registered.
-Prints JSON; writes nothing.
+when it is available, else not_measured. SIM scores the same cuts against the speaking voice's reference clip with
+the registered speaker-verification model (narrate/sim.py), plus wSIM over 10 s windows; without the model, the
+worker interpreter or a narrate.toml it is not_measured. --reference-voice scores every chunk against another
+voice's clip instead (a decoy or a cross-voice check). wer and sim run under the host's one-scorer lock
+(narrate.sim.scorer_lock): while another scorer holds it they are not_measured, never queued. Prints JSON; writes
+nothing.
 """
 
 import json
 from pathlib import Path
 
-from . import audio, qa, verify
+from . import audio, qa, sim, verify
+from .normalise import recorded_aliases
 
 METRICS = ("loudness", "overruns", "wer", "sim")
 
 
-def evaluate(run_dir, metrics=METRICS, cfg=None):
+def evaluate(run_dir, metrics=METRICS, cfg=None, reference_voice=None, scorer=None, gates=None):
+    """gates: the job's gates (maxChunkWer, minSim, calibrated) to score against instead of the ones the run's
+    manifest carries, so a caller that holds the job record (the narrated-video voice_qa stage) applies its own."""
     run_dir = Path(run_dir)
     receipt = verify.verify(run_dir)
     if not receipt["ok"]:
         return {"ok": False, "reason": f"the run does not verify: {receipt['reason']}"}
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    if gates is not None:
+        manifest = {**manifest, "job": {**manifest["job"], "gates": gates}}
     post = manifest["job"]["post"]
     out = {"ok": True, "run_id": manifest["run_id"], "metrics": {}}
     if "loudness" in metrics:
@@ -43,6 +52,19 @@ def evaluate(run_dir, metrics=METRICS, cfg=None):
         out["metrics"]["overruns"] = [
             {"segment": s["id"], "overrun_s": s["overrun_s"]} for s in edl["segments"] if "overrun" in s["flags"]
         ]
+    scorers = [m for m in ("wer", "sim") if m in metrics]
+    if scorers:
+        with sim.scorer_lock() as held:
+            if held:
+                out["metrics"] |= scored(run_dir, manifest, scorers, cfg, reference_voice, scorer)
+            else:
+                out["metrics"] |= {m: qa.not_measured(sim.SCORER_BUSY) for m in scorers}
+    return out
+
+
+def scored(run_dir, manifest, metrics, cfg, reference_voice, scorer):
+    """wer and sim: whisper and the SIM worker, run only while the one-scorer lock is held."""
+    out = {"metrics": {}}
     if "wer" in metrics:
         whisper = qa.Whisper(cfg) if cfg is not None else None
         ready = whisper.available() if whisper else (False, "no narrate.toml given (--config)")
@@ -55,7 +77,9 @@ def evaluate(run_dir, metrics=METRICS, cfg=None):
                 a = round(chunk["out_start_s"] * delivered.rate)
                 b = round(chunk["out_end_s"] * delivered.rate)
                 heard = whisper.read(audio.Pcm(delivered.rate, delivered.samples[a:b]))
-                rows.append({"chunk": chunk["id"], "wer": qa.wer(chunk["spoken"], heard)})
+                aliases = recorded_aliases(manifest.get("pronunciation") or {}, chunk["segment"])
+                wer = qa.chunk_wer(chunk["written"], chunk["spoken"], heard, aliases)
+                rows.append({"chunk": chunk["id"], "wer": wer})
             gate = manifest["job"]["gates"]["maxChunkWer"]
             out["metrics"]["wer"] = {
                 "status": "measured",
@@ -63,8 +87,9 @@ def evaluate(run_dir, metrics=METRICS, cfg=None):
                 **whisper.identity(),
                 "chunks": rows,
                 "max_chunk_wer": gate,
+                "normalisation": qa.NORMALISATION,
                 "passed": all(r["wer"] <= gate for r in rows),
             }
     if "sim" in metrics:
-        out["metrics"]["sim"] = qa.sim(cfg) if cfg is not None else qa.not_measured("no narrate.toml given")
-    return out
+        out["metrics"]["sim"] = sim.evaluate(run_dir, manifest, cfg, reference_voice, scorer)
+    return out["metrics"]

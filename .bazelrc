@@ -32,6 +32,10 @@ common --symlink_prefix=.local/bazel/
 # Bounded local execution. There is no remote cache or remote executor here:
 # GloriousFlywheel is reachable only in-cluster and is not required. A machine
 # that has one may add it in the untracked user.bazelrc imported at the end.
+# Local, non-qualifying: no enrolled GloriousFlywheel lane exists. A remote
+# attach from user.bazelrc must fail closed, never fall back to local actions
+# (TIN-5770 R471).
+build --remote_local_fallback=false
 build --jobs=4
 build --disk_cache=~/.cache/bazel-video-utils
 build --show_timestamps

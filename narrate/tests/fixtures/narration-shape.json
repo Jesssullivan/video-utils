@@ -65,6 +65,7 @@
   "stretch_applied",
   "target_dur_s",
   "target_start_s",
-  "voice"
+  "voice",
+  "voice_tempo"
  ]
 }

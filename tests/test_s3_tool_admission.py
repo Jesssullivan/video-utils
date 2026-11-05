@@ -68,13 +68,13 @@ class S3ToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze ----------------------------------------------------
     def test_first_40_descriptors_frozen_and_two_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 57)  # 42 admitted here; tools[42:46] by tests/test_s3g_tool_admission.py, tools[46:48] by tests/test_s4a_tool_admission.py, tools[48:] by tests/test_s4b_tool_admission.py
+        self.assertEqual(len(tools), 61)  # 42 admitted here; tools[42:46] by tests/test_s3g_tool_admission.py, tools[46:48] by tests/test_s4a_tool_admission.py, tools[48:57] by tests/test_s4b_tool_admission.py, tools[57:] by tests/test_s5_tool_admission.py
         self.assertEqual(digest(tools, 40, False), FROZEN_40_SHA256)
         self.assertEqual(digest(tools, 40, True), FROZEN_40_ASCII_SHA256)
         self.assertEqual(digest(tools, 42, False), ADMITTED_42_SHA256)
         self.assertEqual(digest(tools, 42, True), ADMITTED_42_ASCII_SHA256)
         self.assertEqual([tool['name'] for tool in tools[40:42]], list(NEW_F))
-        self.assertEqual(len({tool['name'] for tool in tools}), 57)
+        self.assertEqual(len({tool['name'] for tool in tools}), 61)
         raw = (ROOT / 'program/tools.json').read_text(encoding='utf-8')
         self.assertEqual(json.dumps(json.loads(raw), indent=2) + '\n', raw)
 
@@ -207,6 +207,7 @@ class S3ToolAdmissionTests(unittest.TestCase):
     def test_beat_this_model_is_registered_hash_bound_from_roots_fetch(self):
         registry = json.loads((ROOT / 'program/models.json').read_text(encoding='utf-8'))
         self.assertEqual(sorted(registry['models']), [BEAT_THIS_MODEL_ID, 'ggerganov-whisper-cpp-ggml-small.en',
+                                                     'speechbrain-spkrec-ecapa-voxceleb-embedding',
                                                      'spotify-basic-pitch-0.4.0-onnx'])
         entry = registry['models'][BEAT_THIS_MODEL_ID]
         self.assertEqual(entry['sha256'], BEAT_THIS_SHA256)
@@ -341,9 +342,9 @@ class S3ToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=30)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 57)  # tools[42:46] by tests/test_s3g_tool_admission.py, tools[46:48] by tests/test_s4a_tool_admission.py, tools[48:] by tests/test_s4b_tool_admission.py
+        self.assertEqual(len(tools), 61)  # tools[42:46] by tests/test_s3g_tool_admission.py, tools[46:48] by tests/test_s4a_tool_admission.py, tools[48:57] by tests/test_s4b_tool_admission.py, tools[57:] by tests/test_s5_tool_admission.py
         prompts = {row['name'] for row in replies[2]['result']['prompts']}
-        self.assertEqual(len(prompts), 55)  # timing_calibration_analyze/_apply and timeline_validate/_map each share one prompt
+        self.assertEqual(len(prompts), 59)  # timing_calibration_analyze/_apply and timeline_validate/_map each share one prompt
         for offset, (name, (prompt, annotations, *_rest)) in enumerate(NEW_F.items()):
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)

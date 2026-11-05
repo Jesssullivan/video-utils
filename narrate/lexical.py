@@ -1,6 +1,7 @@
 """The xoxd-lexical pass (docs/spec/NARRATE.md, "Lexical pin contract").
 
-A job pins one release by tag, commit and the digests of its estate-lexicon.json, prompt-digest.txt and Vale
+A job pins one release by tag, commit and the digests of its estate-lexicon.json, its prompt digest
+(prompt-digest-narration.txt for the narration register, prompt-digest.txt for the others) and its Vale
 register file. The release directory (the release's dist/, fetched explicitly and kept outside git) is read by
 path; every pinned file's sha256 must match or the pass refuses. Nothing is fetched.
 
@@ -11,8 +12,10 @@ path; every pinned file's sha256 must match or the pass refuses. Nothing is fetc
 - Vale: when `vale` is on PATH, the register's rules run through it and its findings are recorded. Absent,
   the record says not_run. Vale never blocks.
 - RewriteCheck (XL-ACC-001 and XL-ACC-002): a rewrite of the script (an agent's, after it read
-  prompt-digest.txt) is accepted only when every number, unit, version, link, path, ticket, handle and
-  identifier it speaks is the same, byte for byte and in the same order, as the original's.
+  the prompt digest) is accepted only when every number, unit, version, link, path, ticket, handle and
+  identifier it speaks is the same, byte for byte and in the same order, as the original's. A recognised range or
+  dollar amount the rewrite says in words (amounts.find) counts as kept when the words read back to the original's
+  values: "seventeen to nineteen" keeps "17–19", "eighteen to nineteen" does not.
 """
 
 import json
@@ -26,6 +29,40 @@ from .ir import sha256_file
 
 LEXICON, PROMPT_DIGEST = "estate-lexicon.json", "prompt-digest.txt"
 REWRITE_RULES = ("XL-ACC-001", "XL-ACC-002")
+# The recognised units, shared by the RewriteCheck's protected spans (and so the chunker, which never splits
+# one) and spoken normalisation's quantity guard (narrate/normalise.py). Each unit's first alias is its
+# written symbol; KB is a second symbol for kB. Aliases are explicit, never inferred: 1 ms is not 1 s, nor
+# GiB GB. Symbols are case sensitive; written-out aliases use their conventional lower case.
+UNITS = {
+    "%": ("%", "percent", "per cent"),
+    "ms": ("ms", "millisecond", "milliseconds"),
+    "s": ("s", "second", "seconds"),
+    "min": ("min", "minute", "minutes"),
+    "h": ("h", "hour", "hours"),
+    "Hz": ("Hz", "hertz"),
+    "kHz": ("kHz", "kilohertz"),
+    "MHz": ("MHz", "megahertz"),
+    "GHz": ("GHz", "gigahertz"),
+    "dB": ("dB", "decibel", "decibels"),
+    "dBFS": ("dBFS", "decibels relative to full scale"),
+    "dBTP": ("dBTP", "decibels true peak"),
+    "LUFS": ("LUFS", "loudness units relative to full scale"),
+    "LU": ("LU", "loudness unit", "loudness units"),
+    "fps": ("fps", "frames per second"),
+    "bpm": ("bpm", "beats per minute"),
+    "px": ("px", "pixel", "pixels"),
+    "x": ("x", "times"),
+    "B": ("B", "byte", "bytes"),
+    "kB": ("kB", "KB", "kilobyte", "kilobytes"),
+    "MB": ("MB", "megabyte", "megabytes"),
+    "GB": ("GB", "gigabyte", "gigabytes"),
+    "TB": ("TB", "terabyte", "terabytes"),
+    "KiB": ("KiB", "kibibyte", "kibibytes"),
+    "MiB": ("MiB", "mebibyte", "mebibytes"),
+    "GiB": ("GiB", "gibibyte", "gibibytes"),
+    "TiB": ("TiB", "tebibyte", "tebibytes"),
+}
+_SYMBOLS = sorted([unit for unit in UNITS if unit != "%"] + ["KB"], key=len, reverse=True)
 # Spans a rewrite must keep: links, paths, tickets, handles, versions, identifiers, numbers with their units.
 PROTECTED = re.compile(
     r"""
@@ -35,9 +72,9 @@ PROTECTED = re.compile(
   | (?P<path>(?<![\w.])(?:\.{0,2}/)?(?:[\w.-]+/)+[\w.-]+)
   | (?P<version>\bv?\d+(?:\.\d+){1,3}(?:[-+][\w.]+)?\b)
   | (?P<ident>\b(?:[a-z]+(?:[A-Z][a-z0-9]*)+|[A-Za-z]+_[\w]+|[A-Za-z]*\d+[A-Za-z][\w]*)\b|`[^`]+`)
-  | (?P<number>(?<![\w.])[-+]?\d+(?:[.,]\d+)*
-        (?:\s?(?:%|(?:ms|s|min|h|Hz|kHz|dB|dBTP|dBFS|LUFS|LU|KiB|MiB|GiB|KB|MB|GB|TB|px|fps|x)\b))?)
-    """,
+  | (?P<number>(?<![\w.])[-+\N{MINUS SIGN}]?\d+(?:[.,]\d+)*
+        (?:\s?(?:%|(?:UNITS)\b))?)
+    """.replace("UNITS", "|".join(_SYMBOLS)),
     re.VERBOSE,
 )
 
@@ -62,9 +99,10 @@ class Release:
             )
         self.dir, self.pin = Path(directory), pin
         self.register = pin["valeRegister"]
+        self.prompt_name = "prompt-digest-narration.txt" if self.register == "narration" else PROMPT_DIGEST
         files = {
             "lexicon": (self.dir / LEXICON, pin["lexiconSha256"]),
-            "prompt_digest": (self.dir / PROMPT_DIGEST, pin["promptDigestSha256"]),
+            "prompt_digest": (self.dir / self.prompt_name, pin["promptDigestSha256"]),
             "vale_register": (self.dir / "vale" / "registers" / f"{self.register}.ini", pin["valeRegisterSha256"]),
         }
         self.digests = {}
@@ -84,10 +122,34 @@ class Release:
                 "lexical_digest_mismatch", f"the lexicon says version {version!r}, the job pins {pin['release']}"
             )
         self.vale_register_path = files["vale_register"][0]
+        self.upstream_pronunciation = None
+        if self.register == "narration":
+            table = self.lexicon.get("pronunciation")
+            if not isinstance(table, dict) or not isinstance(table.get("entries"), list) or not table["entries"]:
+                raise LexicalError("lexical_missing", "the narration release has no pronunciation table")
+            if not isinstance(table.get("id"), str) or not table["id"] or not isinstance(table.get("language"), str):
+                raise LexicalError("lexical_invalid", "the narration pronunciation identity is invalid")
+            identities = set()
+            for entry in table["entries"]:
+                if not isinstance(entry, dict):
+                    raise LexicalError("lexical_invalid", "a narration pronunciation entry is invalid")
+                identity = entry.get("id")
+                if not isinstance(identity, str) or not identity or identity in identities:
+                    raise LexicalError("lexical_invalid", "narration pronunciation IDs must be unique")
+                identities.add(identity)
+                for name in ("written", "spoken"):
+                    value = entry.get(name)
+                    if not isinstance(value, str) or not value.strip() or any(ord(c) < 32 for c in value):
+                        raise LexicalError("lexical_invalid", "a narration pronunciation form is invalid")
+                if any(type(entry.get(name)) is not bool for name in ("wholeWord", "caseSensitive")):
+                    raise LexicalError("lexical_invalid", "narration pronunciation flags must be boolean")
+            # The table is already authenticated by lexiconSha256, not a separate
+            # unpinned local copy. The local Dhall overlay runs after this layer.
+            self.upstream_pronunciation = table
 
     def prompt_digest(self):
         """The text an agent reads before it writes or rewrites a script."""
-        return (self.dir / PROMPT_DIGEST).read_text(encoding="utf-8")
+        return (self.dir / self.prompt_name).read_text(encoding="utf-8")
 
     def rules(self):
         return [r for r in self.lexicon.get("rules", []) if self.register in r.get("registers", [])]
@@ -98,6 +160,7 @@ class Release:
             "commit": self.pin["commit"],
             "register": self.register,
             "lexicon_sha256": self.digests["lexicon"],
+            "prompt_digest_file": self.prompt_name,
             "prompt_digest_sha256": self.digests["prompt_digest"],
             "vale_register_sha256": self.digests["vale_register"],
             "rewrite_check": bool(self.pin["rewriteCheck"]),
@@ -178,8 +241,11 @@ def protected_spans(text):
 
 def rewrite_check(before, after):
     """[] when the rewrite keeps every protected span; else one violation per difference (XL-ACC-001 for a span
-    only the rewrite has, XL-ACC-002 for one it changed, dropped or reordered)."""
-    a, b = protected_spans(before), protected_spans(after)
+    only the rewrite has, XL-ACC-002 for one it changed, dropped or reordered). A range or amount the rewrite says
+    in words is first put back as the original's written form when its words read back to the same values."""
+    from .amounts import restore  # amounts reads this module's UNITS
+
+    a, b = protected_spans(before), protected_spans(restore(before, after))
     violations = []
     missing = [s for s in a if s not in b]
     added = [s for s in b if s not in a]

@@ -20,13 +20,13 @@ import datetime
 import hashlib
 import json
 import os
-from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import sys
 import tempfile
 import urllib.parse
 import urllib.request
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCES = Path(__file__).resolve().parent / "sources.json"
@@ -69,13 +69,21 @@ def load_sources(path=SOURCES):
             raise FetchError(f"{sid}: optional must be true or false")
         if source.get("kind") == "git":
             commit, url = source.get("commit"), source.get("url")
-            if not isinstance(commit, str) or not REVISION.fullmatch(commit) or not isinstance(url, str) \
-                    or not url.startswith("https://"):
+            if (
+                not isinstance(commit, str)
+                or not REVISION.fullmatch(commit)
+                or not isinstance(url, str)
+                or not url.startswith("https://")
+            ):
                 raise FetchError(f"{sid}: git sources need an https url and a full commit")
         elif source.get("kind") == "hf":
             repo, revision = source.get("repo"), source.get("revision")
-            if not isinstance(repo, str) or not REPO.fullmatch(repo) or not isinstance(revision, str) \
-                    or not REVISION.fullmatch(revision):
+            if (
+                not isinstance(repo, str)
+                or not REPO.fullmatch(repo)
+                or not isinstance(revision, str)
+                or not REVISION.fullmatch(revision)
+            ):
                 raise FetchError(f"{sid}: hf sources need owner/name and a full revision")
             files = source.get("files")
             if not isinstance(files, list) or not files:
@@ -102,7 +110,9 @@ def load_sources(path=SOURCES):
                 if blob is not None and (not isinstance(blob, str) or not SHA1.fullmatch(blob)):
                     raise FetchError(f"{sid}: {name}: git_blob_sha1 must be 40 lowercase hex characters")
                 if digest is None and blob is None:
-                    raise FetchError(f"{sid}: {name}: needs a declared sha256 or git_blob_sha1; unhashed files are refused")
+                    raise FetchError(
+                        f"{sid}: {name}: needs a declared sha256 or git_blob_sha1; unhashed files are refused"
+                    )
         else:
             raise FetchError(f"{sid}: unknown kind {source.get('kind')!r}")
     return doc
@@ -119,16 +129,26 @@ def checkouts(root=ROOT):
     """Every checkout of this repository: the one running the script, the main work tree and each linked worktree."""
     found = {root}
     try:
-        listed = subprocess.run(["git", "-C", str(root), "worktree", "list", "--porcelain"], capture_output=True,
-                                text=True, timeout=10, check=False)
-        common = subprocess.run(["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
-                                capture_output=True, text=True, timeout=10, check=False)
+        listed = subprocess.run(
+            ["git", "-C", str(root), "worktree", "list", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+        common = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
     except (OSError, subprocess.SubprocessError):
         return found
     if listed.returncode == 0:
         for line in listed.stdout.splitlines():
             if line.startswith("worktree "):
-                found.add(Path(line[len("worktree "):]).resolve())
+                found.add(Path(line[len("worktree ") :]).resolve())
     if common.returncode == 0 and common.stdout.strip():
         found.add(Path(common.stdout.strip()).resolve().parent)
     return found
@@ -158,8 +178,12 @@ def select(doc, only=(), arms=(), include_optional=False):
         matched = [arm for arm in source.get("arms", []) if any(arm.startswith(prefix) for prefix in arms)]
         if arms and not matched:
             continue
-        if source.get("optional") and not include_optional and source["id"] not in only \
-                and not any(arm in optional_arms for arm in matched):
+        if (
+            source.get("optional")
+            and not include_optional
+            and source["id"] not in only
+            and not any(arm in optional_arms for arm in matched)
+        ):
             continue
         chosen.append(source)
     return chosen
@@ -185,9 +209,18 @@ def plan(doc, sources, dest, hub=HUB):
     for source in sources:
         if source["kind"] == "git":
             target = dest / "src" / source["id"]
-            git.append({"id": source["id"], "url": source["url"], "commit": source["commit"], "ref": source.get("ref"),
-                        "commands": [f"git clone --filter=blob:none {source['url']} {target}",
-                                     f"git -C {target} checkout --detach {source['commit']}"]})
+            git.append(
+                {
+                    "id": source["id"],
+                    "url": source["url"],
+                    "commit": source["commit"],
+                    "ref": source.get("ref"),
+                    "commands": [
+                        f"git clone --filter=blob:none {source['url']} {target}",
+                        f"git -C {target} checkout --detach {source['commit']}",
+                    ],
+                }
+            )
             continue
         files = []
         for entry in source["files"]:
@@ -198,19 +231,47 @@ def plan(doc, sources, dest, hub=HUB):
                 state = "missing"
                 missing += entry["bytes"]
             total += entry["bytes"]
-            files.append({"path": entry["path"], "url": file_url(hub, source, entry["path"]), "dest": str(target),
-                          "bytes": entry["bytes"], "sha256_declared": entry["sha256"],
-                          "git_blob_sha1_declared": entry.get("git_blob_sha1"), "state": state})
-        entries.append({"id": source["id"], "repo": source["repo"], "revision": source["revision"],
-                        "licence": source["licence"], "arms": source.get("arms", []),
-                        "optional": bool(source.get("optional")), "files": files})
+            files.append(
+                {
+                    "path": entry["path"],
+                    "url": file_url(hub, source, entry["path"]),
+                    "dest": str(target),
+                    "bytes": entry["bytes"],
+                    "sha256_declared": entry["sha256"],
+                    "git_blob_sha1_declared": entry.get("git_blob_sha1"),
+                    "state": state,
+                }
+            )
+        entries.append(
+            {
+                "id": source["id"],
+                "repo": source["repo"],
+                "revision": source["revision"],
+                "licence": source["licence"],
+                "arms": source.get("arms", []),
+                "optional": bool(source.get("optional")),
+                "files": files,
+            }
+        )
     picked = {source["id"] for source in sources}
     excluded = sorted(s["id"] for s in doc["sources"] if s.get("optional") and s["id"] not in picked)
-    return {"mode": "dry-run", "dest": str(dest), "hub": hub, "recorded": doc.get("recorded"),
-            "hf": entries, "git": git, "optional_excluded": excluded,
-            "totals": {"hf_sources": len(entries), "files": sum(len(e["files"]) for e in entries),
-                       "bytes": total, "bytes_missing": missing, "git_sources": len(git)},
-            "note": "Dry run: nothing was downloaded. Pass --apply to fetch the hf files; git sources are not cloned."}
+    return {
+        "mode": "dry-run",
+        "dest": str(dest),
+        "hub": hub,
+        "recorded": doc.get("recorded"),
+        "hf": entries,
+        "git": git,
+        "optional_excluded": excluded,
+        "totals": {
+            "hf_sources": len(entries),
+            "files": sum(len(e["files"]) for e in entries),
+            "bytes": total,
+            "bytes_missing": missing,
+            "git_sources": len(git),
+        },
+        "note": "Dry run: nothing was downloaded. Pass --apply to fetch the hf files; git sources are not cloned.",
+    }
 
 
 def blob_hasher(size):
@@ -247,9 +308,13 @@ def download(url, target, entry, timeout):
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "video-utils-narrate-fetch/1"}),
-                                    timeout=timeout) as response:
-            if urllib.parse.urlparse(url).scheme == "https" and urllib.parse.urlparse(response.geturl()).scheme != "https":
+        with urllib.request.urlopen(
+            urllib.request.Request(url, headers={"User-Agent": "video-utils-narrate-fetch/1"}), timeout=timeout
+        ) as response:
+            if (
+                urllib.parse.urlparse(url).scheme == "https"
+                and urllib.parse.urlparse(response.geturl()).scheme != "https"
+            ):
                 raise FetchError(f"{url}: redirected away from https")
             with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".partial-", delete=False) as output:
                 temporary = Path(output.name)
@@ -303,7 +368,9 @@ def apply(doc, sources, dest, hub=HUB, timeout=60, sources_path=SOURCES):
                 digest, blob = hash_file(target, entry["bytes"])
                 check = verify(str(target), entry, digest, blob)
                 if name in sums and sums[name] != digest:
-                    raise FetchError(f"{target}: sha256 {digest} differs from the recorded {sums[name]}; remove it to refetch")
+                    raise FetchError(
+                        f"{target}: sha256 {digest} differs from the recorded {sums[name]}; remove it to refetch"
+                    )
                 status = "already_present"
             else:
                 if target.exists():
@@ -313,22 +380,45 @@ def apply(doc, sources, dest, hub=HUB, timeout=60, sources_path=SOURCES):
             sums[name] = digest
             # Written after every file, so a failure later in the source keeps the hashes already measured.
             sums_path.write_text("".join(f"{sums[key]}  {key}\n" for key in sorted(sums)), encoding="utf-8")
-            records.append({"id": source["id"], "repo": source["repo"], "revision": source["revision"], "path": name,
-                            "url": url, "bytes": entry["bytes"], "sha256": digest, "declared_sha256": declared,
-                            "declared_git_blob_sha1": entry.get("git_blob_sha1"), "check": check, "status": status})
-    now = datetime.datetime.now(datetime.timezone.utc)
-    receipt = {"schema_version": 1, "recorded_at": now.isoformat(timespec="seconds"),
-               "sources_sha256": hashlib.sha256(Path(sources_path).read_bytes()).hexdigest(), "hub": hub,
-               "files": records,
-               "git_not_cloned": [{"id": s["id"], "url": s["url"], "commit": s["commit"]} for s in sources if s["kind"] == "git"]}
+            records.append(
+                {
+                    "id": source["id"],
+                    "repo": source["repo"],
+                    "revision": source["revision"],
+                    "path": name,
+                    "url": url,
+                    "bytes": entry["bytes"],
+                    "sha256": digest,
+                    "declared_sha256": declared,
+                    "declared_git_blob_sha1": entry.get("git_blob_sha1"),
+                    "check": check,
+                    "status": status,
+                }
+            )
+    now = datetime.datetime.now(datetime.UTC)
+    receipt = {
+        "schema_version": 1,
+        "recorded_at": now.isoformat(timespec="seconds"),
+        "sources_sha256": hashlib.sha256(Path(sources_path).read_bytes()).hexdigest(),
+        "hub": hub,
+        "files": records,
+        "git_not_cloned": [
+            {"id": s["id"], "url": s["url"], "commit": s["commit"]} for s in sources if s["kind"] == "git"
+        ],
+    }
     # One dated receipt per run is kept; fetch-receipt.json is a copy of the latest.
     history = dest / "receipts" / f"{now.strftime('%Y%m%dT%H%M%S%fZ')}.json"
     history.parent.mkdir(parents=True, exist_ok=True)
     body = json.dumps(receipt, indent=1) + "\n"
     history.write_text(body, encoding="utf-8")
     (dest / "fetch-receipt.json").write_text(body, encoding="utf-8")
-    return {"mode": "apply", "dest": str(dest), "receipt": str(history),
-            "files": len(records), "downloaded": sum(r["status"] == "downloaded" for r in records)}
+    return {
+        "mode": "apply",
+        "dest": str(dest),
+        "receipt": str(history),
+        "files": len(records),
+        "downloaded": sum(r["status"] == "downloaded" for r in records),
+    }
 
 
 def main(argv=None):
@@ -336,9 +426,15 @@ def main(argv=None):
     parser.add_argument("--sources", default=str(SOURCES), help="pinned sources file")
     parser.add_argument("--dest", help=f"private download directory (default ${DEST_ENV}, else {DEFAULT_DEST})")
     parser.add_argument("--only", action="append", default=[], help="source id to include (repeatable)")
-    parser.add_argument("--arm", action="append", default=[], help="arm prefix to include, e.g. A1 or A2-mac (repeatable)")
-    parser.add_argument("--include-optional", action="store_true", help="also include optional sources (Drama 3, fish-speech, WavLM); "
-                        "an --arm naming an optional arm such as D3-rented includes that arm's sources without it")
+    parser.add_argument(
+        "--arm", action="append", default=[], help="arm prefix to include, e.g. A1 or A2-mac (repeatable)"
+    )
+    parser.add_argument(
+        "--include-optional",
+        action="store_true",
+        help="also include optional sources (Drama 3, fish-speech, WavLM); "
+        "an --arm naming an optional arm such as D3-rented includes that arm's sources without it",
+    )
     parser.add_argument("--apply", action="store_true", help="download and record sha256 values (default: dry run)")
     parser.add_argument("--hub-base", default=HUB, help=argparse.SUPPRESS)
     parser.add_argument("--allow-file-hub", action="store_true", help=argparse.SUPPRESS)

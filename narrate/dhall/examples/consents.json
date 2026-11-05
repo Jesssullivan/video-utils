@@ -5,6 +5,7 @@
     "grantedBy": "fixture",
     "hostedAllowed": false,
     "id": "consent-fixture-sine",
+    "persona": null,
     "revocable": true,
     "revokedAt": null,
     "scopes": [

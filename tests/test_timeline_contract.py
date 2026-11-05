@@ -13,6 +13,11 @@ The narration manifest is built from narrate/tests/fixtures/narration-timeline.j
 which narrate/tests/test_contract_shape.py checks against a real zero-stretch render of narrate/render.py: a
 renamed key or a dropped no_time_stretch there fails that test, and this matrix reads the same fixtures.
 
+The NarratedVideo* classes run the matrix a third time, once per narrated-video mapping (`narrated_video_v1`,
+`avatar_overlay_v1` and `music_bed_v1`, TIMELINE_CONTRACT.md's narrated-video amendment), with an `nv_stage`
+manifest whose timeline is narrate/tests/fixtures/narrated-video/<mapping>.json. The stages that write those
+manifests land in later lanes; the fixtures fix the shape they must write.
+
 Each case asserts a refusal (an exception, a `False` shape test, a rejected lineage or a rejected evidence
 row) and that the run directory holds the same files afterwards. phrase_anchor records the mapping instead
 of refusing; it must record `no_time_stretch_verified: false`.
@@ -50,6 +55,9 @@ import web_jobs  # noqa: E402
 NARRATE_FIXTURES = ROOT / "narrate" / "tests" / "fixtures"
 NARRATION_TIMELINE = json.loads((NARRATE_FIXTURES / "narration-timeline.json").read_text())
 NARRATION_SHAPE = json.loads((NARRATE_FIXTURES / "narration-shape.json").read_text())
+NV_MAPPINGS = ("narrated_video_v1", "avatar_overlay_v1", "music_bed_v1")
+NV_TIMELINES = {m: json.loads((NARRATE_FIXTURES / "narrated-video" / f"{m}.json").read_text()) for m in NV_MAPPINGS}
+NV_STAGES = {"narrated_video_v1": "place", "avatar_overlay_v1": "avatar", "music_bed_v1": "music"}
 PCM = {"sample_rate": 48000, "channels": 1, "sample_count": 48000, "codec": "pcm_s16le"}
 EDL_SHA = "e" * 64
 
@@ -90,6 +98,22 @@ def narration_manifest(run_dir: Path, outputs: dict) -> dict:
             "input": {"kind": "Markdown", "sha256": "a" * 64, "ir_file": "ir.json", "ir_sha256": "d" * 64},
             "output_sha256": {"narration.edl.json": EDL_SHA, **outputs}, "timeline": narration_timeline(),
             "flags": []}
+
+
+def nv_timeline_for(mapping):
+    """A narrated-video stage timeline (narrate/tests/fixtures/narrated-video/<mapping>.json)."""
+    def timeline(**extra):
+        return {**json.loads(json.dumps(NV_TIMELINES[mapping]).replace("0" * 64, EDL_SHA)), **extra}
+    return timeline
+
+
+def nv_manifest_for(mapping):
+    """The narrated-video amendment's stage manifest: kind nv_stage, synthetic, no top-level source or pcm."""
+    def manifest(run_dir: Path, outputs: dict) -> dict:
+        return {"schema_version": 1, "kind": "nv_stage", "stage": NV_STAGES[mapping], "segment": None,
+                "status": "rendered_unreviewed", "synthetic": True, "run_id": run_dir.name, "run_dir": str(run_dir),
+                "output_sha256": {"stage.json": EDL_SHA, **outputs}, "timeline": nv_timeline_for(mapping)()}
+    return manifest
 
 
 def hybrid_manifest(run_dir: Path, source_sha: str, outputs: dict, timeline=condense_timeline, **extra) -> dict:
@@ -360,6 +384,34 @@ class NarrationManifestConsumers(NarrationRow, ManifestConsumers):
 
 class NarrationCaptureConsumers(NarrationRow, CaptureConsumers):
     pass
+
+
+# One row per narrated-video mapping, over each consumer group: NarratedVideo_<mapping>_<group>.
+for _mapping in NV_MAPPINGS:
+    for _group in (RunDirConsumers, ManifestConsumers, CaptureConsumers):
+        _name = f"NarratedVideo_{_mapping}_{_group.__name__}"
+        globals()[_name] = type(_name, (_group,), {"foreign_manifest": staticmethod(nv_manifest_for(_mapping)),
+                                                   "foreign_timeline": staticmethod(nv_timeline_for(_mapping))})
+del _mapping, _group, _name
+
+
+class NarratedVideoManifestShape(unittest.TestCase):
+    def test_every_mapping_says_no_time_stretch_false_and_is_never_identity(self):
+        for mapping in NV_MAPPINGS:
+            manifest = nv_manifest_for(mapping)(Path("/run"), {})
+            self.assertEqual(manifest["timeline"]["mapping"], mapping)
+            self.assertIs(manifest["timeline"]["no_time_stretch"], False)
+            self.assertIn("stretch_applied", manifest["timeline"])
+            self.assertTrue(manifest["timeline"]["output_axis"] and manifest["timeline"]["source_axis"])
+            self.assertEqual((manifest["kind"], manifest["synthetic"]), ("nv_stage", True))
+            self.assertNotIn("source", manifest)
+            self.assertNotIn("pcm", manifest)
+
+    def test_the_mappings_are_new_names(self):
+        self.assertEqual(len(set(NV_MAPPINGS)), 3)
+        self.assertTrue(set(NV_MAPPINGS).isdisjoint({"identity", "edl_v1", "narration_v1"}))
+        rows = [name for name in globals() if name.startswith("NarratedVideo_")]
+        self.assertEqual(len(rows), 9)
 
 
 class NarrationManifestShape(unittest.TestCase):

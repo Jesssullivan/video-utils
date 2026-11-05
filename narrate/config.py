@@ -38,13 +38,20 @@ ENGINE = {
     "timeout_s": 300.0,  # one /v1/audio/speech request
     "max_reply_bytes": 256 << 20,
     "ref_audio": "data_uri",  # how ref_audio travels: data_uri (base64 WAV) or omit
+    # AudioCppBatch engines (narrate/prerender.py): ultimate (reference as voice_ref and prompt audio, with its
+    # transcript) or reference (voice_ref alone)
+    "audiocpp_clone": "ultimate",
 }
 WHISPER = {
     "model": "models/ggerganov-whisper-cpp-ggml-small.en.bin",  # relative to the repository root
     "language": "en",
     "threads": 4,
 }
-SIM = {"model": ""}  # a registered speaker-verification model; empty: SIM is not_measured
+# The registered speaker-verification model (embedding_model.ckpt) and the interpreter with torch and speechbrain
+# that runs narrate/sim_worker.py (narrate/sim.py); empty: NARRATE_SIM_MODEL / NARRATE_SIM_PYTHON, else not_measured.
+# There is no default interpreter: torch starts only when one is named (on the shared CPU host, inside a 6G scope).
+SIM = {"model": "", "python": "", "threads": 4}
+SIM_MAX_THREADS = 8
 
 
 class ConfigError(ValueError):
@@ -98,6 +105,12 @@ class Config:
         self.whisper_model = Path(model) if Path(model).is_absolute() else ROOT / model
         if not 1.0 <= float(self.fit["speed_max"]) <= 2.0:
             raise ConfigError("config_invalid", f"fit.speed_max = {self.fit['speed_max']!r}: from 1.0 to 2.0")
+        threads = self.sim["threads"]
+        if isinstance(threads, bool) or not isinstance(threads, int) or not 1 <= threads <= SIM_MAX_THREADS:
+            raise ConfigError("config_invalid", f"sim.threads = {threads!r}: an integer from 1 to {SIM_MAX_THREADS}")
+        for key in ("model", "python"):
+            if not isinstance(self.sim[key], str):
+                raise ConfigError("config_invalid", f"sim.{key} = {self.sim[key]!r}: a path string")
         if self.engine_opts["ref_audio"] not in ("data_uri", "omit"):
             raise ConfigError(
                 "config_invalid", f"engine.ref_audio = {self.engine_opts['ref_audio']!r}: data_uri or omit"

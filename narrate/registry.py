@@ -11,6 +11,9 @@ needs a consent record (its evidence also in the store) before any job can use t
 """
 
 import shutil
+import socket
+import time
+import urllib.parse
 import wave
 from pathlib import Path
 
@@ -59,7 +62,30 @@ def voices(cfg):
     return out
 
 
-def engines(cfg, profile=None):
+REACH_TIMEOUT_S = 2.0
+
+
+def reach(eng, timeout=REACH_TIMEOUT_S):
+    """Whether the engine's host accepts a TCP connection: no request, no token, no synthesis. Fake engines are
+    in process. The endpoint itself is never returned."""
+    if eng["backend"] == "Fake":
+        return {"reachable": True, "how": "in process"}
+    if eng["backend"] == engine.AUDIOCPP_BATCH:
+        return {"reachable": False, "how": "out of process: no endpoint to reach"}
+    parts = urllib.parse.urlsplit(eng.get("endpoint") or "")
+    if parts.scheme not in ("http", "https") or not parts.hostname:
+        return {"reachable": False, "how": "no http(s) endpoint"}
+    port = parts.port or (443 if parts.scheme == "https" else 80)
+    started = time.monotonic()
+    try:
+        with socket.create_connection((parts.hostname, port), timeout=timeout):
+            pass
+    except OSError as error:
+        return {"reachable": False, "how": f"tcp connect: {type(error).__name__}"}
+    return {"reachable": True, "how": "tcp connect", "connect_ms": round(1000 * (time.monotonic() - started), 1)}
+
+
+def engines(cfg, profile=None, probe_reach=False):
     out = []
     for eng in sorted(cfg.registry()["engines"].values(), key=lambda e: e["id"]):
         if profile and eng["profile"] != profile:
@@ -76,6 +102,7 @@ def engines(cfg, profile=None):
                 "licence": eng["licence"],
                 "licence_notice": eng.get("licenceNotice"),
                 **engine.probe(eng),
+                **({"reach": reach(eng)} if probe_reach else {}),
             }
         )
     return out
@@ -130,4 +157,5 @@ def add_voice(cfg, clip, transcript, voice_id, consent_id, scope="OwnContent", e
         "refClipSeconds": round(seconds, 3),
         "refClipSampleRateHz": rate,
         "fixture": False,
+        "tempo": None,
     }

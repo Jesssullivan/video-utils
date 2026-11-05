@@ -1,8 +1,14 @@
 -- A synthesis engine: one model on one serving path (docs/spec/NARRATE.md, "Engine profiles").
 -- Real engine instances carry private endpoints and live outside git; this repository holds the type,
 -- the fake test engine and the policy below.
+--
+-- AudioCppBatch is audio.cpp's audiocpp_cli run out of process as a request batch (it has no server at the
+-- pinned commit): `narrate plan` writes the requests, the GPU window runs them, and `narrate render
+-- --prerendered` reads the takes by request id (narrate/prerender.py). Its endpoint is audiocpp://<family>,
+-- and its files pin the binary and the weights by sha256. Only the attended-window profile GpuDirect admits it.
 let Backend =
       < VulkanAudioCpp
+      | AudioCppBatch
       | QwenTtsCpp
       | LlamaTts
       | MlxAudio
@@ -49,6 +55,7 @@ let backendIsRented =
       \(e : T) ->
         merge
           { VulkanAudioCpp = False
+          , AudioCppBatch = False
           , QwenTtsCpp = False
           , LlamaTts = False
           , MlxAudio = False
@@ -74,6 +81,7 @@ let backendIsHosted =
       \(e : T) ->
         merge
           { VulkanAudioCpp = False
+          , AudioCppBatch = False
           , QwenTtsCpp = False
           , LlamaTts = False
           , MlxAudio = False
@@ -92,6 +100,7 @@ let backendFitsProfile =
         let local =
               merge
                 { VulkanAudioCpp = True
+                , AudioCppBatch = False
                 , QwenTtsCpp = True
                 , LlamaTts = True
                 , MlxAudio = False
@@ -104,6 +113,7 @@ let backendFitsProfile =
         let mlx =
               merge
                 { VulkanAudioCpp = False
+                , AudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = True
@@ -116,6 +126,7 @@ let backendFitsProfile =
         let fake =
               merge
                 { VulkanAudioCpp = False
+                , AudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = False
@@ -125,9 +136,22 @@ let backendFitsProfile =
                 }
                 e.backend
 
+        let batch =
+              merge
+                { VulkanAudioCpp = False
+                , AudioCppBatch = True
+                , QwenTtsCpp = False
+                , LlamaTts = False
+                , MlxAudio = False
+                , RentedOpen = False
+                , Hosted = False
+                , Fake = False
+                }
+                e.backend
+
         in  merge
               { GpuSwitch = local
-              , GpuDirect = local
+              , GpuDirect = local || batch
               , MacMlx = mlx
               , RentedOpen = backendIsRented e
               , Hosted = backendIsHosted e

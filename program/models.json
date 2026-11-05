@@ -30,6 +30,17 @@
       "download_timeout_seconds": 1800,
       "consumer": "condense transcribe (talk condensing); never a guitar default",
       "gate_state": "registered_hash_bound_runtime_not_qualified"
+    },
+    "speechbrain-spkrec-ecapa-voxceleb-embedding": {
+      "url": "https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb/resolve/0f99f2d0ebe89ac095bcc5903c4dd8f72b367286/embedding_model.ckpt",
+      "sha256": "0575cb64845e6b9a10db9bcb74d5ac32b326b8dc90352671d345e2ee3d0126a2",
+      "max_bytes": 83316686,
+      "format": "pytorch state_dict for speechbrain ECAPA_TDNN (torch.load weights_only=True, strict keys)",
+      "license": "Apache-2.0 (model card front matter at the pinned revision); VoxCeleb training-data terms are distinct",
+      "source_commit": "0f99f2d0ebe89ac095bcc5903c4dd8f72b367286",
+      "hyperparams_sha256": "6f78854fa04ba59e761437b76a2575d3aba5e5016de3e9b69f0c9a5077fb1a41",
+      "consumer": "narrate evaluate SIM (speaker similarity of synthetic narration against a consented reference clip); never a guitar default",
+      "gate_state": "registered_hash_bound_cpu_inference_run_gate_uncalibrated"
     }
   }
 }

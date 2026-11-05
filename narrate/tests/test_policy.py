@@ -10,7 +10,7 @@ from narrate.config import Config
 from narrate.policy import Refused
 
 PROFILES = ["GpuSwitch", "GpuDirect", "MacMlx", "RentedOpen", "Hosted", "Fake"]
-BACKENDS = ["VulkanAudioCpp", "QwenTtsCpp", "LlamaTts", "MlxAudio", "RentedOpen", "Hosted", "Fake"]
+BACKENDS = ["VulkanAudioCpp", "AudioCppBatch", "QwenTtsCpp", "LlamaTts", "MlxAudio", "RentedOpen", "Hosted", "Fake"]
 
 
 def test_engine_predicates_match_the_dhall_port_on_the_whole_truth_table():
@@ -73,6 +73,13 @@ def test_voice_scope_differs_from_the_job(workspace):
     workspace.consents[0]["scopes"] = ["OwnContent", "ClientDisclosed"]
     workspace.voices[0]["scope"] = "ClientDisclosed"
     refused(workspace, "consent_scope")
+
+
+def test_a_likeness_consent_never_grants_a_voice(workspace):
+    workspace.consents[0]["scopes"] = ["OwnContent", "Likeness"]
+    workspace.voices[0]["scope"] = workspace.job["scope"] = "Likeness"
+    caught = refused(workspace, "consent_scope")
+    assert "Likeness" in caught.detail
 
 
 def test_ref_clip_digest_must_match_a_stored_clip(workspace):

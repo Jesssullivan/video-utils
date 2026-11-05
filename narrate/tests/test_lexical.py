@@ -1,9 +1,10 @@
 """The pinned lexical release (fixture lexicon), advisory findings, Vale's absence and the RewriteCheck."""
 
+import json
 import shutil
 
 import pytest
-from conftest import LEXICAL, fixture_pin
+from conftest import LEXICAL, fixture_pin, narration_fixture, sha
 
 from narrate import lexical
 from narrate.ir import Script, Segment
@@ -105,3 +106,136 @@ def test_check_rewrite_on_scripts():
     assert caught.value.code == "rewrite_refused" and "p2" in caught.value.detail
     with pytest.raises(LexicalError, match="segment ids"):
         lexical.check_rewrite(original, Script(kind="PlainText", segments=segs("We ship 3 tools.")))
+
+
+def narration_release(tmp_path, table=None):
+    """Synthetic public fixture, never a vendored private lexical table."""
+    return lexical.Release(tmp_path, narration_fixture(tmp_path, table))
+
+
+def test_narration_uses_its_own_pinned_prompt_and_authenticated_table(tmp_path):
+    release = narration_release(tmp_path)
+    assert release.prompt_digest() == "# fixture narration-only prompt\n"
+    assert release.upstream_pronunciation["entries"][0]["id"] == "fixture-1"
+    assert lexical.Release(LEXICAL, fixture_pin()).upstream_pronunciation is None
+    (tmp_path / "prompt-digest-narration.txt").unlink()
+    with pytest.raises(LexicalError, match="lexical_missing"):
+        lexical.Release(tmp_path, release.pin)
+
+
+@pytest.mark.parametrize("change", ["missing", "empty", "duplicate", "flags", "blank-form"])
+def test_narration_refuses_missing_or_malformed_authenticated_pronunciation(tmp_path, change):
+    release = narration_release(tmp_path)
+    path = tmp_path / "estate-lexicon.json"
+    data = json.loads(path.read_text())
+    if change == "missing":
+        data.pop("pronunciation")
+    elif change == "empty":
+        data["pronunciation"]["entries"] = []
+    elif change == "duplicate":
+        data["pronunciation"]["entries"] *= 2
+    elif change == "flags":
+        data["pronunciation"]["entries"][0]["wholeWord"] = "yes"
+    else:
+        data["pronunciation"]["entries"][0]["spoken"] = " "
+    path.write_text(json.dumps(data))
+    with pytest.raises(LexicalError):
+        lexical.Release(tmp_path, release.pin | {"lexiconSha256": sha(path.read_bytes())})
+
+
+def test_narration_shared_layer_precedes_local_and_records_each_layer(tmp_path):
+    from narrate.normalise import Normaliser
+
+    release = narration_release(tmp_path)
+    local = {
+        "id": "fixture-local",
+        "language": "en",
+        "entries": [
+            {"written": "A B C", "spoken": "local letters", "caseSensitive": True, "wholeWord": True, "note": None},
+        ],
+    }
+    normaliser = Normaliser(local, upstream=release.upstream_pronunciation)
+    assert normaliser.say("ABC 24000 Hz", "p1", record=False) == "local letters 24000 Hz"
+    assert normaliser.record()["substitutions"] == []
+    assert normaliser.record()["upstream"]["substitutions"] == []
+    assert normaliser.say("ABC 24000 Hz", "p1") == "local letters 24000 Hz"
+    record = normaliser.record()
+    assert record["table"] == "fixture-local"
+    assert record["upstream"]["table"] == "fixture-upstream"
+    assert record["upstream"]["substitutions"][0]["written"] == "ABC"
+    assert record["substitutions"][0]["written"] == "A B C"
+
+
+def entry(written, spoken, case=True, whole=True, ident=None):
+    return {"id": ident or written, "written": written, "spoken": spoken, "caseSensitive": case, "wholeWord": whole}
+
+
+def test_longer_written_forms_apply_first_in_each_layer():
+    """An overlapping prefix: the shorter entry must not consume the start of the longer one."""
+    from narrate.normalise import Normaliser
+
+    entries = [entry("xy", "ex why"), entry("xy-lexical", "ex why lexical")]
+    upstream = {"id": "fixture-upstream", "language": "en", "entries": entries}
+    local = {
+        "id": "fixture-local",
+        "language": "en",
+        "entries": [entry("zq", "zed queue"), entry("zq-tool", "the tool")],
+    }
+    for order in (entries, entries[::-1]):
+        normaliser = Normaliser(local, upstream=upstream | {"entries": order})
+        assert normaliser.say("xy-lexical and xy, zq-tool and zq", "p1") == (
+            "ex why lexical and ex why, the tool and zed queue"
+        )
+
+
+def test_case_sensitive_entries_match_case_and_insensitive_entries_do_not():
+    from narrate.normalise import Normaliser
+
+    upstream = {
+        "id": "fixture-upstream",
+        "language": "en",
+        "entries": [entry("xy", "ex why", case=False), entry("SSOT", "S S O T", case=True)],
+    }
+    normaliser = Normaliser({"id": "fixture-local", "language": "en", "entries": []}, upstream=upstream)
+    assert normaliser.say("XY, Xy and xy; SSOT not ssot", "p1") == "ex why, ex why and ex why; S S O T not ssot"
+
+
+def test_a_local_entry_overrides_the_upstream_entry_with_its_written_form():
+    from narrate.normalise import Normaliser
+
+    upstream = {
+        "id": "fixture-upstream",
+        "language": "en",
+        "entries": [entry("SSOT", "S S O T", ident="fixture-ssot"), entry("ABC", "A B C", ident="fixture-abc")],
+    }
+    local = {"id": "fixture-local", "language": "en", "entries": [entry("ssot", "single source of truth", case=False)]}
+    normaliser = Normaliser(local, upstream=upstream)
+    assert normaliser.say("The SSOT and ABC.", "p1") == "The single source of truth and A B C."
+    record = normaliser.record()
+    assert record["upstream"]["overridden_by_local"] == ["fixture-ssot"]
+    assert [s["written"] for s in record["upstream"]["substitutions"]] == ["ABC"]
+    assert [s["written"] for s in record["substitutions"]] == ["ssot"]
+    assert (
+        Normaliser(local, upstream=upstream | {"entries": upstream["entries"][1:]}).record()["upstream"][
+            "overridden_by_local"
+        ]
+        == []
+    )
+
+
+def test_aliases_map_a_transcript_back_through_both_layers():
+    from narrate import qa
+    from narrate.normalise import Normaliser, recorded_aliases
+
+    upstream = {"id": "fixture-upstream", "language": "en", "entries": [entry("ABC", "A B C")]}
+    local = {"id": "fixture-local", "language": "en", "entries": [entry("A B C", "local letters")]}
+    normaliser = Normaliser(local, upstream=upstream)
+    text = "The ABC tool."
+    spoken = normaliser.say(text, "p1")
+    assert spoken == "The local letters tool."
+    aliases = normaliser.aliases(text, "p1")
+    assert aliases == [("local letters", "A B C"), ("A B C", "ABC")]
+    assert recorded_aliases(normaliser.record(), "p1") == aliases
+    assert recorded_aliases(normaliser.record(), "p2") == []
+    for heard in ("The ABC tool.", "the local letters tool", "The A B C tool"):
+        assert qa.chunk_wer(text, spoken, heard, aliases) == 0.0

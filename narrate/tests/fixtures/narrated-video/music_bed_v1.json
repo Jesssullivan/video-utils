@@ -1,0 +1,19 @@
+{
+ "layers": [
+  {
+   "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+   "tempo_factor": 1.0
+  },
+  {
+   "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+   "tempo_factor": 1.0
+  }
+ ],
+ "mapping": "music_bed_v1",
+ "no_time_stretch": false,
+ "output_axis": "bed sample index / sample_rate; mix places sample 0 at the base clock's start",
+ "sample_rate": 48000,
+ "source_axis": "none: loops are arranged into a new bed; a layer's tempo_factor may change its tempo, and stretch_applied says whether any did",
+ "stretch_applied": false,
+ "total_samples": 480000
+}

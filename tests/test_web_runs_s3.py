@@ -974,12 +974,12 @@ class Capabilities(ApiCase):
         caps = self.get_json('/api/v1/capabilities')
         names = [tool['name'] for tool in caps['tools']]
         self.assertEqual(names, [tool['name'] for tool in registry['tools']])
-        self.assertEqual(caps['tool_count'], 57)
+        self.assertEqual(caps['tool_count'], 61)
         with_capability = [tool for tool in caps['tools'] if tool['capability'] is not None]
         without = [tool for tool in caps['tools'] if tool['capability'] is None]
         self.assertEqual(sorted(tool['name'] for tool in with_capability), sorted(pilot))
         self.assertEqual(len(with_capability), 8)
-        self.assertEqual(len(without), 49)
+        self.assertEqual(len(without), 53)
         self.assertTrue(all(tool['capability_reason'] == 'capability pilot covers 8 tools' for tool in without))
         unmapped = [tool['name'] for tool in caps['tools'] if tool['area'] == 'unmapped']
         self.assertEqual(unmapped, [])
@@ -987,9 +987,10 @@ class Capabilities(ApiCase):
             self.assertEqual(tool['area_basis'], 'program/capabilities.json domain')
             self.assertIn('network', tool['capability']['effects'])
             self.assertIn('timeout_seconds', tool['capability']['resources'])
-        self.assertEqual(len(caps['models']), 3)
+        self.assertEqual(len(caps['models']), 4)
         by_id = {model['model_id']: model for model in caps['models']}
         self.assertEqual(sorted(by_id), ['cpjku-beat-this-final0', 'ggerganov-whisper-cpp-ggml-small.en',
+                                         'speechbrain-spkrec-ecapa-voxceleb-embedding',
                                          'spotify-basic-pitch-0.4.0-onnx'])
         model = by_id['spotify-basic-pitch-0.4.0-onnx']
         self.assertEqual((model['local_presence'], model['url_host'], model['registration']),

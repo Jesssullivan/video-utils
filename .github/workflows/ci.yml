@@ -50,6 +50,9 @@ jobs:
       # lexical release or network in CI; WER and SIM record not_measured.
       - name: Narration lint and tests
         run: nix develop --no-write-lock-file .#condense --command just narrate-lint narrate-test narrate-dhall-check
+      # The narration tools end to end through tool_api and the MCP server: the fake engine, FFmpeg, no model.
+      - name: Narration tool admission
+        run: nix develop --no-write-lock-file .#condense --command bash -c 'cd tests && python3 -m unittest -v test_s5_tool_admission'
   web:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

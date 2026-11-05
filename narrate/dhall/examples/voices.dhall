@@ -14,6 +14,7 @@ in    [ { id = "voice-fixture-sine"
             "5987c41d1d7c41f66a5d0ae2a044b76accf8f7c5877a3f593223ac6b43f5712b"
         , allowedEngines = [ "fake-sine" ]
         , fixture = True
+        , tempo = None Double
         }
       ]
     : List Voice.Type

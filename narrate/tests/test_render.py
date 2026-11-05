@@ -9,7 +9,7 @@ import pytest
 from conftest import PACKAGE, SLIDE, dhall_check
 from test_adapters import EDL, WORDS
 
-from narrate import audio, evaluate, registry, render, verify
+from narrate import audio, evaluate, qa, registry, render, verify
 from narrate.__main__ import main
 from narrate.config import Config
 from narrate.lexical import LexicalError
@@ -38,6 +38,7 @@ def test_markdown_render_verifies_and_records_everything(workspace):
             "consent_id": "consent-fixture-sine",
             "scope": "OwnContent",
             "fixture": True,
+            "tempo": 1.0,
             "synthetic_label_required": True,
             "hosted_allowed": False,
         }
@@ -48,6 +49,7 @@ def test_markdown_render_verifies_and_records_everything(workspace):
     assert "8 percent" in spoken and "M C P" in spoken
     assert {c["qa"]["status"] for c in manifest["chunks"]} == {"not_measured"}
     assert manifest["qa"]["wer"]["available"] is False
+    assert manifest["qa"]["wer"]["normalisation"] == qa.NORMALISATION
     loud = manifest["loudness"]
     assert loud["passed"] and abs(loud["measured"]["integrated_lufs"] + 16) <= 0.5
     assert loud["measured"]["true_peak_dbtp"] <= -1.0
@@ -64,8 +66,13 @@ def test_markdown_render_verifies_and_records_everything(workspace):
     } <= files
     assert all(c["file"] in files for c in manifest["chunks"])
     srt = (final / "narration.srt").read_text()
-    assert srt.startswith("1\n00:00:00,") and "[Synthetic voice] Narrate reads" in srt and "8%" in srt
-    assert (final / "narration.vtt").read_text().startswith("WEBVTT\n\nNOTE This narration is a synthetic voice.")
+    # KP-15: no visible synthetic label in the captions; the manifest keeps the labels.
+    assert srt.startswith("1\n00:00:00,") and "\nNarrate reads" in srt and "8%" in srt
+    assert "[Synthetic voice]" not in srt
+    vtt = (final / "narration.vtt").read_text()
+    assert vtt.startswith("WEBVTT\n\n00:00:00.") and "NOTE" not in vtt and "synthetic" not in vtt.lower()
+    assert manifest["synthetic"] is True and all(v["consent_id"] for v in manifest["voices"])
+    assert manifest["captions"]["synthetic_notice"] is False
     edl = json.loads((final / "narration.edl.json").read_text())
     (segment,) = edl["segments"]
     assert segment["target_dur_s"] == 30.0 and segment["padded_s"] > 0 and segment["flags"] == []
@@ -215,6 +222,34 @@ def test_a_chunk_that_never_passes_is_flagged(workspace):
     assert manifest["chunks"][0]["qa"]["status"] == "failed" and "qa_failed" in manifest["flags"]
 
 
+@pytest.mark.parametrize(
+    "heard",
+    [
+        "The ABC tool lists every MCP voice.",
+        "the A B C tool lists every M C P voice",
+        "The ABC tool lists every M C P voice",
+    ],
+)
+def test_narration_register_renders_with_the_upstream_layer_and_verifies(workspace, heard):
+    """The narration pin end to end: the synthetic upstream table, the local overlay, the WER gate scoring a
+    transcript that writes either form, the manifest's layered record and verify over it."""
+    workspace.use_narration()
+    workspace.job["gates"]["maxChunkWer"] = 0.0
+    cfg = Config(workspace.write("The ABC tool lists every MCP voice.\n", "PlainText"))
+    final, manifest = render.render(cfg, transcriber=lambda pcm, text: heard)
+    assert verify.verify(final)["ok"]
+    (chunk,) = manifest["chunks"]
+    assert chunk["spoken"] == "The A B C tool lists every M C P voice."
+    assert (chunk["qa"]["status"], chunk["qa"]["kept_take"]) == ("passed", 1)
+    assert manifest["lexical"]["register"] == "narration"
+    assert manifest["lexical"]["prompt_digest_file"] == "prompt-digest-narration.txt"
+    upstream = manifest["pronunciation"]["upstream"]
+    assert upstream["table"] == "fixture-upstream" and upstream["overridden_by_local"] == []
+    assert [(s["written"], s["count"]) for s in upstream["substitutions"]] == [("ABC", 1)]
+    assert [s["written"] for s in manifest["pronunciation"]["substitutions"]] == ["MCP"]
+    assert "qa_failed" not in manifest["flags"]
+
+
 def test_rewrite_check_gates_an_agent_rewrite(workspace):
     cfg = Config(workspace.write("We ship 3 tools in 2026.\n", "PlainText"))
     bad = workspace.base / "bad.txt"
@@ -281,6 +316,20 @@ def test_cli_render_verify_voices_engines_and_refusal(workspace, capsys):
     assert json.loads(capsys.readouterr().err)["refused"] == "consent_revoked"
 
 
+def test_cli_render_and_verify_print_one_result_line(workspace, capsys):
+    config = workspace.write(SLIDE)
+    assert main(["render", str(config), "--result-line"]) == 0
+    out = capsys.readouterr().out
+    run_dir = workspace.base / "runs" / workspace.runs()[0]
+    manifest = json.loads((run_dir / "manifest.json").read_text())
+    want = {"ok": True, "run_id": manifest["run_id"], "content_sha256": manifest["content_sha256"]}
+    assert out.count("\n") == 1 and json.loads(out) == want
+    assert main(["verify", str(run_dir), "--result-line"]) == 0
+    assert json.loads(capsys.readouterr().out) == want
+    with pytest.raises(SystemExit):
+        main(["render", str(config), "--json", "--result-line"])
+
+
 def test_voices_add_stores_by_digest_and_bounds_the_clip(workspace, tmp_path):
     config = workspace.write(SLIDE)
     clip, text = tmp_path / "clip.wav", tmp_path / "clip.txt"
@@ -318,6 +367,97 @@ def test_loudnorm_limits_peaks_that_one_linear_gain_would_push_over_the_ceiling(
     integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
     assert abs(integrated + 16) <= 0.5 and peak <= -1.0
     assert len(audio.read(tmp_path / "out.wav").samples) == len(pcm.samples)
+
+
+def stepped_tone(steps, block):
+    import math
+
+    pcm = audio.Pcm(24000)
+    for step in steps:
+        amplitude = 9000 * 10 ** (-step / 20)
+        pcm.samples.extend(round(amplitude * math.sin(2 * math.pi * 220 * n / 24000)) for n in range(block))
+    return pcm
+
+
+POST = {"loudnessLufs": -16, "loudnessToleranceLu": 0.5, "truePeakDbtp": -1.5}
+
+
+def test_loudnorm_stays_linear_when_the_take_is_wider_than_the_lra_target(tmp_path):
+    # blocks of 55000 samples (about 2.3 s) stepping down 18 dB: a range over 11 LU inside the gate. Blocks of
+    # exactly 3 s line up with loudnorm's 3 s windows, and its first pass then reads the take about 0.6 LU low.
+    source = stepped_tone((0, 3, 6, 9, 12, 15, 18, 0, 18), 55000).write(tmp_path / "wide.wav")
+    record = audio.loudnorm(source, tmp_path / "out.wav", 24000, -16, -1.5)
+    assert record["first_pass"]["input_lra"] > 11.0
+    assert record["lra_target"] >= record["first_pass"]["input_lra"]
+    assert record["normalization_type"] == "linear"
+    integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
+    assert audio.loudness_verdict(integrated, peak, POST, record["normalization_type"]) == (True, [])
+
+
+def test_loudnorm_fails_closed_when_the_take_is_wider_than_lra_max(tmp_path):
+    source = stepped_tone((0, 5, 10, 15, 20, 25, 30, 35, 40, 0, 40), 55000).write(tmp_path / "wider.wav")
+    record = audio.loudnorm(source, tmp_path / "out.wav", 24000, -16, -1.5)
+    assert record["first_pass"]["input_lra"] > audio.LRA_MAX
+    assert record["lra_target"] == audio.LRA_MAX
+    assert record["normalization_type"] != "linear"
+    integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
+    assert "loudnorm_dynamic" in audio.loudness_verdict(integrated, peak, POST, record["normalization_type"])[1]
+
+
+def short_take(head_s, head_amp, tail_amp, seconds=4.0, rate=48000):
+    """A synthetic speech-like take: 0.2 s syllables of a five-harmonic 140 Hz buzz with 0.08 s gaps, each opened
+    by a 4 ms 2 kHz burst near full scale, at head_amp for head_s and tail_amp after it."""
+    import math
+
+    syllable, gap, burst = int(0.2 * rate), int(0.08 * rate), int(0.004 * rate)
+    values = []
+    while len(values) < seconds * rate:
+        amp = head_amp if len(values) < head_s * rate else tail_amp
+        values.extend(26000 * math.sin(2 * math.pi * 2000 * n / rate) * (1 - n / burst) for n in range(burst))
+        values.extend(
+            amp
+            * math.sin(math.pi * n / syllable)
+            * sum(math.sin(2 * math.pi * 140 * k * n / rate) / k for k in range(1, 6))
+            for n in range(syllable)
+        )
+        values.extend([0.0] * gap)
+    pcm = audio.Pcm(rate)
+    pcm.samples.extend(round(v) for v in values[: int(seconds * rate)])
+    return pcm
+
+
+@pytest.mark.parametrize(("head_s", "head_amp", "tail_amp"), [(0.6, 6000, 2000), (1.0, 3000, 6000)])
+def test_loudnorm_lands_a_short_limited_take_within_tolerance(tmp_path, head_s, head_amp, tail_amp):
+    # TIN-7879: on a 4 s take loudnorm's first pass reads the integrated loudness off by up to about 1 LU, and the
+    # one linear gain carried that error into the delivered file (-15.2 LUFS for the first case before the fix).
+    pcm = short_take(head_s, head_amp, tail_amp)
+    source = pcm.write(tmp_path / "short.wav")
+    record = audio.loudnorm(source, tmp_path / "out.wav", 48000, -16, -1.5)
+    integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
+    assert audio.loudness_verdict(integrated, peak, POST, record["normalization_type"]) == (True, [])
+    assert abs(integrated + 16) <= 0.1
+    assert record["limiter"] is not None and record["normalization_type"] == "linear"
+    assert abs(record["first_pass"]["input_i"] - record["metered_input_i"]) >= 0.2
+    assert len(audio.read(tmp_path / "out.wav").samples) == len(pcm.samples)
+
+
+def test_integrated_lufs_reads_as_the_gate_meter_and_none_for_silence(tmp_path):
+    source = short_take(1.0, 6000, 2000).write(tmp_path / "take.wav")
+    assert abs(audio.integrated_lufs(source) - audio.ebur128(source)[0]) <= 0.05
+    halved = audio.integrated_lufs(source, "volume=-6dB,")
+    assert abs(audio.integrated_lufs(source) - 6 - halved) <= 0.02
+    silent = audio.Pcm(48000)
+    silent.silence(2.0)
+    assert audio.integrated_lufs(silent.write(tmp_path / "silent.wav")) is None
+
+
+def test_lra_fit_raises_the_target_to_the_measured_range_and_never_lowers_it():
+    assert audio.lra_fit(4.1, 11.0) == 11.0
+    assert audio.lra_fit(11.0, 11.0) == 11.0
+    assert audio.lra_fit(19.5, 11.0) == 19.5
+    assert audio.lra_fit(20.0, 11.0) == audio.LRA_MAX == 20.0
+    assert audio.lra_fit(13.12, 11.0) == 13.2
+    assert audio.lra_fit(72.0, 11.0) == audio.LRA_MAX
 
 
 def test_whisper_reads_a_padded_take(monkeypatch):

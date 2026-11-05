@@ -22,26 +22,39 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 
 | Recipe | Command | Does |
 | --- | --- | --- |
-| `just narrate-render [CONFIG]` | `python -m narrate render` | the whole pipeline, then `verify` |
-| `just narrate-eval RUN [CONFIG]` | `python -m narrate evaluate` | loudness, overruns, WER, SIM; writes nothing |
-| `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest |
+| `just narrate-render [CONFIG]` | `bounded.sh python -m narrate render` | the whole pipeline, then `verify` |
+| `just narrate-eval RUN [CONFIG]` | `bounded.sh python -m narrate evaluate` | loudness, overruns, WER, SIM (`--reference-voice` for a decoy); writes nothing |
+| `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest; `--result-line` prints one line `{ok, run_id, content_sha256}` (as `narrate-render --result-line` does) |
+| `just narrate-plan CONFIG DIR` | `python -m narrate plan` | an `AudioCppBatch` engine: the request batch for a GPU window (no audio); then `serve/audiocpp_batch.py` on the GPU host and `just narrate-render CONFIG --prerendered DIR` |
 | `just narrate-voices [CONFIG]` | `python -m narrate voices` | voice ids, consent state, scopes, engines |
-| `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability |
+| `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability; `--reach` tries a TCP connect |
+| `just narrate-spoken INPUT` | `python -m narrate spoken` | only the voiced text, through the input's adapter: `--format lines`, `json` (cue ids, origins) or `srt` |
+| `just narrate-lexical-check INPUT` | `narrate spoken` piped to `xoxd-lexical check --register narration -` | the narration register on voiced text only; exits 0 with a notice without the pinned check CLI or Vale |
+| `just narrate-sim-model` | `scripts/model_prefetch.py` | fetches the registered ECAPA speaker model into `models/`, hash-checked |
 | `just narrate-voice-add CONFIG CLIP TEXT ID CONSENT` | `python -m narrate voices add` | stores a 10 to 30 s mono 16-bit clip and its transcript by sha256; prints exactly a `Voice.dhall` record; needs `--allow-engine` |
+| `just narrate-serve-qwentts`, `just narrate-build-qwentts` | `serve/qwentts.sh` | the qwentts.cpp engine on loopback, on an allowed host only (see "Host placement and memory") |
 | `just narrate-bench` | | lane W3 (TIN-7085) fills it |
+| `just narrate-finalize [RUN]`, `just narrate-runs` | `serve/finalize.py` | J130: stop an unattended GPU run by hand on its host (`latest` by default, `--holder H`, `--reason operator`, `preempted --call-id ID` or `finished`); list the run records |
+| `just narrate-holder` | `serve/finalize.py holder` | a new Lease holder, `narrate-bench-YYYYMMDD-sHHMMSS` (UTC), the only narrate form the GPU Lease guard admits |
 
 ## The pipeline
 
 | Module | Step |
 | --- | --- |
 | `adapters.py` | plain text, markdown manuscript, SRT, WebVTT, condense `words.json` (+ EDL), `SPEAKER:` dialog → script IR (`ir.py`) |
+| `spoken.py` | the voiced text of a script IR as lines, JSON records or SRT cues (`narrate spoken`) |
 | `policy.py` | consent, scope, revocation, stored clip and transcript digests, hosted and confidential refusals |
 | `lexical.py` | the pinned xoxd-lexical release by digest; advisory Pattern findings and Vale; the RewriteCheck |
 | `chunker.py`, `normalise.py` | chunks of at most `chunkMaxCodepoints` spoken codepoints; the pronunciation table |
-| `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`, or the offline fake engine |
+| `amounts.py` | numeric ranges and dollar amounts said in words, each read back to its written value |
+| `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`; for QwenTtsCpp a registered voice; or the offline fake engine |
+| `prerender.py`, `serve/audiocpp_batch.py` | `AudioCppBatch`: request ids, the plan directory, the receipt checks and the takes by id; the GPU-host batch runner |
 | `qa.py` | per-chunk WER through condense's whisper path, SIM placeholder, best of `maxTakes` by seed |
 | `audio.py`, `render.py` | pauses, timing fit, placement, two-pass loudnorm, captions, EDL, manifest |
 | `verify.py`, `evaluate.py` | the re-check and the scores |
+| `sim.py`, `sim_worker.py` | SIM: ECAPA-TDNN cosine on the CPU in an interpreter with torch and speechbrain |
+| `bounded.sh`, `serve/qwentts.sh` | the memory-bounded wrapper for heavy steps; the qwentts.cpp engine's build and serve |
+| `serve/finalize.py` | GPU run records and the finalize path (J130, TIN-7564); copied beside `audiocpp_batch.py` on the GPU host |
 
 - **Refusals come first.** A missing, revoked or out-of-scope consent, a clip or transcript whose digest no stored
   file has, an unmapped dialog speaker, a hosted engine without `allowHosted`, and any engine that may not run a
@@ -52,24 +65,160 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
   `not_measured`, no gate judges a take and the run is flagged `wer_not_measured`. With them, the manifest records
   the model's sha256 and registry id (or the http backend's loopback endpoint), and a take over `maxChunkWer` is
   synthesised again with the next seed; the best take is kept and a chunk that never passes is flagged
-  `qa_failed`. Numbers are compared as digits on both sides. SIM is `not_measured` (flag `sim_not_measured`)
-  until a speaker-verification model is registered. The model is `[whisper] model` in narrate.toml, else
-  `NARRATE_WHISPER_MODEL`, else `WHISPER_MODEL`.
+  `qa_failed`. Numbers are compared as digits on both sides. The model is `[whisper] model` in narrate.toml,
+  else `NARRATE_WHISPER_MODEL`, else `WHISPER_MODEL`.
+- **SIM.** Render does not score takes in v0, so every run carries `sim_not_measured`. `evaluate` scores each
+  delivered chunk against the speaking voice's reference clip with the registered speechbrain ECAPA model
+  (`speechbrain-spkrec-ecapa-voxceleb-embedding`, Apache-2.0, bound by sha256 in `program/models.json`), plus wSIM,
+  the minimum over 10 s windows with a 5 s hop that hold voice. It runs on the CPU (`[sim] threads`, 1 to 8) in an
+  interpreter with torch and speechbrain named by `[sim] python` or `NARRATE_SIM_PYTHON` (for example the `python3`
+  of `nix develop .#ml`; there is no default). On the shared CPU host it runs one scorer at a time inside a 6G
+  memory scope; the worker embeds at most 60 s per file. The model is `[sim] model`, else `NARRATE_SIM_MODEL`, else
+  `models/<id>.bin` from `just narrate-sim-model`. Every reference voice passes the consent check first. Without
+  them SIM is `not_measured` with the reason. `--reference-voice ID` scores every chunk against another voice's
+  clip, the decoy check. A SIM number is a cosine from a model trained on VoxCeleb: the microphone and room move it
+  too: the same speaker on another microphone scores far below a self-match of one recording.
+- **Bench SIM.** `just narrate-bench-score SRC DEST --reference CLIP --sim-model CKPT --sim-python PY` adds per-pass
+  SIM median, minimum and wSIM, and the bench plan's decoys 1 (reference self-match) and 2 (preset-voice wrong
+  speaker), then reads each pass against the preregistered SIM bars (narrate/bench/score.py).
 - **Timing fit.** A segment over its target first gets the engine's `speed` (at most `[fit] speed_max`, 1.15),
   then `atempo` within the job's `fitMaxStretch` (8%). What still runs over is flagged `overrun` with its excess,
   never truncated. A segment under its target is padded; one whose start has passed starts late, flagged.
 - **Loudness.** Two-pass `loudnorm` to the job's target (-16 LUFS, -1.5 dBTP), both passes recorded, then
   measured with `ebur128`. One rule (`audio.loudness_verdict`) serves render and evaluate: outside the job's
   tolerance is `loudness_out_of_tolerance`, a true peak more than 0.1 dB over the ceiling is
-  `true_peak_over_ceiling`, and a non-linear loudnorm is `loudnorm_dynamic`.
+  `true_peak_over_ceiling`, and a non-linear loudnorm is `loudnorm_dynamic`. The second pass raises the LRA
+  target from 11 LU to the take's measured range, capped at 20 LU (`audio.LRA_MAX`), so a wider take still fails
+  as `loudnorm_dynamic`. The manifest records it as `loudness.loudnorm.lra_target`. The linear gain follows the
+  gate's own meter (`audio.integrated_lufs`, FFmpeg `ebur128`) through the limiter chain, recorded as
+  `loudness.loudnorm.metered_input_i`. On a 4 s take loudnorm's first pass can read about 1 LU off (TIN-7879).
 - **Location.** An `out` under `artifacts/runs/` is refused (`out_in_guitar_runs`) and `verify` refuses a run
   there. An empty job `inputSha256` leaves the input unpinned: `input.pinned: false` and the flag
   `input_unpinned`.
 - **Transport.** `NARRATE_ENGINE_TOKEN` goes over plain http only to a loopback host; Hosted and RentedOpen
   engines always need https (`engine_transport_insecure`).
+- **Overrides.** `render` takes `--voice`, `--input-kind`, `--max-chunk-wer`, `--min-sim`, `--max-takes`,
+  `--chunk-max-codepoints`, `--loudness-lufs` and `--fit-max-stretch` within their ranges, and `--confidential` and
+  `--no-hosted`, which only tighten the job. Each is recorded in the manifest's `job.overrides`; `--json` prints the
+  run directory, the manifest path and a summary. The MCP tools (`narrate_render`, `narrate_voices`,
+  `narrate_engines`, `narrate_evaluate`; skills under `.agents/skills/narrate-*`) call these commands.
 - **Captions** are timed from the script placement (`captions.source: script_timing`), in the written text,
-  with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
-  is a later step.
+  with no synthetic-voice prefix or note (KP-15). The manifest keeps `synthetic: true` and the consent ids.
+  Whisper alignment of the delivered audio is a later step.
+
+## Checking the voiced text
+
+`narrate spoken` prints what a render voices and nothing else. Front matter, headings, `[at 0:12: ...]`,
+`[clip: ...]` and other bracketed lines, HTML comments, inline markup, the `Sources:` line and what follows it,
+cue numbers, timings and speaker labels are dropped by the same adapter the render uses. The suffix picks the
+adapter (`.md`, `.srt`, `.vtt`, `.json`, else plain text). Pass `--adapter Dialog` for `SPEAKER:` scripts.
+
+```sh
+python3 -m narrate spoken page.md                      # one voiced paragraph per line
+python3 -m narrate spoken talk.srt --format json       # [{id, start_s, dur_s, text}]
+just narrate-lexical-check page.md                     # xoxd-lexical check --register narration on that text
+```
+
+The check reads the release a render pins (`NARRATE_LEXICAL_DIR`, else `lexical` in `narrate.toml`), under any
+directory name, and runs the `bin/xoxd-lexical` beside it, else the one on PATH. The CLI needs `vale` on PATH; the
+Nix package brings its own, `.#condense` does not. With no CLI, no Vale or a CLI that reports another release, it
+prints a notice and exits 0. Otherwise it exits as the CLI does: 1 for an Error-severity finding, 2 for a fault.
+JSON records carry `origin` (such as `line 6`) to trace a finding to the input.
+
+## Voice tempo
+
+A voice may carry `tempo` (`Voice.dhall`, `Optional Double`, 0.5 to 2.0; `None` is 1.0). `tempo.py` applies it to
+every take right after the engine returns it: one FFmpeg `atempo`, pitch kept, at the take's sample rate
+(`audio.time_stretch`). WER and SIM score the changed take, and the timing fit (speed knob, then `atempo` within
+`fitMaxStretch`) works on top of it. A tempo of 1.0 calls no FFmpeg. A value out of range is refused before any
+audio exists (`voice_tempo_invalid`). Each take records `tempo` and `pre_tempo_seconds`, each manifest voice its
+`tempo` and each EDL segment its `voice_tempo`. The EDL's `speed`, `atempo` and `stretch_applied` describe the fit
+alone. A persona voice the operator approved at 1.1 sets `tempo = Some 1.1` in the private registry. `Voice.Type`
+is an exact record, so every voice written as a plain record literal must add `tempo = None Double` (or a value)
+before its registry re-renders. A voice written as `Voice::{ ... }` takes the default. JSON already rendered without
+the key reads as 1.0.
+
+## Host placement and memory
+
+The rule, after the CPU host was driven to NotReady by narration work on 2026-10-23:
+
+- **No TTS model on the CPU host.** No TTS server, no MLX, torch or GGML inference and no Vulkan or lavapipe model
+  smoke test runs there. Synthesis runs only on the **Mac build host** (MLX, its cache caps) or on the **GPU
+  host** inside its leased window. Tests use fake engines and fake binaries.
+- **Scorers one at a time, bounded.** Whisper, a SIM model or any other heavy scoring step runs one at a time
+  inside a transient user scope with `MemoryMax=6G` at nice 19 and the idle I/O class, whisper with at most 4
+  threads, and starts only when memory pressure (`/proc/pressure/memory`, `full avg10`) is 10 or below.
+
+The code holds to it: `just narrate-render` and `just narrate-eval`, the recipes that run whisper, go through
+`bounded.sh`. It takes a per-user `flock` so a second step waits for the first (exit 75 after
+`NARRATE_LOCK_WAIT_S`, default 3600 s), waits before starting while pressure is high (exit 75 after
+`NARRATE_PSI_WAIT_S`, default 600 s), then runs the step at nice 19 with `ionice -c3`, inside
+`systemd-run --user --scope -p MemoryMax=6G` where a user systemd answers (`NARRATE_MEMORY_MAX` changes the
+ceiling). Without systemd or flock, as on macOS, it says what it cannot do. A nested call is recognised by the
+outer step's pid, never by an inherited flag. `qa.py` gives whisper at most 4 threads whatever `narrate.toml` asks.
+
+## The qwentts.cpp engine
+
+`just narrate-build-qwentts` builds qwentts.cpp (the commit pinned in `bench/sources.json`, with
+`serve/qwentts-threads.patch`, a GGML CPU thread bound, and `serve/qwentts-loopback.patch`, which drops the
+server's permissive CORS and refuses browser origins and non-loopback `Host` headers) through `bounded.sh` with an
+8G ceiling, in `~/narrate-work/qwentts` or `NARRATE_QWENTTS_BUILD` (the user's own, mode 0700). The stamp records
+the pin, the patch digests, the backend and the built `tts-server`'s sha256. `just narrate-serve-qwentts` never
+builds: it hashes the pinned Qwen3-TTS 1.7B Base BF16 GGUF, checks the stamped binary, and runs `tts-server` on
+127.0.0.1 through `bounded.sh --no-lock` with a 14G ceiling (`NARRATE_QWENTTS_MEMORY_MAX`).
+`NARRATE_QWENTTS_DEVICE` names the device: `Vulkan0` on the GPU host, `MTL0` on the Mac build host (`CPU` builds
+only). Fetch the weights first with `NARRATE_WEIGHTS_DIR=... just narrate-fetch --only qwen3-tts-1.7b-base-qwentts
+--apply`.
+
+Both recipes run only on a host whose machine id (`/etc/machine-id`, or `IOPlatformUUID` on macOS) is a line of
+the private allow file `~/.config/narrate/tts-host`, owned by the user and writable by no one else. Set it up once
+on an allowed host with `mkdir -p ~/.config/narrate && cat /etc/machine-id > ~/.config/narrate/tts-host && chmod
+600 ~/.config/narrate/tts-host` (on macOS, the `IOPlatformUUID` from `ioreg -rd1 -c IOPlatformExpertDevice`). No
+environment variable opens the gate. Other knobs: `NARRATE_WEIGHTS_DIR`, `NARRATE_QWENTTS_BUILD`,
+`NARRATE_QWENTTS_THREADS` and `NARRATE_QWENTTS_JOBS` at most 8, `NARRATE_QWENTTS_BUILD_MEMORY_MAX`,
+`NARRATE_QWENTTS_CPUS`, `NARRATE_QWENTTS_PORT`, `NARRATE_QWENTTS_LANG`.
+
+This server does not read `ref_audio` on the speech route; it clones a voice registered by name. An engine
+record with `backend = QwenTtsCpp` makes a render open one voice session in `engine.py`: the first take of each
+voice registers the reference clip and its verified transcript (`POST /v1/audio/voices {name, ref_text,
+wav_b64}`) under a name made of the voice id, the clip and transcript digest and a per-session random nonce;
+every take calls `/v1/audio/speech` with that name and the seed; and the session's end deletes the names it
+registered, also when the render fails. The client never trusts the server's voice list. A 400 on a later take
+(a restarted server) registers again and asks once more. The server ignores `speed`, so the client sends none,
+records `speed_honoured: false`, and the timing fit uses atempo alone. Each take records `conditioning: icl` (clip
+plus transcript) or `x_vector` (clip only). On the GPU host a record uses the `GpuDirect` profile. The Mac build
+is for development checks only: the `MacMlx` profile admits `MlxAudio` alone, so a Mac qwentts.cpp record would
+fail `Engine.consistent`.
+
+## The VoxCPM2 engine (audio.cpp batch)
+
+VoxCPM2 runs through audio.cpp's `audiocpp_cli` (pin `47c2756e`), which has no server, so its record uses
+`backend = AudioCppBatch`, `profile = GpuDirect` and `endpoint = "audiocpp://voxcpm2"`, and its `files` pin the
+binary and the weights by sha256. A render runs in three phases (`../docs/spec/NARRATE.md`, "Out-of-process batch
+engines"):
+
+```sh
+python3 -m narrate plan job.toml --out PLAN --confidential          # CPU host: requests/, refs/, plan.json
+python3 serve/audiocpp_batch.py run PLAN --requests requests/VOICE.json --binary CLI --binary-sha256 SHA \
+    --model GGUF --model-sha256 SHA --audiocpp-commit 47c2756e        # GPU host, inside the bounded window unit
+just narrate-render job.toml --prerendered PLAN --confidential      # CPU host: QA, fit, loudness, outputs
+```
+
+`plan` runs the render's text pipeline and writes every chunk times `--takes` seeds (default `maxTakes`), one
+requests file per voice, so the window loads the model once per voice. Each request id is a digest of its text,
+seed and reference, and the render takes each take by that id; a changed script finds no take and is refused. The
+runner checks request ids, reference digests, binary and weights before it starts, stops a runtime past its deadline
+or silent for `--stall-s` (default 120 s), keeps only complete WAVs the runtime reported finished, and writes a
+receipt with each output's sha256; `--only-missing` finishes a stopped batch. The render refuses a receipt whose
+requests file, binary, weights or WAV digests differ or a take that is not a complete WAV, before any audio is made.
+It scores every prerendered take of a chunk and keeps the best by WER, flags `qa_failed` when no take passes, and records the out-of-process synthesis in `engine.synthesis`. `[engine] audiocpp_clone` is
+`ultimate` (reference as voice and prompt audio, with its transcript; the default) or `reference`. The reference
+must fit VoxCPM2's encoder: 5 to 14.88 s (`ref_clip_misfit`).
+
+Copy `serve/finalize.py` beside `audiocpp_batch.py`: the runner refuses to start without it, and keeps a run record
+for the whole batch (pass `--lease-holder` with the Lease holder id). To give the GPU to a live call, the operator
+runs `python3 finalize.py finalize latest --reason operator` on the GPU host (`../docs/spec/NARRATE.md`, "Finalizing
+an unattended GPU run").
 
 ## The Mac engine
 
@@ -100,7 +249,7 @@ WAVs under `chunks/`, `narration.srt` and/or `narration.vtt`, `narration.edl.jso
 `manifest.json`. The manifest's timeline mapping is `narration_v1` with `no_time_stretch: false` on every run,
 so no guitar tool and no `video-utils verify-run` path accepts it (`../docs/spec/TIMELINE_CONTRACT.md`). It
 records digests and ids only, never a store path: input and IR digests, the lexical pin and findings, the
-pronunciation table digest and substitutions, engine record and knobs, each voice's clip, transcript and
+pronunciation table digest, substitutions and range or amount expansions, engine record and knobs, each voice's clip, transcript and
 consent ids, every chunk's takes, seeds, WER and SIM, the fit per segment, loudness, flags and
 `content_sha256`, a digest of everything but the run id, run directory and time, so two renders of the same
 inputs compare equal.
