@@ -730,13 +730,13 @@ def test_a_refused_deliver_check_blocks_handoff(settled_handoff):
 
 # The handoff key of nv-fixture-card before the order edge existed, computed at e3761ee6. Update it only when an impl
 # or the fixture moves on purpose: the edge alone must leave it, so stores on disk keep their layers.
-HANDOFF_KEY = "019ae486d8c8b8aefd888f86d9adcaad3d45d87af1fb56584d239ef24e607b65"
+HANDOFF_DIGEST = "019ae486d8c8b8aefd888f86d9adcaad3d45d87af1fb56584d239ef24e607b65"
 
 
 def test_the_handoff_key_is_the_one_recorded_before_the_edge(settled_handoff):
     _, _, _, _, g = settled_handoff
     assert ("deliver_check", "order") in graph.BY_ID["handoff"].depends_on
-    assert next(n for n in g["nodes"] if n["id"] == "handoff")["key"] == HANDOFF_KEY
+    assert next(n for n in g["nodes"] if n["id"] == "handoff")["key"] == HANDOFF_DIGEST
 
 
 def test_the_order_edge_stays_out_of_the_handoff_key(settled_handoff):
