@@ -22,9 +22,9 @@ by an id answers exactly that request, batches of many runs merge without collis
 seed or reference changed after its plan finds no take and is refused before any audio is made. A receipt is
 trusted only when its requests file has the digest it names, every request in it carries its own content's id,
 its weights are the engine record's pinned file of the receipt's model_file name and its binary another pinned
-file, and each output has the sha256 it lists and is a complete WAV (its RIFF and chunk sizes account for every
-byte). A render checks every take it may use before any audio is made, and reads each take once, hashing the bytes
-it uses.
+file, a rented placement sits under an offsite record, and each output has the sha256 it lists and is a complete WAV
+(its RIFF and chunk sizes account for every byte). A render checks every take it may use before any audio is made,
+and reads each take once, hashing the bytes it uses.
 
 VoxCPM2 (family voxcpm2 at audio.cpp 47c2756e) clones in one of two ways, `[engine] audiocpp_clone`:
   ultimate    voice_ref and audio both name the reference and reference_text is its transcript plus one space
@@ -43,11 +43,12 @@ import urllib.parse
 import wave
 from pathlib import Path
 
+from . import policy
 from .ir import canonical, sha256_bytes
 
 BACKEND = "AudioCppBatch"
 # The same batch on a rented or offsite GPU (profile RentedOpen). A run reads neither the profile nor the backend, so
-# the two values differ only to keep the consent check honest (Engine.dhall).
+# the two values keep the consent check honest (Engine.dhall), and a receipt's placement binds the run to the record.
 BACKENDS = (BACKEND, "RentedAudioCppBatch")
 PLAN_SCHEMA = "narrate-prerender-plan/1"
 RECEIPT_SCHEMA = "narrate-audiocpp-batch-receipt/1"
@@ -57,6 +58,7 @@ FAMILIES = {
     # patch_size x prod(encoder_rates) = 4 x 640; the 5 s floor is the VoxCPM2 usage guide's practical range.
     "voxcpm2": {"task": "clon", "encoder_rate": 16000, "capacity": 240000, "pad": 2560, "min_s": 5.0},
 }
+ON_PREM, RENTED = "on-prem", "rented"
 ID_LENGTH = 32
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
@@ -241,6 +243,12 @@ class Pool:
             refuse("prerendered_engine_mismatch", f"binary_sha256 is not a file the engine {self.engine['id']} pins")
         if receipt.get("family") != self.family or receipt.get("task") != FAMILIES[self.family]["task"]:
             refuse("prerendered_engine_mismatch", f"family or task differ from {self.family}")
+        # A receipt older than the placement field came from the on-prem runner, the only one there was.
+        placement = receipt.get("placement", ON_PREM)
+        if placement not in (ON_PREM, RENTED):
+            refuse("prerendered_invalid", f"placement {placement!r} is neither {ON_PREM} nor {RENTED}")
+        if placement == RENTED and not policy.is_offsite(self.engine):
+            refuse("prerendered_placement_mismatch", f"a rented run under engine {self.engine['id']}, which is on-prem")
         requests_path = inside(self.root, receipt.get("requests_file"))
         if requests_path is None:
             refuse("prerendered_invalid", "requests_file is not a path inside the directory")
@@ -283,6 +291,7 @@ class Pool:
                 "requests_sha256": batch_sha,
                 "requests": len(requests),
                 "outputs": len(outputs),
+                "placement": placement,
                 "runtime": receipt.get("runtime"),
                 "audiocpp_commit": receipt.get("audiocpp_commit"),
                 "binary_sha256": receipt["binary_sha256"],
@@ -350,6 +359,7 @@ class Pool:
             "audiocpp_commits": sorted({str(b["audiocpp_commit"]) for b in used}),
             "binary_sha256": sorted({b["binary_sha256"] for b in used}),
             "model_sha256": sorted({b["model_sha256"] for b in used}),
+            "placements": sorted({b["placement"] for b in used}),
             "batches": [dict(b) for b in used],
             "test_mode": any(b["test_mode"] for b in used),
         }

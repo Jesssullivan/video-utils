@@ -32,10 +32,15 @@ narrate-export run_dir to stem:
 narrate-plan config out *args:
     python3 -m narrate plan {{quote(config)}} --out {{quote(out)}} {{args}}
 
-# The rented batch on Modal (docs/spec/NARRATE.md, "Rented batch on Modal"): play the sealed phase on a fake Volume
-# with the fake audiocpp_cli. No Modal SDK, network, GPU or spend. Nothing here deploys.
+# The rented batch on Modal (docs/spec/NARRATE.md, "Rented batch on Modal"): play the sealed phase with a fake modal
+# client and the fake audiocpp_cli. No Modal SDK, network, GPU or spend. Nothing here deploys.
 narrate-modal-dry-run:
     python3 -I narrate/serve/modal_batch.py dry-run
+
+# The only upload path of a rented batch: preflight, put, the sealed run, get, checks and wipe. It spends money, so a
+# run takes its own go, and args carry --binary-sha256, --model-sha256, --health-class and --modal.
+narrate-modal-run plan run_id *args:
+    python3 -I narrate/serve/modal_batch.py run {{quote(plan)}} --run-id {{quote(run_id)}} {{args}}
 
 # Voices with consent state, and engines with their availability. Never a path or a clip.
 narrate-voices config="narrate.toml":

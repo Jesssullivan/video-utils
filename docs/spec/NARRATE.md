@@ -355,14 +355,17 @@ load per voice:
   byte, so a take cut short under a full-length header is dropped. The
   receipt lists each output's sha256 and each missing id; the pin prints no
   model load time. `--only-missing` finishes a stopped batch in a later window.
+  `--placement` records `on-prem` or `rented`, and `--checkpoint-s N` moves
+  finished takes to `wav/` and rewrites the receipt every N seconds with stop
+  rule `checkpoint`, so a kill with no warning keeps them bound to a receipt.
   The runner sets no limit itself: the caller runs it in the window's bounded
   unit (memory, CPU, nice, idle I/O, runtime, VRAM watch, RADV ICD only), as
   for the bench.
 - **Render.** `--prerendered DIR` trusts a receipt only when its requests file
   has the sha256 it names, every request carries its content's id, the
   weights' sha256 is the record's `files` entry named like the receipt's
-  `model_file` and the binary's another `files` entry, family and task match
-  the record's `audiocpp://<family>` endpoint, and each WAV has the sha256
+  `model_file` and the binary's another `files` entry, a `rented` placement
+  sits under an offsite record, family and task match the record's `audiocpp://<family>` endpoint, and each WAV has the sha256
   the receipt lists and is complete (`prerendered_batch_mismatch`,
   `prerendered_engine_mismatch`, `prerendered_take_mismatch`). Before any
   audio is made, a chunk with no take among its `maxTakes` seeds is refused
@@ -412,12 +415,13 @@ private):
 ### Rented batch on Modal (draft, not run)
 
 `narrate/serve/modal_batch.py` is phase B on Modal: a sealed app around the same
-`audiocpp_batch.py`. Nothing is deployed, run or billed, and a real run takes
-its own spend go (TIN-7125 `4f75ce59`). Phases A and C stay on the CPU host and
-do not change. The engine record below goes in the private `engines.json`, and
-`modal_batch.py engine-record --binary-sha256 SHA` prints it. A voice names
-`voxcpm2-batch-modal` in `allowedEngines`, and its consent record must set
-`hostedAllowed`. The placeholder binary digest refuses `engine_unpinned`.
+`audiocpp_batch.py`, and `run_plan`, the host side that drives it. Nothing is
+deployed, run or billed, and a real run takes its own spend go (TIN-7125
+`4f75ce59`). Phases A and C stay on the CPU host. The engine record below goes in
+the private `engines.json`, and `modal_batch.py engine-record --binary-sha256 SHA`
+prints it. A voice names `voxcpm2-batch-modal` in `allowedEngines`, and its consent
+record must set `hostedAllowed`. The placeholder binary digest refuses
+`engine_unpinned`.
 
 ```json
 {"id": "voxcpm2-batch-modal", "profile": "RentedOpen",
@@ -434,48 +438,68 @@ do not change. The engine record below goes in the private `engines.json`, and
 
 | Rule | How the draft holds it |
 | --- | --- |
-| Sealed at inference | `block_network` and `restrict_modal_access`, and `assert_sealed` stops the run if the network answers before any file is read |
-| One bounded try | `retries` 0, `min_containers` 0, `max_containers` 1, single-use containers. The runner stops at 1620 seconds and Modal at 1800, so finished takes reach the Volume |
-| Resume | A new call with `only_missing` finishes a stopped batch from the takes on the Volume. No retry repeats spend on its own |
-| Inputs and outputs | Pins and plans come from the Volume, and outputs go back to it. The reply holds counts and digests, because a reply over 8 KiB failed under `restrict_modal_access` (TIN-7856 `9e90b4fe`) |
-| Least data | Only `requests/` and `refs/` leave the host. The runner gets a built environment, so no token reaches it, and its output stays out of the app log |
-| Nothing on a rented disk | The consent record keeps nothing on a rented disk after a run. The steps below end in a wipe |
+| Consent before upload | `plan` runs the consent check, and `preflight` runs before any byte leaves. It refuses `engine_not_rented` unless the plan's record is `RentedOpen` and `RentedAudioCppBatch`, and `hosted_not_allowed` unless every consent in the plan grants it. The run's pins must be files the record lists, and the plan's files must match its digests |
+| Location | The sealed call passes `--placement rented`, so the receipt states where it ran, and a render refuses `prerendered_placement_mismatch` for a rented receipt under an engine that is not offsite. The manifest's batches name each placement |
+| SP-4 | No job field carries the class, so the run must state `--health-class none`. Any other value refuses `sp4_health_row`. This is the author's statement, recorded in the report, and narrate does not read the text for health content |
+| Sealed at inference | `block_network` and `restrict_modal_access`, and `assert_sealed` stops the run before any file is read if a name or a literal address answers. A blocked resolver with open routes does not pass |
+| One bounded try | `retries` 0, `min_containers` 0, `max_containers` 1, single-use containers. The deadline clock starts when the function starts, so the weights copy spends it. The runner stops by 1620 seconds and Modal at 1800, and the rest covers the weights hash, the stop and the last copy |
+| Takes reach the Volume as they finish | The runner checkpoints finished takes and a thread copies them to the Volume, the receipt last. A preemption reaches the function as a signal, so the runner finishes its receipt and one last pass copies it. `nonpreemptible` stays off, so the price does not change |
+| Reply | `modal run` drops a return value, so the function prints one line of counts and digests, and raises when a batch is not whole. The app log holds nothing else. The runner's output stays on the Volume with the run |
+| Takes home | `stage_back` gets the run into a new empty directory, because the client writes `DEST/RUN/` and refuses a path that exists. It compares each receipt with the printed digest and each take with its receipt, then merges into the plan |
+| Least data | Only `requests/` and `refs/` leave the host, plus earlier takes and receipts on a resume. The runner gets a built environment, so no token reaches it |
+| Nothing on a rented disk | The consent record keeps nothing on a rented disk after a run. `wipe` runs only with the takes home, removes the run by its exact name and reads that back. The pins stay: they hold public weights and a binary. Whether that line covers them is open |
 | Not root | `audiocpp_batch.py` refuses root, so a root container hands its work tree to uid 10001 and drops to it |
 | No Lease | A rented card holds no estate Lease, so the receipt records none and no live call waits on this run |
 
-A real run has seven steps. `MODAL` stands for the `modal` client, version
-1.6.1 when this draft was checked. It is not a dependency of this repository,
-and launch clients run off the CPU host (TIN-7856).
+A real run has four steps. `MODAL` stands for the `modal` client, version 1.6.1
+when this draft was read. It is not a dependency of this repository, and launch
+clients run off the CPU host (TIN-7856).
 
 | # | Step | Command |
 | --- | --- | --- |
 | 1 | Plan | `just narrate-plan CONFIG PLAN` |
-| 2 | Put once per pin | `MODAL volume put narrate-rented-batch BINARY bin/SHA/audiocpp_cli`, and the same for `weights/SHA/voxcpm2-bf16.gguf` |
-| 3 | Put the run | `MODAL volume put narrate-rented-batch PLAN/requests runs/RUN/requests`, and the same for `refs` |
-| 4 | Run | `MODAL run narrate/serve/modal_batch.py::run_requests --run-id RUN --name VOICE --binary-sha256 SHA --model-sha256 SHA` |
-| 5 | Get | `MODAL volume get narrate-rented-batch runs/RUN PLAN` for `wav`, `receipts`, `logs` and `requests` |
-| 6 | Wipe | `MODAL volume rm -r narrate-rented-batch runs/RUN`, then `MODAL volume ls` reads back no `RUN` |
-| 7 | Render | `just narrate-render CONFIG --prerendered PLAN` |
+| 2 | Pin, once per pin | `MODAL volume put narrate-rented-batch BINARY bin/SHA/audiocpp_cli`, and the same for `weights/SHA/voxcpm2-bf16.gguf`. These hold no clip or script |
+| 3 | Run | `just narrate-modal-run PLAN RUN --binary-sha256 SHA --model-sha256 SHA --health-class none --modal MODAL` |
+| 4 | Render | `just narrate-render CONFIG --prerendered PLAN` |
 
-`just narrate-modal-dry-run` plays steps 2 to 6 on a local directory with the
-fake `audiocpp_cli`, with no SDK, network or GPU. `narrate/tests/test_modal_batch.py`
-also runs a job from plan to render through the same functions.
+Step 3 is the only upload path: preflight, put, one `modal run` per requests file,
+get, checks and wipe. Every run gets a new id.
+
+| Exit | State | Next |
+| --- | --- | --- |
+| 0 | Every request has its take, and the run is wiped | Render |
+| 1 | The takes that exist are home, and the run is wiped | Step 3 with a new id. A plan with receipts sends its takes back up and voices only the rest |
+| 2 | Refused before an upload, or a failed upload wiped | Fix the plan |
+| 3 | The run stays on the Volume, because a get or a check failed or the wipe did not read back | Rerun the get by hand, or `modal_batch.py abandon RUN` |
+
+A client that dies mid-run leaves the run on the Volume, and nothing wipes it on
+its own. `modal_batch.py runs --modal MODAL` lists what is there, and `abandon`
+removes one by name without its takes.
+
+`just narrate-modal-dry-run` plays step 3 through the real subprocess path with
+`narrate/tests/fake_modal.py` for the client and the fake `audiocpp_cli`, with no
+SDK, network or GPU. The fake keeps the client's `get`, `put`, `ls`, `rm` and `run`
+behaviour, read from its 1.6.1 source, and holds a run off the Volume until the
+probe fires. `narrate/tests/test_modal_batch.py` runs a job from plan to render the
+same way, and calls the deployed `run_requests` under a stand-in SDK.
 
 A job that moves to this engine voices every segment again. The voice key and
 `voice --from-run` bind the engine id, profile and backend and the voice id,
 so a run on another engine never adopts into a job on this one, even with the
 same weights. Takes can still join at the batch level: a request id holds no
 engine, and `--prerendered` takes a receipt when the record pins its binary and
-weights. A record that pins two binaries therefore renders takes from both under
-this engine's name. The manifest's batches name each binary, and whether such a
-run is acceptable stays open.
+weights. A record that pins two binaries therefore renders on-prem takes under
+this engine's name. A test proves that through a render. The manifest's batches
+name each binary and placement, and whether such a run is acceptable stays open.
 
 Not proved until a smoke run: that `audiocpp_cli` runs in this image, because the
 Nix build carries a closure and leaves CUDA off, and it has only run on Vulkan
 RADV. Also unproved: the NVIDIA Vulkan ICD at the path the app names, GPU access
-as uid 10001, outputs persisting through `os.sync` and the commit at container
-shutdown under `restrict_modal_access`, and whether VoxCPM2 sounds the same on
-this card. Provider retention and training terms were not read.
+as uid 10001, whether takes copied mid-run survive a hard kill under
+`restrict_modal_access`, which rests on the Volume's background commits, how
+`modal volume get` orders a directory entry against the files in it, and
+whether VoxCPM2 sounds the same on this card. Provider retention and training
+terms were not read, and a Volume wipe cannot prove deletion.
 
 ## Finalizing an unattended GPU run (2026-10-28)
 
@@ -585,7 +609,8 @@ lease helper, to exit.
   engine whose `profile` and `backend` disagree is refused (`Engine.consistent`,
   the "Engine profiles" table), so a single wrong field never makes an engine
   look local. A rented batch has its own backend for this reason: the batch run
-  reads neither field, so the record is the only place that states the location.
+  reads neither field, so the record states the location and a receipt's
+  `placement` binds a run to it.
   The rule is defined once in `narrate/dhall/Engine.dhall` and its
   truth table is asserted in `narrate/dhall/policy-test.dhall`.
   `narrate/dhall/check.py` ports it to Python and applies it to the rendered
@@ -594,8 +619,9 @@ lease helper, to exit.
 - **The `confidential` label refuses no engine** (TIN-7125 `f98fd1ac` and
   `af4ceb3b`). Client jobs may render on rented hosts and be hosted, with the
   consent above. SP-4 health rows stay kept: that ruling does not admit them to
-  a client render on a rented or hosted engine. No narrate code checks this, so
-  the job's author holds that limit. The job label, the report-only `may_run_confidential` field and
+  a client render on a rented or hosted engine. No narrate code reads a script
+  for this, so the job's author holds that limit, and the Modal path makes the
+  author state it (`--health-class`). The job label, the report-only `may_run_confidential` field and
   the engine fields `confidentialAllowed` and `estateControlled` stay until the
   TIN-7994 audit decides which guards come back.
 - **Clips never enter git.** Reference clips, transcripts, consent evidence,

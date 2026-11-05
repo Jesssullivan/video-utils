@@ -49,7 +49,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `amounts.py` | numeric ranges and dollar amounts said in words, each read back to its written value |
 | `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`; for QwenTtsCpp a registered voice; or the offline fake engine |
 | `prerender.py`, `serve/audiocpp_batch.py` | `AudioCppBatch`: request ids, the plan directory, the receipt checks and the takes by id; the GPU-host batch runner |
-| `serve/modal_batch.py` | a sealed Modal app around that runner for `RentedAudioCppBatch`. A draft: never deployed, and `just narrate-modal-dry-run` plays it on a fake Volume |
+| `serve/modal_batch.py` | a sealed Modal app around that runner for `RentedAudioCppBatch`, and `run_plan`, the host side and only upload path. A draft: never deployed, and `just narrate-modal-dry-run` plays it with a fake `modal` client |
 | `qa.py` | per-chunk WER through condense's whisper path, SIM placeholder, best of `maxTakes` by seed |
 | `audio.py`, `render.py` | pauses, timing fit, placement, two-pass loudnorm, captions, EDL, manifest |
 | `verify.py`, `evaluate.py` | the re-check and the scores |
