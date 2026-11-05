@@ -182,7 +182,7 @@ engine only.
 | `gpu-switch` | `VulkanAudioCpp`, `QwenTtsCpp`, `LlamaTts` | the GPU host through the model coordinator | N1. Switch to the TTS entry, synthesise, release to the prior model. Needs a TTS entry kind, an audio canary and the speech route in the coordinator (TIN-7096) |
 | `gpu-direct` | same, and `AudioCppBatch` | the GPU host in an attended window | N0 interim. The server holds the GPU lease for the window (30 min or less) and scales to zero after; the window leaves a receipt. `AudioCppBatch` is a request batch run in the window, not a server (see "Out-of-process batch engines") |
 | `mac-mlx` | `MlxAudio` | the Mac host | Development and fallback. No GPU lease involved |
-| `rented-open` | `RentedOpen`, `RentedAudioCppBatch` | a rented or offsite GPU running open weights, Modal among them | Needs the consent record's `hostedAllowed`. `RentedAudioCppBatch` is the `AudioCppBatch` request batch on a rented card, so no rented run is labelled `GpuDirect`. Its effect on Modal is an inference until a run proves it |
+| `rented-open` | `RentedOpen`, `RentedAudioCppBatch` | a rented or offsite GPU running open weights, Modal among them | Needs the consent record's `hostedAllowed`. `RentedAudioCppBatch` is the `AudioCppBatch` request batch on a rented card, so no rented run is labelled `GpuDirect`. The Modal draft is in "Rented batch on Modal". Its effect on Modal is an inference until a run proves it |
 | `hosted` | `Hosted` | a third-party API | Explicit flag per job, plus the consent record's `hostedAllowed` |
 | `fake` | `Fake` | in process | Deterministic tone per chunk for tests. No GPU, no weights, no network |
 
@@ -408,6 +408,74 @@ private):
  "sampleRateHz": 48000, "hosted": false, "estateControlled": true,
  "confidentialAllowed": true}
 ```
+
+### Rented batch on Modal (draft, not run)
+
+`narrate/serve/modal_batch.py` is phase B on Modal: a sealed app around the same
+`audiocpp_batch.py`. Nothing is deployed, run or billed, and a real run takes
+its own spend go (TIN-7125 `4f75ce59`). Phases A and C stay on the CPU host and
+do not change. The engine record below goes in the private `engines.json`, and
+`modal_batch.py engine-record --binary-sha256 SHA` prints it. A voice names
+`voxcpm2-batch-modal` in `allowedEngines`, and its consent record must set
+`hostedAllowed`. The placeholder binary digest refuses `engine_unpinned`.
+
+```json
+{"id": "voxcpm2-batch-modal", "profile": "RentedOpen",
+ "backend": "RentedAudioCppBatch", "endpoint": "audiocpp://voxcpm2",
+ "model": "voxcpm2-bf16", "hfRepo": "audio-cpp/audio.cpp-gguf",
+ "hfRevision": "ef1ab2598f6d4d101486e4c5b9e605c687f20642",
+ "files": [{"path": "audiocpp_cli", "sha256": "<binary sha256>"},
+           {"path": "voxcpm2-bf16.gguf",
+            "sha256": "dc48028ebf08b9fd2456cbf5fa1ab52568d16660e34d0fa418c35e251ca1ecab"}],
+ "licence": "Apache-2.0 (VoxCPM2 GGUF); MIT (audio.cpp)", "licenceNotice": null,
+ "vramGiB": 8.0, "sampleRateHz": 48000, "hosted": false,
+ "estateControlled": false, "confidentialAllowed": false}
+```
+
+| Rule | How the draft holds it |
+| --- | --- |
+| Sealed at inference | `block_network` and `restrict_modal_access`, and `assert_sealed` stops the run if the network answers before any file is read |
+| One bounded try | `retries` 0, `min_containers` 0, `max_containers` 1, single-use containers. The runner stops at 1620 seconds and Modal at 1800, so finished takes reach the Volume |
+| Resume | A new call with `only_missing` finishes a stopped batch from the takes on the Volume. No retry repeats spend on its own |
+| Inputs and outputs | Pins and plans come from the Volume, and outputs go back to it. The reply holds counts and digests, because a reply over 8 KiB failed under `restrict_modal_access` (TIN-7856 `9e90b4fe`) |
+| Least data | Only `requests/` and `refs/` leave the host. The runner gets a built environment, so no token reaches it, and its output stays out of the app log |
+| Nothing on a rented disk | The consent record keeps nothing on a rented disk after a run. The steps below end in a wipe |
+| Not root | `audiocpp_batch.py` refuses root, so a root container hands its work tree to uid 10001 and drops to it |
+| No Lease | A rented card holds no estate Lease, so the receipt records none and no live call waits on this run |
+
+A real run has seven steps. `MODAL` stands for the `modal` client, version
+1.6.1 when this draft was checked. It is not a dependency of this repository,
+and launch clients run off the CPU host (TIN-7856).
+
+| # | Step | Command |
+| --- | --- | --- |
+| 1 | Plan | `just narrate-plan CONFIG PLAN` |
+| 2 | Put once per pin | `MODAL volume put narrate-rented-batch BINARY bin/SHA/audiocpp_cli`, and the same for `weights/SHA/voxcpm2-bf16.gguf` |
+| 3 | Put the run | `MODAL volume put narrate-rented-batch PLAN/requests runs/RUN/requests`, and the same for `refs` |
+| 4 | Run | `MODAL run narrate/serve/modal_batch.py::run_requests --run-id RUN --name VOICE --binary-sha256 SHA --model-sha256 SHA` |
+| 5 | Get | `MODAL volume get narrate-rented-batch runs/RUN PLAN` for `wav`, `receipts`, `logs` and `requests` |
+| 6 | Wipe | `MODAL volume rm -r narrate-rented-batch runs/RUN`, then `MODAL volume ls` reads back no `RUN` |
+| 7 | Render | `just narrate-render CONFIG --prerendered PLAN` |
+
+`just narrate-modal-dry-run` plays steps 2 to 6 on a local directory with the
+fake `audiocpp_cli`, with no SDK, network or GPU. `narrate/tests/test_modal_batch.py`
+also runs a job from plan to render through the same functions.
+
+A job that moves to this engine voices every segment again. The voice key and
+`voice --from-run` bind the engine id, profile and backend and the voice id,
+so a run on another engine never adopts into a job on this one, even with the
+same weights. Takes can still join at the batch level: a request id holds no
+engine, and `--prerendered` takes a receipt when the record pins its binary and
+weights. A record that pins two binaries therefore renders takes from both under
+this engine's name. The manifest's batches name each binary, and whether such a
+run is acceptable stays open.
+
+Not proved until a smoke run: that `audiocpp_cli` runs in this image, because the
+Nix build carries a closure and leaves CUDA off, and it has only run on Vulkan
+RADV. Also unproved: the NVIDIA Vulkan ICD at the path the app names, GPU access
+as uid 10001, outputs persisting through `os.sync` and the commit at container
+shutdown under `restrict_modal_access`, and whether VoxCPM2 sounds the same on
+this card. Provider retention and training terms were not read.
 
 ## Finalizing an unattended GPU run (2026-10-28)
 

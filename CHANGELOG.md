@@ -4,6 +4,10 @@
 
 ### Added
 
+- `narrate/serve/modal_batch.py`: a draft sealed Modal app for a
+  `RentedAudioCppBatch` VoxCPM2 run, the `voxcpm2-batch-modal` record and
+  `just narrate-modal-dry-run`, which plays it on a fake Volume with the fake
+  `audiocpp_cli`. Nothing is deployed or run (TIN-7994).
 - `src/timeline.rs` and `video-utils timeline validate|table|map|quantise`: the
   EDL model, frame quantisation and time map, bit-exact with the frozen
   talk-condense oracle (`tests/fixtures/edl-golden-v1.json`).

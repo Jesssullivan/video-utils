@@ -32,6 +32,11 @@ narrate-export run_dir to stem:
 narrate-plan config out *args:
     python3 -m narrate plan {{quote(config)}} --out {{quote(out)}} {{args}}
 
+# The rented batch on Modal (docs/spec/NARRATE.md, "Rented batch on Modal"): play the sealed phase on a fake Volume
+# with the fake audiocpp_cli. No Modal SDK, network, GPU or spend. Nothing here deploys.
+narrate-modal-dry-run:
+    python3 -I narrate/serve/modal_batch.py dry-run
+
 # Voices with consent state, and engines with their availability. Never a path or a clip.
 narrate-voices config="narrate.toml":
     python3 -m narrate voices {{quote(config)}}
