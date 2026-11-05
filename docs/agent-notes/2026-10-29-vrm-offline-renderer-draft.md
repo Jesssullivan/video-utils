@@ -5,7 +5,7 @@ Authority: SPR-128 (Linear TIN-7125 comment `33022456`) and SPR-120 (comment
 TIN-7503 belongs to another lane (SPR-20). Receipt per
 R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13).
 
-`vrm offline renderer | narrate seat dispatch | video-utils feat/narrated-video-vrm-renderer from main eb8f2779 | draft PR, stub only | root review; the real renderer page and lockfile, then the 11-14 bench`
+`vrm offline renderer | narrate seat dispatch | video-utils feat/narrated-video-vrm-renderer from main eb8f2779 | draft PR, stub only | root review; the real renderer page and lockfile`
 
 ## What changed
 
@@ -26,8 +26,7 @@ R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13).
 - The badge. Whether offline VRM video carries a burned-in badge is open. The
   manifest records `badge: {burned_in: false, decision: open}`, and a record
   that sets `badge.burnedIn` refuses `vrm_badge_undecided`.
-- Editions. Only `Internal` may carry a VRM overlay (`vrm_edition_unruled`),
-  because SPR-120 holds the switch for the 11-14 bench.
+- Editions. Only `Internal` may carry a VRM overlay (`vrm_edition_unruled`).
 - The VRM meta permission fields are recorded, not gated.
 
 ## Not built

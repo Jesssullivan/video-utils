@@ -89,7 +89,7 @@ default unless listed.
 | A2-mac | Mac host | mlx-audio 0.6.1 | qwen3-tts-1.7b-base-mlx | `ref_audio` + `ref_text` |
 | A3-gpu VoxCPM2 | GPU host | audio.cpp `voxcpm2`, Vulkan | voxcpm2-gguf (bf16) | prompt audio + transcript; `voxcpm2.mem_saver=true` only if the default run exceeds the VRAM bar |
 | A3-mac | Mac host | mlx-audio 0.6.1 | voxcpm2-mlx | `ref_audio` + `ref_text` |
-| D3-rented Drama 3 (optional) | rented NVIDIA GPU, 48 GB or more | vLLM-Omni or fish-speech v3.0.0-beta | drama3 | only after the operator confirms the licence's revenue threshold and the "Built with Fish Audio" notice; never with confidential text |
+| D3-rented Drama 3 (optional) | rented NVIDIA GPU, 48 GB or more | vLLM-Omni or fish-speech v3.0.0-beta | drama3 | carries the "Built with Fish Audio" notice |
 | D3-gpu-experimental (optional) | GPU host | audio.cpp `fish_drama3`, CPU expert offload, 16 GB profile | drama3-gguf-q3 | only if window time remains; never counts toward the pick |
 
 The PyTorch ROCm route for VoxCPM2 is not an arm. It may replace A3-gpu only if the audio.cpp Vulkan build fails,
