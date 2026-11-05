@@ -16,12 +16,13 @@
   {
    "id": "admit",
    "tool": "narrated_video_plan",
-   "intent": "Resolve the job and refuse before any render: consent, persona, bed acquisition, tighten, bounds, kitpip pin and the edition at Plan",
+   "intent": "Resolve the job and refuse before any render: consent, persona, bed acquisition, tighten, bounds, avatar pin and the edition at Plan",
    "artifact": "graph.json",
    "fan_out": null,
    "depends_on": [],
    "optional": false,
-   "mapping": null
+   "mapping": null,
+   "edition_point": "Plan"
   },
   {
    "id": "script",
@@ -94,7 +95,8 @@
     }
    ],
    "optional": false,
-   "mapping": "narrated_video_v1"
+   "mapping": "narrated_video_v1",
+   "edition_point": "Place"
   },
   {
    "id": "avatar",
@@ -121,7 +123,11 @@
     }
    ],
    "optional": true,
-   "mapping": "avatar_overlay_v1"
+   "mapping": "avatar_overlay_v1",
+   "selected_by": [
+    "avatar",
+    "segments.avatar"
+   ]
   },
   {
    "id": "avatar_check",
@@ -148,7 +154,11 @@
     }
    ],
    "optional": true,
-   "mapping": null
+   "mapping": null,
+   "selected_by": [
+    "avatar",
+    "segments.avatar"
+   ]
   },
   {
    "id": "music",
@@ -158,7 +168,10 @@
    "fan_out": null,
    "depends_on": [],
    "optional": true,
-   "mapping": "music_bed_v1"
+   "mapping": "music_bed_v1",
+   "selected_by": [
+    "music"
+   ]
   },
   {
    "id": "mix",
@@ -223,7 +236,8 @@
     }
    ],
    "optional": false,
-   "mapping": null
+   "mapping": null,
+   "edition_point": "DeliverCheck"
   },
   {
    "id": "handoff",
@@ -251,15 +265,62 @@
     {
      "stage": "compose",
      "how": "all"
+    },
+    {
+     "stage": "deliver_check",
+     "how": "order"
     }
    ],
    "optional": true,
-   "mapping": "narrated_video_v1"
+   "mapping": "narrated_video_v1",
+   "selected_by": [
+    "delivery.handoff"
+   ]
   }
  ],
  "parallel": {
   "max_stages": 2,
   "bound": "narrate/bounded.sh"
  },
- "execution_policy": "narrate/video/graph.py holds the same table (a test keeps them equal). plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6. avatar_overlay and avatar_verify are neutral: dispatch.by names the job field (avatar.external) that picks the implementation, kitpip by default or the vrm draft, so the stage tool names stay the same when a job moves from one to the other."
+ "row": {
+  "name": "client-video-narrated-render",
+  "ruling": "TIN-7125 3672cb05: one general row with one pinned graph for client, internal and hardware jobs",
+  "mapping": "graph.row_tasks: one stage is one task, parents are the stage depends_on, each root stage takes the gate as a parent and every render task lists the guard as a direct parent. A consumer pins this file by commit and blob and compares tasks_sha256 with its own task list (graph.row_tasks_sha256).",
+  "guard": {
+   "name": "bs21_privacy_guard",
+   "parents": [
+    "admit"
+   ],
+   "optional": false,
+   "effect": "none"
+  },
+  "effect_none": [
+   "admit",
+   "voice_qa",
+   "avatar_check",
+   "deliver_check"
+  ],
+  "operator_tasks": [
+   {
+    "name": "quiet_window_check",
+    "parents": [
+     "deliver_check"
+    ],
+    "optional": false,
+    "effect": "none"
+   },
+   {
+    "name": "outbox_post",
+    "parents": [
+     "deliver_check",
+     "handoff",
+     "quiet_window_check"
+    ],
+    "optional": false,
+    "effect": "none"
+   }
+  ],
+  "tasks_sha256": "c0be61edb1d38a42d49a37789f4e5c65c3f6fa9c370f7ff8342f872fbf1dc21b"
+ },
+ "execution_policy": "narrate/video/graph.py holds the same table, a test keeps them equal, and narrate/dhall/check.py holds selected_by and edition_point to the Dhall job and Edition types. plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6. avatar_overlay and avatar_verify are neutral: dispatch.by names the job field (avatar.external) that picks the implementation, kitpip by default or the vrm draft, so the stage tool names stay the same when a job moves from one to the other. An order edge carries no input: handoff waits on deliver_check and its key stays the same."
 }

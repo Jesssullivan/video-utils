@@ -61,6 +61,7 @@ DEFAULTS = {
         "width": 0.22,
         "marginPx": 32,
         "avatarOff": [],
+        "boxExempt": [],
         "fadeS": 0.35,
     },
     # The slide card (docs/spec/NARRATED_VIDEO.md, "Slides"): off by default (layout Full); a job sets
@@ -148,7 +149,9 @@ def load_records(directory, *, marker_optional=False):
 
 # The NarratedVideo JSON shape (narrate/dhall/NarratedVideo.dhall rendered by dhall-to-json). A dict is a record with
 # exactly those fields; a tuple of strings is an enum; ("optional", s) is null or s; ("union", {tag: s}, (names))
-# is one {tag: payload} or one of the bare names. check_shape walks every field, so no stage meets a KeyError later.
+# is one {tag: payload} or one of the bare names; ("later", s) is a field added after jobs were written, s when
+# present and absent from an older job.json, whose digest must not change. check_shape walks every field, so no stage
+# meets a KeyError later, and a reader of a "later" field takes its absence as empty.
 TEXT, BOOL, NATURAL, DOUBLE, DIGEST = "text", "bool", "natural", "double", "sha256"
 RATE = {"num": NATURAL, "den": NATURAL}
 SIZE = {"w": NATURAL, "h": NATURAL}
@@ -187,6 +190,7 @@ SHAPE = {
             "width": DOUBLE,
             "marginPx": NATURAL,
             "avatarOff": ("list", TEXT),
+            "boxExempt": ("later", ("list", TEXT)),
             "fadeS": DOUBLE,
         },
     ),
@@ -256,13 +260,15 @@ def shape_problem(value, shape, where):
     if isinstance(shape, dict):
         if not isinstance(value, dict):
             return f"{where} is not a record"
-        if set(value) != set(shape):
-            missing, extra = sorted(set(shape) - set(value)), sorted(set(value) - set(shape))
+        later = {name for name, field in shape.items() if isinstance(field, tuple) and field[0] == "later"}
+        missing, extra = sorted(set(shape) - later - set(value)), sorted(set(value) - set(shape))
+        if missing or extra:
             return f"{where} has fields {sorted(shape)}; missing {missing}, unknown {extra}"
         for name, field in shape.items():
-            problem = shape_problem(value[name], field, f"{where}.{name}")
-            if problem:
-                return problem
+            if name in value:
+                problem = shape_problem(value[name], field[1] if name in later else field, f"{where}.{name}")
+                if problem:
+                    return problem
         return None
     if shape[0] == "optional":
         return None if value is None else shape_problem(value, shape[1], where)

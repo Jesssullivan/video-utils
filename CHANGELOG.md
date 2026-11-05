@@ -21,12 +21,29 @@
 - `condense publish`: a hash-bound run under `artifacts/condense/<run_id>/`.
 - MCP tools 47 to 57: `timeline_validate`, `timeline_map` and the nine condense
   stages, each with a skill.
+- Narrated video reruns on one job root: `intake --replace`, a commit counter in
+  `current.json`, `JOB/rerun.json`, a compose-only proof in the render stage
+  result, `narrate video fix` with a cap of 3 rounds, a `mixed` voice mode with
+  `render-stage takes`, and a spend cap per GPU window as a request parameter.
+  A FIX binds its decision and its cut: `nv accept` refuses `cut_sent_back` and
+  a render of that cut refuses `fix_unchanged_cut`.
+  A real mixed window stays refused until the Lease gaps close.
 
 ### Changed
 
 - The condense edl stage validates every `edl.json` with the Rust timeline.
 - Condense defaults: 2 parallel jobs, 4 whisper threads and a 7200 s limit per
   tool call (`CONDENSE_TOOL_TIMEOUT_S`).
+- Narrated video: `deliver_check` adds the `avatar_box` and `slide_match` machine
+  gates, which read frames of the composed video, so `nv cut` and the render stage
+  result refuse a cut with content under the avatar or a wrong slide. `narrate video
+  preflight` and the render stage's `claims_gate` and `preflight` phases refuse the
+  same faults before any voice spend, and a result needs a passed preflight
+  (TIN-7788). `avatar.boxExempt` and a bundle asset's `avatar_box: exempt` declare a
+  render that may reach the box. A page with any sample that has no flat background
+  stays `unchecked`, does not fail the gate, and appears in `frame_review` in
+  `nv cut` and the result. `deliver_check` moves to impl 3, so an existing cut reruns
+  that stage only.
 - Narrate: a rented engine must pass the consent record's `hostedAllowed`, and
   the `confidential` job label refuses no engine until the TIN-7994 audit. A demo
   bundle's jobs keep the template's `confidential` and `allowHosted` flags. A rented
@@ -34,6 +51,14 @@
   renders, and no narrate code enforces that limit.
 - Narrate: `narrate voices` lists a private voice row that predates the Voice type,
   with missing fields as null or empty, and such a row refuses `consent_invalid`.
+- Narrated video: `handoff` waits on `deliver_check` through an `order` edge that
+  stays out of its stage key, so existing handoff keys hold. The published DAG gains
+  a `row` block whose `tasks_sha256` binds the 16-task Hatchet row (TIN-7788), and
+  `narrate/dhall/check.py` holds its `selected_by` and `edition_point` fields to
+  the Dhall types.
+- Narrated video: `nv run --stages` refuses `stage_input_stale` when a selected
+  stage stays stale behind an upstream outside the list, where it used to return
+  ok with nothing run (TIN-7788).
 - Narrated video: J168 removes the `ip_private` and BS-21 refusals for go-live,
   and the November 30, 2026 audit revisits them. `ip_private` needs no denylist,
   number and geometry entries and the `script` class stop matching, and

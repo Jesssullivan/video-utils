@@ -30,6 +30,8 @@ def gates_for(job, visible=None):
         "loudness": "passed",
         "flash": "not_applicable",
         "captions": "passed",
+        "avatar_box": "not_applicable",
+        "slide_match": "not_applicable",
         "listening": "pending_operator",
         "lip_sync": "pending_operator" if overlay else "not_applicable",
         "bed_licence_pdf": "not_applicable",

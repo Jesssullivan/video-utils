@@ -37,9 +37,10 @@ packet record holds it, so the Cade worker reads shown_unread with the packet re
 30, 2026 audit revisits the removal.
 
 cut(store, job) is the current deliver_check render as accept.render_of binds it: the composed video's sha256, the
-deliver_check stage key and content digest, the machine gate states, deliver_check's internal-review flag and the
-operator gates still pending. It holds digests and gate names only, so the Cade worker can ask Jess about that cut,
-and `nv accept` later checks the same digest. deliver_check records a failed machine gate as a state, not a refusal
+deliver_check stage key and content digest, the machine gate states, deliver_check's internal-review flag, the pages
+no frame gate read (frame_review, narrate/video/frames.py) and the operator gates still pending. It holds digests,
+gate names and page ids only, so the Cade worker can ask Jess about that cut, and `nv accept` later checks the same
+digest. deliver_check records a failed machine gate as a state, not a refusal
 (narrate/video/deliver.py delivery_gate), so cut refuses machine_gates_failed for it: a cut that failed flash,
 loudness, profile or captions never reaches Jess as an ordinary request for a decision.
 """
@@ -230,12 +231,13 @@ def machine_gates(store, gates):
 
 
 def cut(store, job):
-    """{ok, job_id, video_sha256, deliver_check, machine_gates, internal_review_allowed, pending_operator, accepted}:
-    the current cut, its machine gate states, the operator gates still open and the gates an acceptance of this same
-    render has closed (accept.same_render). An acceptance of an earlier cut closes nothing here. A cut whose machine
-    gates failed refuses machine_gates_failed."""
+    """{ok, job_id, video_sha256, deliver_check, machine_gates, internal_review_allowed, frame_review,
+    pending_operator, accepted}: the current cut, its machine gate states, the page ids no frame gate read, the
+    operator gates still open and the gates an acceptance of this same render has closed (accept.same_render). An
+    acceptance of an earlier cut closes nothing here. A cut whose machine gates failed refuses machine_gates_failed."""
     render, gates = accept.render_of(store, job)
     machine = machine_gates(store, gates)
+    measurements = store.manifest("deliver_check")["measurements"]
     closed = sorted({row["gate"] for row in accept.read(store)["acceptances"] if accept.same_render(row, render)})
     pending = sorted(g for g, state in gates.items() if state == "pending_operator" and g not in closed)
     return {
@@ -244,6 +246,7 @@ def cut(store, job):
         **render,
         "machine_gates": machine,
         "internal_review_allowed": True,
+        "frame_review": measurements.get("frame_review"),
         "pending_operator": pending,
         "accepted": closed,
     }

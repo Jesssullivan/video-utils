@@ -1,5 +1,5 @@
-"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,
-render-stage,subject,cut}.
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,fix,
+render-stage,preflight,subject,cut}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -27,19 +27,23 @@ render, and only with a Softproxy decision id (sp:dec:<ulid>) and the sha256 of 
 an empty value, a malformed id, a missing or other cut, a machine gate, the visible_text gate and an unknown gate
 refuse (narrate/video/accept.py).
 
+fix records the operator's FIX of the current cut the same way, by Softproxy decision id and the sha256 of the cut, and
+counts it against the job root's 3 rounds (narrate/video/rerun.py). The fourth FIX refuses fix_cap_reached with nothing
+recorded, so the caller stops and asks the operator.
+
 render-stage is the Cade render stage's task body (narrate/video/render_stage.py, docs/spec/RENDER_STAGE.md): check
 validates a request of ids and digests and prints its phases (with --inputs it also checks the worker's commit and
-re-hashes the mounted inputs), and result reports a job that ran to deliver_check by digest, bound to the job's
-intake. Neither takes the GPU Lease, and v1 refuses a gpu_window request outside check --gpu-draft.
+re-hashes the mounted inputs), takes compares the voice nodes with the request, and result reports a job that ran to
+deliver_check by digest, bound to the job's intake, and what ran since its last render. None takes the GPU Lease, and
+v1 refuses a gpu_window or mixed request outside --gpu-draft.
 
 subject prints the guard subject of a job: every text its records hold that it voices or labels, written and spoken,
 the text each shown asset draws, from the source a guarded intake stored, and shown_unread, the kinds of asset it
 shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard and never
 logs it. On a guarded intake's never_name marker it refuses shown_text_unread when any shown text is unreadable. cut
 prints the current deliver_check render (the composed video's sha256, the deliver_check key and digest), its machine
-gate states and the operator gates still pending, digests and gate names only, and refuses machine_gates_failed when a
-machine gate failed
-(narrate/video/subject.py).
+gate states, the pages no frame gate read and the operator gates still pending, digests, gate names and page ids
+only, and refuses machine_gates_failed when a machine gate failed (narrate/video/subject.py).
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
@@ -61,7 +65,21 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import accept, bundle, fixture, graph, kitpip, private_terms, render_stage, speech, store, subject, vrm
+from . import (
+    accept,
+    bundle,
+    fixture,
+    frames,
+    graph,
+    kitpip,
+    private_terms,
+    render_stage,
+    rerun,
+    speech,
+    store,
+    subject,
+    vrm,
+)
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -359,6 +377,7 @@ def cmd_intake(a):
         store=a.store,
         denylist=denylist(a),
         pin=a.denylist_sha256,
+        replace=a.replace,
     )
     summary = {
         "ok": True,
@@ -410,6 +429,11 @@ def cmd_accept(a):
     return 0
 
 
+def cmd_fix(a):
+    emit(rerun.fix(job_store(a, a.job), a.decision, a.video_sha256))
+    return 0
+
+
 def read_request(path):
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -422,20 +446,47 @@ def cmd_render_stage(a):
         return refusal("usage", "check takes no job")
     if a.action == "check" and a.gpu_draft and a.inputs:
         return refusal("usage", "--gpu-draft plans a GPU window only; verify_inputs (--inputs) never admits one")
-    if a.action == "result" and (a.inputs or a.gpu_draft):
+    if a.action in ("result", "preflight") and (a.inputs or a.gpu_draft):
         return refusal("usage", "--inputs and --gpu-draft go with check")
-    if a.action == "result" and not a.job:
-        return refusal("usage", "result names the job")
+    if a.action == "takes" and a.inputs:
+        return refusal("usage", "--inputs goes with check")
+    if a.action != "takes" and a.after_window:
+        return refusal("usage", "--after-window goes with takes")
+    if a.action in ("result", "preflight", "takes") and not a.job:
+        return refusal("usage", f"{a.action} names the job")
     request = read_request(a.request)
     if a.action == "check":
         out = render_stage.check_worker(request, a.inputs) if a.inputs else render_stage.plan(request, a.gpu_draft)
         emit(out)
+        return 0
+    if a.action == "preflight":
+        s = job_store(a, a.job)
+        records = records_for(a, s.read_job())
+        emit(render_stage.preflight(request, s, run_env(a, records)))
+        return 0
+    if a.action == "takes":
+        s = job_store(a, a.job)
+        job = s.read_job()
+        g = graph.plan(job, records_for(a, job), s, context(a))
+        emit(render_stage.takes(request, g, s, job, a.gpu_draft, a.after_window))
         return 0
     value = render_stage.result(request, job_store(a, a.job))
     if a.export:
         value = value | {"exported": render_stage.export(job_store(a, a.job), value, a.export)}
     emit(value)
     return 0
+
+
+def cmd_preflight(a):
+    s = job_store(a, a.job)
+    job = s.read_job()
+    records = records_for(a, job)
+    report = frames.preflight(job, run_env(a, records))
+    emit(report)
+    if report["ok"]:
+        return 0
+    first = report["findings"][0]
+    return refusal(first["code"], f"preflight holds {len(report['findings'])} findings; see the report")
 
 
 def cmd_subject(a):
@@ -531,7 +582,10 @@ def main(argv=None):
 
     r = sub.add_parser("run", help="run the stale stages (script to handoff); stops at the first refusal")
     common(r)
-    r.add_argument("--stages", help="comma-separated stages: run only these")
+    r.add_argument(
+        "--stages",
+        help="comma-separated stages: run only these; one that stays stale behind any other stage refuses",
+    )
     r.add_argument("--until", choices=[st.id for st in graph.STAGES], help="run this stage and what it depends on")
     r.add_argument("--force", help="comma-separated stages to rerun although fresh (archived to history/)")
 
@@ -578,6 +632,11 @@ def main(argv=None):
     t.add_argument("--json", action="store_true", help="print the whole intake manifest")
     t.add_argument("--denylist", help=DENYLIST_HELP)
     t.add_argument("--denylist-sha256", help=PIN_HELP)
+    t.add_argument(
+        "--replace",
+        action="store_true",
+        help="a rerun event: replace the earlier intake at --out once this one passes, moving it to history/",
+    )
 
     c = sub.add_parser("claims", help="the spoken-number claims gate of a demo bundle, alone")
     c.add_argument("bundle", help="the bundle directory (script.md, claims.json and the manifest's privacy are read)")
@@ -610,9 +669,27 @@ def main(argv=None):
     )
     acc.add_argument("--json", action="store_true", help="print JSON (accept always does)")
 
-    rs = sub.add_parser("render-stage", help="the Cade render stage's task body: check a request, or report a result")
-    rs.add_argument("action", choices=("check", "result"), help="check: validate and plan; result: report by digest")
-    rs.add_argument("job", nargs="?", help="result: the job id")
+    pf = sub.add_parser("preflight", help="the frame gates a job can fail before any voice spend; writes nothing")
+    common(pf)
+
+    fx = sub.add_parser(
+        "fix",
+        help="record the operator's FIX of the current cut, by Softproxy decision id; the fourth on a job root refuses",
+    )
+    fx.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    fx.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    fx.add_argument("--decision", help="the Softproxy decision id of the operator's FIX: sp:dec:<ulid>, only")
+    fx.add_argument("--video-sha256", help="the sha256 of the cut the decision saw (required)")
+    fx.add_argument("--json", action="store_true", help="print JSON (fix always does)")
+
+    rs = sub.add_parser("render-stage", help="the Cade render stage's task body: check, preflight, takes or result")
+    rs.add_argument(
+        "action",
+        choices=("check", "preflight", "takes", "result"),
+        help="check: validate and plan; preflight: the frame gates before any voice spend; "
+        "takes: voice nodes against the request; result: report by digest",
+    )
+    rs.add_argument("job", nargs="?", help="preflight, takes and result: the job id")
     rs.add_argument("--request", required=True, help="the request JSON (narrate_render_stage_request/1)")
     rs.add_argument(
         "--inputs",
@@ -620,10 +697,21 @@ def main(argv=None):
         " at <root>/<sha256>",
     )
     rs.add_argument(
-        "--gpu-draft", action="store_true", help="check: plan a gpu_window request, which v1 otherwise refuses"
+        "--gpu-draft",
+        action="store_true",
+        help="check and takes: read a gpu_window or mixed request, which v1 otherwise refuses",
+    )
+    rs.add_argument(
+        "--after-window",
+        action="store_true",
+        help="takes: the voice_ready phase, after voice_adopt. Without it a fresh beat named null refuses",
     )
     rs.add_argument("--export", help="result: copy the video, the report and the result here by sha256")
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    rs.add_argument("--records", help="preflight and takes: the records directory, instead of NARRATED_VIDEO_RECORDS")
+    rs.add_argument("--externals", help="takes: the kitpip pin record, instead of NARRATED_VIDEO_EXTERNALS")
+    rs.add_argument("--store", help="preflight and takes: the private store, instead of NARRATE_STORE")
+    rs.add_argument("--lexical", help="preflight: the pinned xoxd-lexical release, instead of NARRATE_LEXICAL_DIR")
 
     sj = sub.add_parser(
         "subject",
@@ -659,7 +747,9 @@ def main(argv=None):
             "intake": cmd_intake,
             "claims": cmd_claims,
             "accept": cmd_accept,
+            "fix": cmd_fix,
             "render-stage": cmd_render_stage,
+            "preflight": cmd_preflight,
             "subject": cmd_subject,
             "cut": cmd_cut,
         }

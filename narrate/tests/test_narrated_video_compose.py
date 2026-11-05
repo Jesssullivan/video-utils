@@ -162,6 +162,7 @@ def test_deliver_check_reports_every_gate_and_keeps_upload_closed(simple):
     report = json.loads((node_dir(s, "deliver_check") / "deliver_check.json").read_text())
     assert report["gates"] == {
         "profile": "passed", "loudness": "passed", "flash": "not_applicable", "captions": "passed",
+        "avatar_box": "not_applicable", "slide_match": "not_applicable",
         "listening": "pending_operator", "lip_sync": "not_applicable", "bed_licence_pdf": "not_applicable",
         "bed_content_id": "not_applicable", "visible_text": "not_applicable",
     }  # fmt: skip
@@ -179,7 +180,14 @@ def test_nv_cut_reads_the_deliver_check_the_real_stage_wrote(simple):
     s = simple["store"]
     got = subject.cut(s, s.read_job())
     assert got["video_sha256"] == s.manifest("compose")["outputs"]["video.mp4"]
-    want = {"profile": "passed", "loudness": "passed", "flash": "not_applicable", "captions": "passed"}
+    want = {
+        "profile": "passed",
+        "loudness": "passed",
+        "flash": "not_applicable",
+        "captions": "passed",
+        "avatar_box": "not_applicable",
+        "slide_match": "not_applicable",
+    }
     assert got["machine_gates"] == want and got["internal_review_allowed"] is True
     assert got["pending_operator"] == ["listening"] and got["accepted"] == []
 

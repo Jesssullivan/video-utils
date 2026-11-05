@@ -67,7 +67,8 @@ def gpu_request(**lease_changes):
         "notice": {"ticket": "TIN-5397", "comment_id": NOTICE},
     }
     lease.update(lease_changes)
-    return request(voice={"mode": "gpu_window", "runs": None}, lease=lease)
+    spend = {"window_cap_usd_cents": 500, "rate_usd_cents_per_hour": 0}
+    return request(voice={"mode": "gpu_window", "runs": None}, lease=lease, spend=spend)
 
 
 def refused(fn, *args, **kwargs):
@@ -80,7 +81,15 @@ def refused(fn, *args, **kwargs):
 def test_a_from_run_request_plans_no_gpu_phase():
     out = render_stage.plan(request())
     assert out["gpu"] is False
-    assert [p["id"] for p in out["phases"]] == ["verify_inputs", "intake", "voice_adopt", "compose", "collect"]
+    assert [p["id"] for p in out["phases"]] == [
+        "verify_inputs",
+        "claims_gate",
+        "intake",
+        "preflight",
+        "voice_adopt",
+        "compose",
+        "collect",
+    ]
     assert out["request_sha256"] == keys.digest(request())
 
 
@@ -257,6 +266,7 @@ def fields_for(node_id, partial, key, job, gates=None, report=True):
             "measurements": {
                 "gates": gates,
                 "delivery_gate": {"machine_gates_passed": machine, "upload_gates_closed": False},
+                "frame_review": {"unchecked": ["page-1"], "exempt": []},
             }
         }
     return {}
@@ -279,7 +289,20 @@ def write_intake(s, job, read, **changes):
         "outputs": {"narrated-video.json": render_stage.sha256_file(directory / "narrated-video.json")},
     } | changes
     (directory / "intake.json").write_text(json.dumps(manifest))
+    write_preflight(s, job)
     return manifest
+
+
+def write_preflight(s, job, **changes):
+    """A passed preflight of this job and intake, as `render-stage preflight` writes one."""
+    report = {
+        "kind": "nv_preflight",
+        "schema_version": 1,
+        "job_sha256": keys.digest(job),
+        "intake_sha256": render_stage.sha256_file(s.dir / "intake" / "intake.json"),
+        "ok": True,
+    } | changes
+    (s.dir / "intake" / "preflight.json").write_text(json.dumps(report))
 
 
 def settle(job, recs, s, ctx, **fields):
@@ -328,9 +351,11 @@ def test_the_result_names_every_output_by_digest_and_returns_deliver_check(card)
     )
     assert value["outputs"]["stages"] == {n: r["content_sha256"] for n, r in s.current()["stages"].items()}
     assert value["deliver_check"]["machine_passed"] is True
+    assert value["deliver_check"]["frame_review"] == {"unchecked": ["page-1"], "exempt": []}
     assert "listening" in value["deliver_check"]["pending_operator"]
     assert value["job_sha256"] == keys.digest(job)
     assert value["intake_sha256"] == render_stage.sha256_file(s.dir / "intake" / "intake.json")
+    assert value["preflight_sha256"] == render_stage.sha256_file(s.dir / "intake" / "preflight.json")
     assert value["inputs_bound_by"] == {
         "bundle_manifest_sha256": "intake",
         "records_sha256": "intake",
@@ -342,7 +367,9 @@ def test_the_result_names_every_output_by_digest_and_returns_deliver_check(card)
     assert str(s.dir) not in text and str(s.dir.parent) not in text
     # the only slashes are the stage[/segment] node ids that key outputs.stages
     assert all("/" not in n or n.split("/")[0] in graph.BY_ID for n in value["outputs"]["stages"])
-    assert "/" not in json.dumps({k: v for k, v in value.items() if k != "outputs"})
+    # and the node ids that rerun lists
+    assert all(n.partition("/")[0] in graph.BY_ID for n in value["rerun"]["ran"])
+    assert "/" not in json.dumps({k: v for k, v in value.items() if k not in ("outputs", "rerun")})
 
 
 def test_the_result_refuses_another_commit_job_or_voice(card):
@@ -387,6 +414,23 @@ def test_a_missing_or_other_intake_refuses_the_result(card):
     (s.dir / "intake" / "intake.json").write_text("not json")
     assert refused(render_stage.result, adopted_request(job), s, ENV) == "intake_invalid"
     (s.dir / "intake" / "intake.json").unlink()
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "intake_missing"
+
+
+def test_a_result_needs_a_passed_preflight_of_this_job(card):
+    job, s = card
+    path = s.dir / "intake" / render_stage.PREFLIGHT_FILE
+    write_preflight(s, job, ok=False)
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "preflight_failed"
+    write_preflight(s, job, job_sha256="d" * 64)
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "preflight_stale"
+    write_preflight(s, job, intake_sha256="d" * 64)
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "preflight_stale"
+    write_preflight(s, job, kind="something_else")
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "intake_invalid"
+    write_preflight(s, job, schema_version=2)
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "intake_invalid"
+    path.unlink()
     assert refused(render_stage.result, adopted_request(job), s, ENV) == "intake_missing"
 
 
