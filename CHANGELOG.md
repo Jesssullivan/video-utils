@@ -12,12 +12,29 @@
 - `condense publish`: a hash-bound run under `artifacts/condense/<run_id>/`.
 - MCP tools 47 to 57: `timeline_validate`, `timeline_map` and the nine condense
   stages, each with a skill.
+- Narrated video reruns on one job root: `intake --replace`, a commit counter in
+  `current.json`, `JOB/rerun.json`, a compose-only proof in the render stage
+  result, `narrate video fix` with a cap of 3 rounds, a `mixed` voice mode with
+  `render-stage takes`, and a spend cap per GPU window as a request parameter.
+  A FIX binds its decision and its cut: `nv accept` refuses `cut_sent_back` and
+  a render of that cut refuses `fix_unchanged_cut`.
+  A real mixed window stays refused until the Lease gaps close.
 
 ### Changed
 
 - The condense edl stage validates every `edl.json` with the Rust timeline.
 - Condense defaults: 2 parallel jobs, 4 whisper threads and a 7200 s limit per
   tool call (`CONDENSE_TOOL_TIMEOUT_S`).
+- Narrated video: `deliver_check` adds the `avatar_box` and `slide_match` machine
+  gates, which read frames of the composed video, so `nv cut` and the render stage
+  result refuse a cut with content under the avatar or a wrong slide. `narrate video
+  preflight` and the render stage's `claims_gate` and `preflight` phases refuse the
+  same faults before any voice spend, and a result needs a passed preflight
+  (TIN-7788). `avatar.boxExempt` and a bundle asset's `avatar_box: exempt` declare a
+  render that may reach the box. A page with any sample that has no flat background
+  stays `unchecked`, does not fail the gate, and appears in `frame_review` in
+  `nv cut` and the result. `deliver_check` moves to impl 3, so an existing cut reruns
+  that stage only.
 - Narrate: a rented engine must pass the consent record's `hostedAllowed`, and
   the `confidential` job label refuses no engine until the TIN-7994 audit. A demo
   bundle's jobs keep the template's `confidential` and `allowHosted` flags. A rented

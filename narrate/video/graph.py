@@ -127,8 +127,9 @@ BY_ID = {s.id: s for s in STAGES}
 # 4ab7fc27) dropped the "[Synthetic voice] " caption prefix and the VTT NOTE from narrate render. compose and handoff
 # are 2: they drop chapters and record the metadata check, and handoff writes each slide layer stripped (TIN-7788).
 # base is 2: its clips.wav drops the source's tags. deliver_check is 2: it reports the intake's visible_text state as
-# an operator gate (TIN-7788). music and place also call to_mono, but they re-encode its samples, so their bytes stay.
-IMPL = {s.id: 1 for s in STAGES} | {"voice": 2, "base": 2, "compose": 2, "handoff": 2, "deliver_check": 2}
+# an operator gate (TIN-7788). deliver_check is 3: the avatar_box and slide_match machine gates read frames (TIN-7788).
+# music and place also call to_mono, but they re-encode its samples, so their bytes stay.
+IMPL = {s.id: 1 for s in STAGES} | {"voice": 2, "base": 2, "compose": 2, "handoff": 2, "deliver_check": 3}
 TOOLS = {
     "admit": ("narrate.video.admit", "1"),
     "script": ("narrate.lexical", "1"),

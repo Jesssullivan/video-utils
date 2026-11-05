@@ -23,6 +23,7 @@ Knobs:
 | `delivery.profile` | `Web1080p30` | `Web1080p30` 1920x1080 at 30/1, `Talk` 1920x1080 at the base rate, `Contingency` 1280x720 at 30/1 |
 | `avatar.corner`, `width`, `marginPx` | `BR`, 0.22, 32 px | the overlay box, a square of `width` of the frame |
 | `avatar.avatarOff`, `fadeS` | none, 0.35 s | pages whose whole span hides the overlay, fading out before and in after |
+| `avatar.boxExempt` | none | pages the `avatar_box` gate lists as exempt and does not read. It changes `deliver_check` only |
 | `slides.layout` | `Full` | `CardLowerLeft` shows each slide as a lower-left card over the held, dimmed next-clip frame |
 | `slides.cardWidth`, `marginPx`, `fadeS`, `dimTo` | 0.42, 64 px, 0.35 s, 0.5 | card width, margin, fades and crossfades, held-frame brightness |
 | `captions.soft`, `srt`, `vtt` | on | soft track and sidecar files; `burn` refuses in v1 |

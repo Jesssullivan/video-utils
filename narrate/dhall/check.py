@@ -451,8 +451,8 @@ def check_base(nv: dict, where: str, files: dict, errors: list) -> None:
 def slides_problems(nv: dict) -> list:
     """The ways a job's slides block and avatarOff list break the slide rules (docs/spec/NARRATED_VIDEO.md,
     "Slides"): ordered, non-overlapping pages with unique ids, each slide page at least two fades long, the
-    layout bounds, and avatarOff naming only pages the job defines. A deck base brings its own pages (lane L8),
-    so avatarOff is not checked against it here. Each problem is (code, text): slides_invalid, page_unknown or
+    layout bounds, avatarOff naming only pages the job defines and boxExempt naming only those pages, or segments
+    when the job has no slides. A deck base brings its own pages (lane L8), so neither is checked against it here. Each problem is (code, text): slides_invalid, page_unknown or
     knob_out_of_bounds, the codes admit refuses with (narrate/video/admit.py)."""
     out = []
 
@@ -496,6 +496,10 @@ def slides_problems(nv: dict) -> list:
         unknown = sorted(set(avatar["avatarOff"]) - known)
         if unknown and "deck" not in nv["base"]:
             bad(f"avatarOff names {len(unknown)} pages the job does not define", "page_unknown")
+        exemptable = known if slides is not None else {s["id"] for s in nv["segments"]}
+        unknown = sorted(set(avatar.get("boxExempt") or ()) - exemptable)
+        if unknown and "deck" not in nv["base"]:
+            bad(f"boxExempt names {len(unknown)} pages the job does not define", "page_unknown")
     return out
 
 
@@ -932,6 +936,8 @@ def narrated_video_mutations() -> list:
         ("slide page show unknown", lambda d, m: page(d, 3).update(show="Blank")),
         ("avatarOff names an unknown page", lambda d, m: nv(d, "nv-fixture-slides")["avatar"].update(
             avatarOff=["no-such-page"])),
+        ("boxExempt names an unknown page", lambda d, m: nv(d, "nv-fixture-slides")["avatar"].update(
+            boxExempt=["no-such-page"])),
         ("avatar fade out of range", lambda d, m: nv(d, "nv-fixture-slides")["avatar"].update(fadeS=3.0)),
         ("edition point has no stage", lambda d, m: stage(d, "place").pop("edition_point"), "stage graph"),
         ("edition point outside the union", lambda d, m: stage(d, "admit").update(edition_point="Compose"),

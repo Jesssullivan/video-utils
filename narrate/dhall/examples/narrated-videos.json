@@ -66,6 +66,7 @@
   {
     "avatar": {
       "avatarOff": [],
+      "boxExempt": [],
       "corner": "BR",
       "external": "kitpip",
       "fadeS": 0.35,
@@ -181,6 +182,7 @@
   {
     "avatar": {
       "avatarOff": [],
+      "boxExempt": [],
       "corner": "BR",
       "external": "kitpip",
       "fadeS": 0.35,
@@ -242,6 +244,7 @@
       "avatarOff": [
         "slide-b"
       ],
+      "boxExempt": [],
       "corner": "BR",
       "external": "kitpip",
       "fadeS": 0.35,

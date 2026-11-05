@@ -18,7 +18,9 @@ Machine gates:
   video black (16) as the floor. The 30% limit is the deck seat's gate (design Addendum B); this formula is this
   lane's reading of "the largest mean-luma jump between adjacent frames", not a port of the deck's code;
 - captions: the files captions asks for exist, a soft track when soft is set, the personaCue opens the first cue and
-  extraNotice ends description.txt when the job sets them.
+  extraNotice ends description.txt when the job sets them;
+- avatar_box and slide_match: what the frames show (narrate/video/frames.py, TIN-7788). A pass of the first four says
+  nothing about a frame, so a cut with content under the avatar or a wrong slide fails here and goes no further.
 
 Operator gates stay pending_operator here and never pass: listening, lip sync (with an avatar), the burned-in badge
 decision (vrm_badge_decision, with a VRM overlay: not ruled, SPR-128), and with upload and a bed, the licence PDF
@@ -38,6 +40,7 @@ from ..config import FF, run
 from . import admit, labels
 from .common import StageRefused, ffprobe, loudness, upstream, work_dir, write_json
 from .compose import FLASH_FLOOR_Y, FLASH_MAX, YAVG, page_kind, parse_cues, profile_for, slide_runs
+from .frames import final_gates, frame_review
 from .graph import selection
 from .job import CLIENT_EDITIONS
 
@@ -239,7 +242,15 @@ def run_deliver_check(rc, row, partial):
     description = (compose_dir / "description.txt").read_text(encoding="utf-8")
     subtitles = sum(1 for s in probe["streams"] if s.get("codec_type") == "subtitle")
     captions_state, caption_findings = captions_gate(job, files, cues, description, subtitles)
-    machine = {"profile": profile_state, "loudness": loud_state, "flash": flash_state, "captions": captions_state}
+    avatar_box, slide_match = final_gates(rc, composed, video, profile["size"]["w"], profile["size"]["h"])
+    machine = {
+        "profile": profile_state,
+        "loudness": loud_state,
+        "flash": flash_state,
+        "captions": captions_state,
+        "avatar_box": avatar_box["state"],
+        "slide_match": slide_match["state"],
+    }
     operator = {
         "listening": "pending_operator",
         "lip_sync": "pending_operator" if composed["overlays"] else "not_applicable",
@@ -263,6 +274,8 @@ def run_deliver_check(rc, row, partial):
         "loudness": loud,
         "flash": flash,
         "captions": {"findings": caption_findings, "cues": len(cues)},
+        "avatar_box": avatar_box,
+        "slide_match": slide_match,
         "visible_text": visible,
         "edition": edition,
         "labels": derived,
@@ -279,6 +292,7 @@ def run_deliver_check(rc, row, partial):
             "true_peak_dbtp": loud["true_peak_dbtp"],
             "drift_lu": loud["drift_lu"],
             "flash_worst": flash.get("worst"),
+            "frame_review": frame_review(avatar_box),
         },
         "states": {"source_checks": "passed"} | {k: v for k, v in operator.items() if v != "not_applicable"},
     }
