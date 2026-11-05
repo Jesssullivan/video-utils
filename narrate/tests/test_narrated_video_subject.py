@@ -367,7 +367,7 @@ def test_the_cut_names_the_current_video_and_the_open_operator_gates(avatar_job)
     got = subject.cut(s, job)
     render, _ = accept.render_of(s, job)
     pending = {"pending_operator": ["lip_sync", "listening"], "accepted": []}
-    machine = {"machine_gates": MACHINE_PASSED, "internal_review_allowed": True}
+    machine = {"machine_gates": MACHINE_PASSED, "internal_review_allowed": True, "frame_review": None}
     assert got == {"ok": True, "job_id": job["id"], **render, **machine, **pending}
     assert got["video_sha256"] == video_of(s)
 
@@ -465,4 +465,4 @@ def test_cli_cut_prints_digests_and_gate_names_only(avatar_job, capsys):  # noqa
     got = json.loads(out)
     assert code == 0 and got == subject.cut(s, job)
     want = {"ok", "job_id", "deliver_check", "video_sha256", "machine_gates", "internal_review_allowed"}
-    assert set(got) == want | {"pending_operator", "accepted"}
+    assert set(got) == want | {"frame_review", "pending_operator", "accepted"}

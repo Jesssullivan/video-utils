@@ -20,8 +20,9 @@
 --   when set, its sha256. admit refuses it without the model's likeness consent and appearance approval.
 --   width is a fraction of the base width, 0.10 to 0.30. avatarOff names pages (Slides.pages ids) whose whole
 --   span hides the overlay, the deck pattern for dense screens; it fades out over fadeS before such a span and
---   back in over fadeS after it. boxExempt names pages the avatar_box gate lists as exempt and does not read: a
---   render whose edge reaches the box with no text there, as a bundle asset declares with avatar_box exempt. The
+--   back in over fadeS after it. boxExempt names pages, or segments in a job with no slides, that the avatar_box
+--   gate lists as exempt and does not read: a render whose edge reaches the box with no text there, as a bundle
+--   asset declares with avatar_box exempt. The
 --   avatar is on by default for an edition that allows one (NV-8); a job turns it off with avatar None or a
 --   segment's avatar False.
 -- Slides: named pages on the base clock, each showing the base, a slide picture (by SHA-256 in the private

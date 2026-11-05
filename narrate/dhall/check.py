@@ -433,8 +433,8 @@ def check_base(nv: dict, where: str, files: dict, errors: list) -> None:
 def slides_problems(nv: dict) -> list:
     """The ways a job's slides block and avatarOff list break the slide rules (docs/spec/NARRATED_VIDEO.md,
     "Slides"): ordered, non-overlapping pages with unique ids, each slide page at least two fades long, the
-    layout bounds, and avatarOff and boxExempt naming only pages the job defines. A deck base brings its own pages
-    (lane L8), so neither is checked against it here. Each problem is (code, text): slides_invalid, page_unknown or
+    layout bounds, avatarOff naming only pages the job defines and boxExempt naming only those pages, or segments
+    when the job has no slides. A deck base brings its own pages (lane L8), so neither is checked against it here. Each problem is (code, text): slides_invalid, page_unknown or
     knob_out_of_bounds, the codes admit refuses with (narrate/video/admit.py)."""
     out = []
 
@@ -478,7 +478,8 @@ def slides_problems(nv: dict) -> list:
         unknown = sorted(set(avatar["avatarOff"]) - known)
         if unknown and "deck" not in nv["base"]:
             bad(f"avatarOff names {len(unknown)} pages the job does not define", "page_unknown")
-        unknown = sorted(set(avatar.get("boxExempt") or ()) - known)
+        exemptable = known if slides is not None else {s["id"] for s in nv["segments"]}
+        unknown = sorted(set(avatar.get("boxExempt") or ()) - exemptable)
         if unknown and "deck" not in nv["base"]:
             bad(f"boxExempt names {len(unknown)} pages the job does not define", "page_unknown")
     return out

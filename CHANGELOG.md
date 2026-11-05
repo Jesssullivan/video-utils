@@ -24,8 +24,10 @@
   preflight` and the render stage's `claims_gate` and `preflight` phases refuse the
   same faults before any voice spend, and a result needs a passed preflight
   (TIN-7788). `avatar.boxExempt` and a bundle asset's `avatar_box: exempt` declare a
-  render that may reach the box. `deliver_check` moves to impl 3, so an existing cut
-  reruns that stage only.
+  render that may reach the box. A page with any sample that has no flat background
+  stays `unchecked`, does not fail the gate, and appears in `frame_review` in
+  `nv cut` and the result. `deliver_check` moves to impl 3, so an existing cut reruns
+  that stage only.
 - Narrate: a rented engine must pass the consent record's `hostedAllowed`, and
   the `confidential` job label refuses no engine until the TIN-7994 audit. A demo
   bundle's jobs keep the template's `confidential` and `allowHosted` flags. A rented

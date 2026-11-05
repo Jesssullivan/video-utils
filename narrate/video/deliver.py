@@ -40,7 +40,7 @@ from ..config import FF, run
 from . import admit, labels
 from .common import StageRefused, ffprobe, loudness, upstream, work_dir, write_json
 from .compose import FLASH_FLOOR_Y, FLASH_MAX, YAVG, page_kind, parse_cues, profile_for, slide_runs
-from .frames import final_gates
+from .frames import final_gates, frame_review
 from .graph import selection
 from .job import CLIENT_EDITIONS
 
@@ -292,6 +292,7 @@ def run_deliver_check(rc, row, partial):
             "true_peak_dbtp": loud["true_peak_dbtp"],
             "drift_lu": loud["drift_lu"],
             "flash_worst": flash.get("worst"),
+            "frame_review": frame_review(avatar_box),
         },
         "states": {"source_checks": "passed"} | {k: v for k, v in operator.items() if v != "not_applicable"},
     }

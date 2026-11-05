@@ -37,9 +37,8 @@ the text each shown asset draws, from the source a guarded intake stored, and sh
 shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard and never
 logs it. On a guarded intake's never_name marker it refuses shown_text_unread when any shown text is unreadable. cut
 prints the current deliver_check render (the composed video's sha256, the deliver_check key and digest), its machine
-gate states and the operator gates still pending, digests and gate names only, and refuses machine_gates_failed when a
-machine gate failed
-(narrate/video/subject.py).
+gate states, the pages no frame gate read and the operator gates still pending, digests, gate names and page ids
+only, and refuses machine_gates_failed when a machine gate failed (narrate/video/subject.py).
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,

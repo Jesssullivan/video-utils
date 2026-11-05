@@ -13,8 +13,9 @@ import subprocess
 
 import pytest
 from test_narrated_video_compose import Bench, node_dir
+from test_narrated_video_intake import add_asset, no_whisper, set_manifest, set_script, ws  # noqa: F401  (fixtures)
 from test_narrated_video_intake import intake as run_intake
-from test_narrated_video_intake import no_whisper, set_manifest, set_script, ws  # noqa: F401  (fixtures)
+from test_narrated_video_intake import manifest as read_manifest
 from test_narrated_video_render_stage import COMMIT, ENV, gpu_request, refused, request
 
 from narrate.video import admit, bundle, cli, compose, deliver, frames, keys, render_stage, store, subject
@@ -163,6 +164,15 @@ def test_preflight_refuses_a_slide_with_content_in_the_box(bench, tmp_path):
     assert finding["extent"]["x0"] >= BOX["x"] and finding["extent"]["y1"] < BOX["y"] + BOX["h"]
 
 
+def test_light_content_counts_on_a_lossless_picture(bench, tmp_path):
+    """23 levels off white is inside the H.264 margin and outside the lossless one, and 5 levels is inside both."""
+    block = f"drawbox=x={BOX['x'] + 40}:y={BOX['y'] + 40}:w=120:h=30:t=fill:color=0x"
+    light = source(bench, tmp_path, "light.png", block + "E8E8E8")
+    assert codes(frames.preflight(full(bench, "nv-light", light), bench.env)) == ["avatar_box_occupied"]
+    faint = source(bench, tmp_path, "faint.png", block + "FAFAFA")
+    assert frames.preflight(full(bench, "nv-faint", faint), bench.env)["ok"]
+
+
 def test_the_guard_ring_counts_as_the_box(bench, tmp_path):
     ring = f"drawbox=x={BOX['x'] + 2}:y={BOX['y'] + 2}:w=4:h=40:color=black:t=fill"
     digest = source(bench, tmp_path, "ring.png", ring)
@@ -191,6 +201,83 @@ def test_a_picture_with_no_flat_background_is_unchecked_never_clear(bench, tmp_p
     report = frames.preflight(full(bench, "nv-photo", digest), bench.env)
     assert report["ok"] and report["avatar_box"]["unchecked"] == ["p0"]
     assert report["avatar_box"]["checked"] == [] and report["avatar_box"]["state"] == "not_applicable"
+
+
+FLAT, BUSY = "color=c=white:", "testsrc2="
+
+
+def joined(path, *parts):
+    """A clip of (lavfi source, seconds) parts, one after the other."""
+    inputs = [arg for name, s in parts for arg in ("-f", "lavfi", "-i", f"{name}s={W}x{H}:r=30:d={s}")]
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", "[0:v][1:v]concat=n=2:v=1[o]", "-map", "[o]",
+         "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", str(path)],
+        check=True,
+    )  # fmt: skip
+    return path
+
+
+def video_job(bench, job_id, digest):
+    job = bench.slides_job(job_id)
+    job["base"] = {"video": {"sha256": digest, "keepBaseAudio": False}}
+    job["slides"] = None
+    return job
+
+
+def test_one_flat_sample_leaves_a_busy_video_unchecked(bench, tmp_path):
+    """A base that opens on a title card and turns busy: one flat sample in 20 must not clear the page."""
+    digest = bench.add_source(joined(tmp_path / "title.mp4", (FLAT, 0.6), (BUSY, 9.4)))
+    report = frames.preflight(video_job(bench, "nv-title", digest), bench.env)
+    assert report["avatar_box"]["checked"] == [] and report["avatar_box"]["unchecked"] == ["program"]
+    assert report["avatar_box"]["state"] == "not_applicable"
+
+
+def test_a_finding_in_a_flat_sample_counts_on_an_unchecked_page(bench, tmp_path):
+    path = tmp_path / "planted-title.mp4"
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(joined(tmp_path / "t.mp4", (FLAT, 1), (BUSY, 4))), "-vf", IN_BOX,
+         "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", str(path)],
+        check=True,
+    )  # fmt: skip
+    report = frames.preflight(video_job(bench, "nv-planted-title", bench.add_source(path)), bench.env)
+    assert report["avatar_box"]["unchecked"] == ["program"] and codes(report) == ["avatar_box_occupied"]
+
+
+def test_a_page_with_no_samples_stays_unchecked(bench, tmp_path):
+    digest = bench.add_source(clip(tmp_path / "white.mp4"))
+    job = video_job(bench, "nv-past-end", digest)
+    job["slides"] = copy.deepcopy(DEFAULTS["slides"]) | {
+        "pages": [{"id": "late", "startS": 50, "endS": 60, "show": "Base"}]
+    }
+    assert frames.avatar_box_gate(job, bench.env, W, H)["unchecked"] == ["late"]
+
+
+@pytest.mark.parametrize("page", ["only", None])
+def test_a_flat_composed_frame_does_not_clear_a_busy_base(bench, tmp_path, page):
+    """The frame at a page's midpoint is one sample. The clip ends flat, so that frame is flat and the base is not.
+    A job with no pages reads its frames under segment ids, and they must not stand in for its program page."""
+    path = joined(tmp_path / "ends-flat.mp4", (BUSY, 1), (FLAT, 9))
+    job = video_job(bench, "nv-ends-flat", bench.add_source(path))
+    job["avatar"]["avatarOff"] = []
+    if page:
+        job["slides"] = copy.deepcopy(DEFAULTS["slides"]) | {
+            "pages": [{"id": page, "startS": 0, "endS": 10, "show": "Base"}]
+        }
+    s, result, _ = bench.run(job)
+    assert result["ok"], result
+    box = report_of(s)["avatar_box"]
+    assert box["checked"] == [] and box["unchecked"] == [page or "program"] and box["state"] == "not_applicable"
+
+
+def test_a_hold_page_reads_the_frame_it_holds(bench, tmp_path):
+    """The fault appears after 1.2 seconds, so a hold at 2 seconds shows it and the first frame does not."""
+    planted = bench.add_source(clip(tmp_path / "late.mp4", IN_BOX + ":enable='gte(t,1.2)'"))
+    job = video_job(bench, "nv-hold", planted)
+    job["slides"] = copy.deepcopy(DEFAULTS["slides"]) | {
+        "pages": [{"id": "held", "startS": 2, "endS": 3, "show": "Hold"}]
+    }
+    report = frames.preflight(job, bench.env)
+    assert codes(report) == ["avatar_box_occupied"] and report["findings"][0]["page"] == "held"
 
 
 def test_a_base_video_is_sampled_across_its_page(bench, tmp_path):
@@ -231,26 +318,13 @@ def test_a_letterboxed_full_slide_refuses(bench, tmp_path):
     assert codes(frames.preflight(full(bench, "nv-strip", digest), bench.env)) == ["slide_letterbox"]
 
 
-def test_a_slide_that_no_longer_hashes_refuses(bench, tmp_path):
+def test_a_slide_changed_after_the_index_was_built_refuses(bench, tmp_path):
+    """A run's Env outlives the slide: its index still names the file, and the re-hash catches the change."""
     digest = source(bench, tmp_path, "changed.png")
     (bench.paths["store"] / "changed.png").write_bytes(b"not the slide")
-    report = frames.slide_gate(full(bench, "nv-hash", digest), bench.env, W, H)
-    assert report["state"] == "failed" and codes(report) == ["slide_digest_mismatch"]
-
-
-def test_a_page_that_is_not_the_cited_asset_refuses(bench, tmp_path):
-    a = source(bench, tmp_path, "a.png")
-    b = source(bench, tmp_path, "b.png", OUT_OF_BOX)
-    job = full(bench, "nv-swap", a, b)
-    intake = {
-        "states": {"claims": "passed"},
-        "segments": [
-            {"segment": "p0", "show": "slide", "asset": {"sha256": b}},
-            {"segment": "p1", "show": "slide", "asset": {"sha256": b}},
-        ],
-    }
-    report = frames.preflight(job, bench.env, intake)
-    assert codes(report) == ["slide_page_mismatch"] and report["findings"][0]["page"] == "p0"
+    report = frames.preflight(full(bench, "nv-hash", digest), bench.env)
+    assert report["slide_match"]["state"] == "failed" and codes(report) == ["slide_digest_mismatch"]
+    assert report["avatar_box"]["unchecked"] == ["p0"]
 
 
 def test_admit_refuses_a_box_exempt_page_the_job_does_not_define(bench, tmp_path):
@@ -387,6 +461,29 @@ def test_the_frame_check_leaves_out_the_avatars_alpha_only(bench, tmp_path, comp
     assert flat and worst["pixels"] >= 100
 
 
+def test_the_alpha_is_dilated_for_scaling_and_chroma_bleed(bench, tmp_path, composed):
+    """A faint band 3 px beyond the alpha's edge is scaling bleed, inside the 4 px dilation. At 8 px it is content."""
+    job, s, measured, _ = composed
+    rc_like = type("RC", (), {"store": s})
+    overlay = frames.overlay_rows(rc_like, measured)[0]
+    placed = overlay["box"]
+    side = placed["w"]
+    alpha = frames.raw(
+        ["-ss", "1", "-i", str(overlay["directory"] / "overlay" / "overlay.mov")],
+        f"scale={side}:{side},format=rgba,alphaextract",
+        limit=1,
+        pixel="gray",
+    )
+    drawn = frames.extent(bytes(1 if v else 0 for v in alpha), side, placed["x"], placed["y"])
+
+    def band(name, gap, width):
+        drawbox = f"drawbox=x={drawn['x1'] + gap}:y={drawn['y0']}:w={width}:h=40:color=0xB8B8B8:t=fill"
+        return clip(tmp_path / name, drawbox)
+
+    assert frames.frame_off_alpha(band("near.mp4", 1, 3), overlay, 1.0, BOX) == (True, None)
+    assert frames.frame_off_alpha(band("far.mp4", 8, 6), overlay, 1.0, BOX)[1]["pixels"] >= 100
+
+
 def test_a_composed_frame_with_no_flat_background_is_not_read(bench, tmp_path, composed):
     job, s, measured, _ = composed
     rc_like = type("RC", (), {"store": s})
@@ -398,6 +495,21 @@ def test_a_composed_frame_with_no_flat_background_is_not_read(bench, tmp_path, c
         check=True,
     )  # fmt: skip
     assert frames.frame_off_alpha(noisy, overlay, 1.0, BOX) == (False, None)
+
+
+def test_unread_pages_reach_the_cut_and_the_deliver_check_report(bench, tmp_path):
+    """A gradient behind a block in the box has no background to read, so the gate cannot fail it. The person who
+    decides sees the page id in nv cut."""
+    photo = source(bench, tmp_path, "photo.png", source="testsrc2=r=1")
+    render = source(bench, tmp_path, "render.png", IN_BOX)
+    job = full(bench, "nv-review", photo, render)
+    job["avatar"]["boxExempt"] = ["p1"]
+    s, result, _ = bench.run(job)
+    assert result["ok"], result
+    report = report_of(s)
+    assert report["gates"]["avatar_box"] == "not_applicable"
+    assert report["delivery_gate"]["machine_gates_passed"] is True
+    assert subject.cut(s, job)["frame_review"] == {"unchecked": ["p0"], "exempt": ["p1"]}
 
 
 def test_a_job_without_pages_reads_each_overlays_midpoint():
@@ -504,6 +616,136 @@ def test_a_declared_exemption_reaches_the_job_and_clears_preflight(ws, tmp_path,
     assert report["ok"] and report["avatar_box"]["exempt"] == ["intro"]
 
 
+def only_mp4_bundle(workspace, tmp_path, *filters, exempt=True):
+    """Both beats of the fixture bundle show one MP4, so the job has a video base and no slides."""
+    data = clip(tmp_path / "beats.mp4", *filters, seconds=20).read_bytes()
+    add_asset(workspace["bundle"], "beats", "beats.mp4", "mp4", data)
+    set_script(workspace["bundle"], "asset_id: slide-a", "asset_id: beats")
+    set_script(workspace["bundle"], "asset_id: slide-b", "asset_id: beats")
+    manifest = read_manifest(workspace["bundle"])
+    if exempt:
+        next(a for a in manifest["assets"] if a["id"] == "beats")["avatar_box"] = "exempt"
+    set_manifest(workspace["bundle"], manifest)
+
+
+def test_an_exempt_mp4_only_bundle_passes_intake_and_covers_its_program_page(ws, tmp_path, ffmpeg):  # noqa: F811
+    """The beats are the job's segments here, because a job with no slide has no pages."""
+    only_mp4_bundle(ws, tmp_path, IN_BOX)
+    s, media = intake_job(ws, tmp_path)
+    job = s.read_job()
+    assert job["slides"] is None and job["avatar"]["boxExempt"] == ["intro", "result"]
+    report = render_stage.preflight(bound_request(ws), s, media, ENV)
+    assert report["ok"] and report["avatar_box"]["exempt"] == ["program"]
+    assert report["avatar_box"]["checked"] == [] and report["avatar_box"]["unchecked"] == []
+
+
+def test_an_undeclared_mp4_only_bundle_is_still_read(ws, tmp_path, ffmpeg):  # noqa: F811
+    only_mp4_bundle(ws, tmp_path, IN_BOX, exempt=False)
+    s, media = intake_job(ws, tmp_path)
+    assert s.read_job()["avatar"]["boxExempt"] == []
+    assert refused(render_stage.preflight, bound_request(ws), s, media, ENV) == "avatar_box_occupied"
+
+
+def test_a_partly_exempt_job_with_no_pages_is_read():
+    job = {"avatar": {"boxExempt": ["a"]}, "segments": [{"id": "a", "avatar": True}, {"id": "b", "avatar": True}]}
+    assert frames.page_exempt(job, frames.PROGRAM) is False
+    job["segments"][1]["avatar"] = False
+    assert frames.page_exempt(job, frames.PROGRAM) is True
+
+
+def test_a_segment_is_exemptable_only_in_a_job_with_no_slides(bench, tmp_path):
+    job = full(bench, "nv-segment", source(bench, tmp_path, "a.png"))
+    job["avatar"]["boxExempt"] = [job["segments"][0]["id"]]
+    assert admit.admit(job, bench.records)["refusals"][0]["code"] == "page_unknown"
+    job["slides"] = None
+    assert not [r for r in admit.admit(job, bench.records)["refusals"] if r["code"] == "page_unknown"]
+    job["avatar"]["boxExempt"] = ["no-such-segment"]
+    assert admit.admit(job, bench.records)["refusals"][0]["code"] == "page_unknown"
+
+
+def test_a_slide_changed_in_the_store_refuses_at_the_command(ws, tmp_path, ffmpeg, monkeypatch, capsys):  # noqa: F811
+    """Every copy of a slide changes before the process starts, so a fresh index has no file for its digest. The code
+    is the verdict, not source_missing, and the report records it."""
+    s, _ = intake_job(ws, tmp_path)
+    digest = s.read_job()["slides"]["pages"][0]["show"]["slide"]["sha256"]
+    copies = [p for p in ws["store"].rglob("*") if p.is_file() and render_stage.sha256_file(p) == digest]
+    assert copies
+    for path in copies:
+        path.write_bytes(b"not the slide")
+    request_path = tmp_path / "request.json"
+    request_path.write_text(json.dumps(bound_request(ws)))
+    monkeypatch.setenv("VIDEO_UTILS_COMMIT", COMMIT)
+    out = s.dir / "intake"
+    args = ["--root", str(s.root), "--records", str(out / "records"), "--store", str(ws["store"])]
+    capsys.readouterr()
+    assert cli.main(["render-stage", "preflight", "demo-fixture", "--request", str(request_path), *args]) == 1
+    assert "slide_digest_mismatch" in capsys.readouterr().err
+    assert json.loads((out / render_stage.PREFLIGHT_FILE).read_text())["slide_match"]["state"] == "failed"
+
+
+def edit_intake(s, change):
+    path = s.dir / "intake" / "intake.json"
+    value = json.loads(path.read_text())
+    change(value)
+    path.write_text(json.dumps(value))
+
+
+def test_an_intake_row_that_disagrees_with_the_job_refuses(ws, tmp_path, ffmpeg):  # noqa: F811
+    """The job and the rows come from one convert, so this needs an intake.json edited afterward."""
+    s, media = intake_job(ws, tmp_path)
+    pages = s.read_job()["slides"]["pages"]
+
+    def swap(value):
+        row = next(r for r in value["segments"] if r["segment"] == pages[0]["id"])
+        row["asset"]["sha256"] = pages[1]["show"]["slide"]["sha256"]
+
+    edit_intake(s, swap)
+    assert refused(render_stage.preflight, bound_request(ws), s, media, ENV) == "slide_page_mismatch"
+
+
+def test_an_intake_whose_claims_did_not_pass_refuses_with_its_report(ws, tmp_path, ffmpeg):  # noqa: F811
+    s, media = intake_job(ws, tmp_path)
+    edit_intake(s, lambda value: value["states"].update(claims="partial"))
+    assert refused(render_stage.preflight, bound_request(ws), s, media, ENV) == "claims_not_passed"
+    report = json.loads((s.dir / "intake" / render_stage.PREFLIGHT_FILE).read_text())
+    assert report["ok"] is False and report["claims"] == "partial"
+
+
+def test_preflight_binds_the_request_before_it_reads_a_frame(ws, tmp_path, ffmpeg):  # noqa: F811
+    s, media = intake_job(ws, tmp_path)
+    good = bound_request(ws)
+    assert refused(render_stage.preflight, good, s, media, {}) == "commit_unknown"
+    assert refused(render_stage.preflight, good, s, media, {"VIDEO_UTILS_COMMIT": "f" * 40}) == "commit_mismatch"
+    assert refused(render_stage.preflight, good | {"job_id": "another-job"}, s, media, ENV) == "job_mismatch"
+    moved = copy.deepcopy(good)
+    moved["inputs"]["bundle_manifest_sha256"] = "d" * 64
+    assert refused(render_stage.preflight, moved, s, media, ENV) == "input_binding_mismatch"
+    job = json.loads((s.dir / "job.json").read_text())
+    (s.dir / "job.json").write_text(json.dumps(job | {"edition": "ClientNarrated"}))
+    assert refused(render_stage.preflight, good, s, media, ENV) == "edition_mismatch"
+    assert not (s.dir / "intake" / render_stage.PREFLIGHT_FILE).exists()
+
+
+def test_a_preflight_that_crashes_leaves_no_earlier_pass(ws, tmp_path, ffmpeg, monkeypatch):  # noqa: F811
+    s, media = intake_job(ws, tmp_path)
+    render_stage.preflight(bound_request(ws), s, media, ENV)
+    path = s.dir / "intake" / render_stage.PREFLIGHT_FILE
+    assert path.exists()
+
+    def crashes(*args):
+        raise frames.StageRefused("ffmpeg_failed", "planted", verdict=False)
+
+    monkeypatch.setattr(frames, "preflight", crashes)
+    assert refused(render_stage.preflight, bound_request(ws), s, media, ENV) == "ffmpeg_failed"
+    assert not path.exists()
+
+
+def test_the_report_binds_the_intake_it_read(ws, tmp_path, ffmpeg):  # noqa: F811
+    s, media = intake_job(ws, tmp_path)
+    report = render_stage.preflight(bound_request(ws), s, media, ENV)
+    assert report["intake_sha256"] == render_stage.sha256_file(s.dir / "intake" / "intake.json")
+
+
 def test_a_manifest_avatar_box_value_other_than_exempt_refuses(ws, tmp_path):  # noqa: F811
     manifest = json.loads((ws["bundle"] / "manifest.json").read_text())
     manifest["assets"][0]["avatar_box"] = "clear"
@@ -533,6 +775,9 @@ def test_the_module_entry_point_runs_render_stage_preflight(ws, tmp_path, ffmpeg
     assert json.loads(capsys.readouterr().out)["ok"] is True
     assert cli.main(["render-stage", "preflight", "--request", str(path), *args]) == 1
     assert "preflight names the job" in capsys.readouterr().err
+    for flag in (["--gpu-draft"], ["--inputs", str(tmp_path)]):
+        assert cli.main(["render-stage", "preflight", "demo-fixture", "--request", str(path), *flag, *args]) == 1
+        assert "go with check" in capsys.readouterr().err
 
 
 # deliver.py reads the same table the result does ------------------------------------------------------------------

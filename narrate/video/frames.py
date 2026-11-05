@@ -13,15 +13,23 @@ deliver_check, the frame at each such page's midpoint also counts pixels off its
 alpha, dilated by ALPHA_DILATE_PX for scaling and chroma bleed (tolerance FRAME_TOL, the H.264 margin).
 
 A picture is flat when at least FLAT_SHARE of it sits within LAYER_TOL of its modal colour. A picture that is not
-flat has no background to measure against, so its page is listed as unchecked and never counted as clear. A gate with
-no checked page reads not_applicable. A page in avatar.boxExempt (a bundle asset that declares avatar_box exempt) is
-listed as exempt and not read: a render whose model edge reaches the box, with no text there.
+flat has no background to measure against, so a page is checked only when every sample of it was flat: one unflat
+sample leaves the page unchecked, and a finding in its flat samples still counts. The composed frame adds to that
+reading and never replaces it, except on a card page, whose held base is one frozen frame that a single midpoint reads.
 
-slide_match. The cut shows the slides the bundle binds. Before any voice spend, each slide re-hashes to the job's
-digest, each page shows the asset its beat cited in the intake, and a Full slide fills the frame (a strip wider than
-STRIP_PX refuses slide_letterbox). In deliver_check, compose's layers must be the job's pages, and at each slide
-page's midpoint the composed frame must match the slide: at most SLIDE_MISMATCH_MAX of its pixels may differ by more
-than SLIDE_TOL in a channel, with the overlay's square left out while the avatar covers it.
+An unchecked page does not fail the gate, and a gate with no checked page reads not_applicable, so passed speaks only
+for the checked pages. A page in avatar.boxExempt (a bundle asset that declares avatar_box exempt) is listed as exempt
+and not read: a render whose model edge reaches the box, with no text there. A job with no pages holds its segment ids
+there, and its one program page is exempt when every segment the avatar is on is. deliver_check's measurements repeat
+both lists as frame_review, which nv cut and the render stage result print, so a person reads those pages before a GO.
+
+slide_match. The cut shows the slides the bundle binds. Before any voice spend, the store still holds a file that
+hashes to each slide's digest, a Full slide fills the frame (a strip wider than STRIP_PX refuses slide_letterbox), and
+the job's pages agree with the rows of the intake that wrote it. A slide that changed or left the store is
+slide_digest_mismatch whichever way it went: a store's index is keyed by content, so a changed file is one the index
+no longer finds. In deliver_check, compose's layers must be the job's pages, and at each slide page's midpoint the
+composed frame must match the slide: at most SLIDE_MISMATCH_MAX of its pixels may differ by more than SLIDE_TOL in a
+channel, with the overlay's square left out while the avatar covers it.
 
 Whether a slide draws the numbers its beat speaks stays with the producer (its shown record and demo check). This
 module compares pixels with pixels and reads no claim. A report holds page ids, counts and digests, never a path or a
@@ -51,6 +59,7 @@ SLIDE_TOL = 32
 SLIDE_MISMATCH_MAX = 0.005
 STRIP_PX = 2
 TOOL_TIMEOUT_S = 300
+PROGRAM = "program"  # the label of the one page of a job with no pages
 
 
 # Pure parts: tested alone ----------------------------------------------------------------------------------------
@@ -94,14 +103,14 @@ def extent(mask, width, x0=0, y0=0):
 
 
 def worst_off(samples, box, tol):
-    """(any flat sample, {pixels, extent} of the worst one or None) over [(view, crop)]. A sample's own background
+    """(flat samples, {pixels, extent} of the worst one or None) over [(view, crop)]. A sample's own background
     counts, so a slide that changes colour is not read against another sample's."""
-    flat, worst = False, None
+    flat, worst = 0, None
     for view, crop in samples:
         colour = flat_colour(view)
         if colour is None:
             continue
-        flat = True
+        flat += 1
         mask = off_mask(crop, colour, tol)
         pixels = mask.count(1)
         if pixels and (worst is None or pixels > worst["pixels"]):
@@ -168,8 +177,16 @@ def visible_pages(job):
 
 
 def box_exempt(job):
-    """The pages avatar.boxExempt lists. A job written before the field holds none."""
+    """The ids avatar.boxExempt lists. A job written before the field holds none."""
     return set((job["avatar"] or {}).get("boxExempt") or ())
+
+
+def page_exempt(job, label):
+    """True when avatar.boxExempt covers this page. A job with no pages lists segments, so its program page needs all
+    of the segments the avatar is on."""
+    if label != PROGRAM:
+        return label in box_exempt(job)
+    return all(s["id"] in box_exempt(job) for s in job["segments"] if s["avatar"])
 
 
 # Decoding --------------------------------------------------------------------------------------------------------
@@ -212,6 +229,13 @@ def picture_size(source):
     return int(info["width"]), int(info["height"])
 
 
+def slide_file(env, digest):
+    """The store file that hashes to digest now, or None. env.index is keyed by content when Env is built, so a file
+    changed before that is simply absent, and the re-hash catches one changed after it."""
+    path = env.index.get(digest)
+    return path if path is not None and sha256_file(path) == digest else None
+
+
 # What a job will show --------------------------------------------------------------------------------------------
 def base_samples(job, env, page, w, h, box):
     """(samples, lossless) of the base under a page, or None for a base this module cannot read before it is built.
@@ -236,23 +260,27 @@ def avatar_box_gate(job, env, w, h):
     avatar = job["avatar"]
     pages = visible_pages(job)
     if not pages:
-        return {"state": "not_applicable", "checked": [], "exempt": [], "unchecked": [], "findings": []}
+        return {"state": "not_applicable", "checked": [], "exempt": [], "unchecked": [], "held": [], "findings": []}
     box = guarded_box(avatar, w, h)
     rect = (box["x"], box["y"], box["w"], box["h"])
     slides = job["slides"] or {}
-    report = {"box": box, "checked": [], "exempt": [], "unchecked": [], "findings": []}
+    report = {"box": box, "checked": [], "exempt": [], "unchecked": [], "held": [], "findings": []}
     for page in pages:
-        label = page["id"] or "program"
-        if label in box_exempt(job):
+        label = page["id"] or PROGRAM
+        if page_exempt(job, label):
             report["exempt"].append(label)
             continue
         if page_kind(page) == "slide":
-            source = env.source(page["show"]["slide"]["sha256"], f"slide {label}")
+            source = slide_file(env, page["show"]["slide"]["sha256"])
+            if source is None:  # slide_gate reports it
+                report["unchecked"].append(label)
+                continue
             if slides["layout"] == "CardLowerLeft":
                 card = card_box(slides["cardWidth"], slides["marginPx"], w, h, *picture_size(source))
                 if overlaps(card, rect):
                     report["findings"].append({"code": "card_in_avatar_box", "page": label})
-                report["unchecked"].append(label)  # the held base under the card is not read
+                report["unchecked"].append(label)  # the held base under the card is not read until it is composed
+                report["held"].append(label)
                 continue
             samples, lossless = box_samples(source, w, h, box), True
         else:
@@ -265,25 +293,23 @@ def avatar_box_gate(job, env, w, h):
             report["checked"].append(label)
             continue
         flat, worst = worst_off(samples, box, LAYER_TOL if lossless else FRAME_TOL)
-        if not flat:
-            report["unchecked"].append(label)
-            continue
-        report["checked"].append(label)
+        report["checked" if samples and flat == len(samples) else "unchecked"].append(label)
         if worst:
             report["findings"].append({"code": "avatar_box_occupied", "page": label, "source": "layer"} | worst)
     return report | {"state": state(report["checked"], report["findings"])}
 
 
 def slide_gate(job, env, w, h, intake=None):
-    """The slide_match report before anything renders: each slide re-hashes, each page shows the asset its beat cited
-    in the intake (when one wrote the job), and a Full slide fills the frame."""
+    """The slide_match report before anything renders: the store still holds each slide, a Full slide fills the frame
+    and each page agrees with its row in the intake that wrote the job, when one did. That row and the page come from
+    the same beats, so this catches an intake.json edited after it was written, not a wrong citation in a bundle."""
     slides = job["slides"]
     if slides is None:
         return {"state": "not_applicable", "checked": [], "findings": []}
     report = {"checked": [], "findings": []}
     for page_id, digest in slide_sources(job):
-        source = env.source(digest, f"slide {page_id}")
-        if sha256_file(source) != digest:
+        source = slide_file(env, digest)
+        if source is None:
             report["findings"].append({"code": "slide_digest_mismatch", "page": page_id})
             continue
         report["checked"].append(page_id)
@@ -416,11 +442,14 @@ def slide_frames(job, env, composed, overlays, video, w, h):
         if layer["sha256"] != page["show"]["slide"]["sha256"]:
             findings.append({"code": "slide_layer_mismatch", "page": page_id})
             continue
+        source = slide_file(env, layer["sha256"])
+        if source is None:  # slide_gate reports it
+            continue
         at = midpoint(page)
         box = layer["box"]
         rect = (box["x"], box["y"], box["w"], box["h"])
         fit = conform(w, h) if slides["layout"] == "Full" else f"scale={box['w']}:{box['h']},setsar=1"
-        diff = difference(video, at, env.source(layer["sha256"], f"slide {page_id}"), rect, fit)
+        diff = difference(video, at, source, rect, fit)
         expected = box["w"] * box["h"] * 3
         if len(diff) < expected:
             findings.append({"code": "slide_not_shown", "page": page_id, "share": 1.0})
@@ -450,9 +479,9 @@ def final_gates(rc, composed, video, w, h):
             if page_id in exempt:
                 continue
             flat, worst = frame_off_alpha(video, overlay, at, avatar["box"])
-            if flat and page_id not in avatar["checked"]:
+            if flat and page_id in avatar["held"]:
                 avatar["checked"].append(page_id)
-                avatar["unchecked"] = [p for p in avatar["unchecked"] if p != page_id]
+                avatar["unchecked"].remove(page_id)
             if worst:
                 avatar["findings"].append({"code": "avatar_box_occupied", "page": page_id, "source": "frame"} | worst)
     avatar["state"] = state(avatar["checked"], avatar["findings"])
@@ -462,3 +491,8 @@ def final_gates(rc, composed, video, w, h):
     slide["frames_read"] = read
     slide["state"] = state(slide["checked"], slide["findings"])
     return avatar, slide
+
+
+def frame_review(avatar):
+    """The pages no gate read, for the view a person decides from: nv cut and the render stage result."""
+    return {"unchecked": avatar["unchecked"], "exempt": avatar["exempt"]}

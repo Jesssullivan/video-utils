@@ -20,7 +20,7 @@ The task body is `python -m narrate video render-stage` (`narrate/video/render_s
 | --- | --- | --- |
 | `check --request R [--inputs DIR]` | Validates the request and prints its phases. With `--inputs`, the `verify_inputs` phase, it also compares the worker's commit with the request and then re-hashes every input at `DIR/<sha256>` | nothing |
 | `check --request R --gpu-draft` | Prints the plan of a `gpu_window` request, which v1 refuses otherwise. It never goes with `--inputs` | nothing |
-| `preflight JOB --request R` | Binds the request to the job's intake, runs the frame gates on the job the intake wrote and refuses the first finding with its own code. It accepts a `gpu_window` request, because this phase comes before the window | `JOB/intake/preflight.json` |
+| `preflight JOB --request R` | Binds the request to the job's intake, removes any earlier report, runs the frame gates on the job the intake wrote and refuses the first finding with its own code. It accepts a `gpu_window` request, because this phase comes before the window | `JOB/intake/preflight.json` |
 | `result JOB --request R [--export DIR]` | Binds the request to the job's intake and to a passed preflight, then reports a job that ran to `deliver_check`, every output by digest. With `--export`, it copies the cut, the report and the result into `DIR` under their sha256 names | `DIR/<sha256>.mp4`, `DIR/<sha256>.json` |
 
 The recipes are `just nv-render-stage-check`, `just nv-render-stage-preflight` and `just nv-render-stage-result`. The
@@ -97,7 +97,7 @@ and, for each input, how it is bound:
 | `verify_inputs` | no | `render-stage check --inputs` | none |
 | `claims_gate` | no | `narrate video claims` on the bundle | the claims report. A number no claim backs refuses here |
 | `intake` | no | `narrate video intake --out JOB/intake` with the bundle, the records and the denylist, then `init --from` | the job, its narrate jobs and `JOB/intake/intake.json` |
-| `preflight` | no | `render-stage preflight JOB --request R --records JOB/intake/records` | `JOB/intake/preflight.json` by digest. A slide in the avatar box, a slide that is not the asset its beat cited or a letterboxed slide refuses here |
+| `preflight` | no | `render-stage preflight JOB --request R --records JOB/intake/records` | `JOB/intake/preflight.json` by digest. A slide in the avatar box, a slide that changed or left the store, a letterboxed slide or an `intake.json` that disagrees with the job refuses here |
 | `voice_plan` | no | `narrate plan`, the AudioCppBatch requests | a plan directory and its digest |
 | `voice_gpu` | yes | the lease helper's `run`, then `audiocpp_batch.py run` inside it | WAVs and a batch receipt by sha256 |
 | `voice_render` | no | `narrate render --prerendered` | a narrate run with its `content_sha256` |
@@ -109,7 +109,9 @@ A `from_run` request skips `voice_plan`, `voice_gpu` and `voice_render`. It adop
 each by `content_sha256`. The result refuses `voice_run_mismatch` when the voice nodes hold other runs.
 
 Both kinds of request run `claims_gate`, `intake` and `preflight` first, so a planted fault refuses before any GPU
-spend. The two gates that read the voice or the mix stay after it: `voice_qa` and `deliver_check`.
+spend. The two gates that read the voice or the mix stay after it: `voice_qa` and `deliver_check`. This order is the
+plan's. `result` proves that a preflight passed for this job and intake, and it does not prove when, so the caller
+must run the phases in plan order and refuse voice work without a passed preflight.
 
 No phase name matches the cade-infra `SEND_TASKS` pattern. If Cade maps phases to Hatchet tasks one to one, the
 names stay as they are.
@@ -215,12 +217,12 @@ A result is `narrate_render_stage_result` at schema version 1. It holds no path.
 | `job_sha256` | the digest of `job.json` that `deliver_check` keyed on |
 | `voice` | the mode and each segment's narrate `content_sha256` |
 | `intake_sha256`, `inputs_bound_by` | the digest of the job's `intake.json` and how each input is bound (see "Binding inputs to the job") |
-| `preflight_sha256` | the digest of the job's `preflight.json`. A missing one refuses `intake_missing`, one for another job `preflight_stale` and one with findings `preflight_failed` |
+| `preflight_sha256` | the digest of the job's `preflight.json`. A missing one refuses `intake_missing`, one of another schema version `intake_invalid`, one for another job or `intake.json` `preflight_stale` and one with findings `preflight_failed` |
 | `lease` | null in v1. Only `from_run` results pass, so no Lease attests the voice |
 | `outputs.video_sha256` | the composed cut |
 | `outputs.deliver_check` | the stage key, the content digest and `report_sha256` of `deliver_check.json` |
 | `outputs.stages` | every current node's content digest |
-| `deliver_check` | the gates, `delivery_gate`, `machine_passed` and the gates still `pending_operator` |
+| `deliver_check` | the gates, `delivery_gate`, `machine_passed`, `frame_review` and the gates still `pending_operator`. `frame_review` is `{unchecked, exempt}`, the page ids no frame gate read. Those pages do not fail `machine_passed`, so Cade must show them to the person who gives the GO (`docs/spec/NARRATED_VIDEO.md`, "Frame gates") |
 
 `result` reads the current render through the same check `nv accept` uses. A `deliver_check` that ran for another
 `job.json`, or did not read the current compose, refuses `deliver_check_stale`. A node that fails re-hashing refuses

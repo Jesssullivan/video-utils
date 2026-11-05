@@ -414,11 +414,13 @@ def bound_job(request, store, env=None):
 def preflight(request, store, media, env=None):
     """The preflight phase: run the frame gates on the job the intake wrote and record the report in JOB/intake. A
     finding refuses with its own code, so a planted fault stops here, before voice_plan and any GPU window. media is
-    the common.Env that reads the private store."""
-    job, _ = bound_job(request, store, env)
+    the common.Env that reads the private store. An earlier report goes first, so a run that crashes leaves no pass
+    for result to read."""
+    job, intake_sha256 = bound_job(request, store, env)
     intake = _intake_json(store.dir / INTAKE_DIR / "intake.json")
-    report = frames.preflight(job, media, intake)
     target = store.dir / INTAKE_DIR / PREFLIGHT_FILE
+    target.unlink(missing_ok=True)
+    report = frames.preflight(job, media, intake) | {"intake_sha256": intake_sha256}
     write_atomic(target, report)
     if not report["ok"]:
         first = report["findings"][0]
@@ -426,14 +428,17 @@ def preflight(request, store, media, env=None):
     return report | {"preflight_sha256": sha256_file(target)}
 
 
-def preflight_binding(store, job):
-    """The sha256 of the job's preflight.json, which must have passed for this same job."""
+def preflight_binding(store, job, intake_sha256):
+    """The sha256 of the job's preflight.json, which must have passed for this same job and intake. It says nothing
+    of when: nothing here orders it before voice spend, so the caller runs the phases in plan order."""
     path = _intake_file(store.dir / INTAKE_DIR, PREFLIGHT_FILE)
     report = _intake_json(path)
     if not isinstance(report, dict) or report.get("kind") != frames.KIND:
         _refuse("intake_invalid", f"{PREFLIGHT_FILE} is not {frames.KIND}")
-    if report.get("job_sha256") != keys.digest(job):
-        _refuse("preflight_stale", "the preflight read another job than the store holds; run it again")
+    if report.get("schema_version") != frames.SCHEMA_VERSION:
+        _refuse("intake_invalid", f"{PREFLIGHT_FILE} is not schema version {frames.SCHEMA_VERSION}")
+    if report.get("job_sha256") != keys.digest(job) or report.get("intake_sha256") != intake_sha256:
+        _refuse("preflight_stale", "the preflight read another job or intake than the store holds; run it again")
     if report.get("ok") is not True:
         _refuse("preflight_failed", "the job's preflight holds findings")
     return sha256_file(path)
@@ -450,7 +455,7 @@ def result(request, store, env=None):
         _refuse("edition_mismatch", "the job's edition is not the request's")
     render, gates = accept.render_of(store, job)
     intake_sha256 = intake_binding(request, store, job)
-    preflight_sha256 = preflight_binding(store, job)
+    preflight_sha256 = preflight_binding(store, job, intake_sha256)
     manifest = store.manifest("deliver_check")
     report = (manifest.get("outputs") or {}).get("deliver_check.json")
     if not _sha(report):
@@ -492,6 +497,7 @@ def result(request, store, env=None):
             "gates": gates,
             "delivery_gate": measurements.get("delivery_gate"),
             "machine_passed": machine_passed,
+            "frame_review": measurements.get("frame_review"),
             "pending_operator": sorted(g for g, v in gates.items() if v == "pending_operator"),
         },
     }
