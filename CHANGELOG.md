@@ -4,6 +4,15 @@
 
 ### Added
 
+- `narrate/serve/modal_batch.py`: a draft sealed Modal app for a
+  `RentedAudioCppBatch` VoxCPM2 run, its host side `run_plan`, the
+  `voxcpm2-batch-modal` record, and `just narrate-modal-dry-run`, which plays it
+  with a fake `modal` client and the fake `audiocpp_cli`. Receipts gain
+  `placement`, a render refuses a rented receipt under an on-prem record, and the
+  runner gains `--placement` and `--checkpoint-s`. `run_plan` reads each
+  consent again from the live file named by `--consents` before any upload, so
+  a consent revoked after `plan` refuses `consent_revoked`. Nothing is deployed
+  or run (TIN-7994).
 - `src/timeline.rs` and `video-utils timeline validate|table|map|quantise`: the
   EDL model, frame quantisation and time map, bit-exact with the frozen
   talk-condense oracle (`tests/fixtures/edl-golden-v1.json`).
