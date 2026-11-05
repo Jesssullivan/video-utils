@@ -130,6 +130,20 @@ def test_the_listing_reports_the_consent_state_of_an_older_row(workspace, edit, 
     assert listing(workspace)["voice-older"]["consent_state"] == state
 
 
+@pytest.mark.parametrize(
+    ("value", "listed"),
+    [(True, True), (False, False), ("false", False), ("true", False), (1, False), (None, False)],
+)
+def test_the_listing_grants_hosted_only_on_the_boolean_true(workspace, value, listed):
+    workspace.consents[0]["hostedAllowed"] = value
+    assert listing(workspace)[workspace.voices[0]["id"]]["hosted_allowed"] is listed
+
+
+def test_the_listing_grants_hosted_to_no_voice_without_a_consent(workspace):
+    workspace.consents[0]["id"] = "consent-other"
+    assert listing(workspace)[workspace.voices[0]["id"]]["hosted_allowed"] is False
+
+
 def test_an_older_row_refuses_by_name_and_never_renders(workspace):
     workspace.job["voice"] = older_row(workspace)["id"]
     refused(workspace, "consent_invalid")

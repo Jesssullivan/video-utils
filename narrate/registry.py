@@ -55,7 +55,7 @@ def voices(cfg):
             "consent_scopes": consent["scopes"] if consent else [],
             "allowed_engines": voice.get("allowedEngines", []),
             "fixture": voice.get("fixture"),
-            "hosted_allowed": bool(consent and consent["hostedAllowed"]),
+            "hosted_allowed": consent is not None and consent["hostedAllowed"] is True,
         }
         if index is not None:
             entry["ref_clip_stored"] = voice["refClipSha256"] in index
