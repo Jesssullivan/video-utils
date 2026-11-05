@@ -870,6 +870,16 @@ def earlier_intake(out):
     return out.is_dir() and manifest.is_file() and not manifest.is_symlink()
 
 
+def check_earlier_job(out, job_id):
+    """A rerun replaces its own job's intake: job_mismatch unless the earlier intake at out wrote job_id."""
+    try:
+        earlier = json.loads((out / "intake.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise BundleError("out_exists", "--out holds an intake.json that cannot be read") from exc
+    if not isinstance(earlier, dict) or earlier.get("job_id") != job_id:
+        raise BundleError("job_mismatch", "--replace takes only an intake of the same job")
+
+
 def retire_intake(out):
     """Move the earlier intake at out to history/ beside it. Returns where it went, or None when out holds nothing."""
     if not out.exists() or not any(out.iterdir()):
@@ -896,6 +906,8 @@ def guarded_intake(
     b = read(bundle, denylist, pin, state)
     job_id = job_id or b["slug"]
     private_check(b["guard"], [("slug", "record", b["slug"]), ("job", "record", job_id)])  # the directory's name
+    if replace and earlier_intake(out):
+        check_earlier_job(out, job_id)
     if persona is not None:
         private_check(b["guard"], [("labels", "label", persona)])
     refused = gate_refusal(b["report"])
@@ -944,8 +956,9 @@ def guarded_intake(
 
 def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken, replace):
     """Write the checked intake: stage every store file and the output tree, then commit them. On any failure every
-    staged file, new store file and new directory is removed, and a retired intake returns to out."""
-    created, parts, new_store, staging = [], [], [], None
+    staged file, new store file and new directory is removed, and a retired intake returns to out unless another
+    writer took out meanwhile."""
+    created, parts, new_store, staging, retired = [], [], [], None, None
     try:
         created += make_dirs(out.parent)
         staging = Path(tempfile.mkdtemp(prefix=f".{out.name}.intake-", dir=out.parent))
@@ -972,8 +985,6 @@ def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, tem
         try:
             os.rename(staging, out)
         except OSError:
-            if retired is not None:
-                os.rename(retired, out)
             raise BundleError("out_exists", "--out appeared or filled while the intake ran") from None
         staging = None
         return manifest
@@ -984,6 +995,8 @@ def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, tem
             target.unlink(missing_ok=True)
         if staging is not None:
             shutil.rmtree(staging, ignore_errors=True)
+        if retired is not None and not out.exists():
+            os.rename(retired, out)
         for d in reversed(created):
             try:
                 d.rmdir()

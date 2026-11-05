@@ -960,7 +960,8 @@ current composed video, so a decision about one render never closes a later one.
 | any other gate name | `gate_unknown` |
 | `lip_sync` without an overlay | `gate_not_applicable` |
 | a gate of this render that holds another decision | `gate_already_accepted` |
-| an id that already accepted another cut of this job, or any cut of another job under the store root | `decision_bound_elsewhere` |
+| an id that already accepted another cut of this job, any cut of another job under the store root, or recorded a FIX round on any job under that root | `decision_bound_elsewhere` |
+| a cut this job's FIX round sent back (`docs/spec/RENDER_STAGE.md`, "FIX rounds") | `cut_sent_back` |
 | no `--video-sha256`, or an empty one | `video_sha256_missing` |
 | `--video-sha256` that is not 64 lower-case hex characters | `video_sha256_invalid` |
 | `--video-sha256` that is not the current composed video | `video_mismatch` |

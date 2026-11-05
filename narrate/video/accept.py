@@ -33,7 +33,9 @@ The record is acceptance.json in the job directory, beside job.json, and append-
 record as rendered, so no stage key or private-terms binding moves. The same gate and decision for the same render is
 a no-op (exit 0, recorded false). One decision may close several gates of one cut (a GO closes listening and lip
 sync, SPR-258), never another cut or another job: accept reads every job's acceptance.json under the store root,
-under one root lock, and refuses decision_bound_elsewhere. A gate holds one decision per render. The recorded
+under one root lock, and refuses decision_bound_elsewhere. A FIX is a decision too: accept reads every job's rerun.json
+the same way, so an id that recorded a FIX round anywhere under the root refuses decision_bound_elsewhere, and a new
+decision on a cut this job sent back refuses cut_sent_back. A gate holds one decision per render. The recorded
 graph.json (plan --record, run) lists the acceptances that bind its deliver_check and the current composed video,
 and drops their gates from pending_operator. accept checks graph.json before it writes acceptance.json, so a
 malformed graph refuses store_invalid with nothing recorded. status trusts no operator view in graph.json: it
@@ -243,20 +245,26 @@ def present(path):
 
 
 def bound_elsewhere(store, decision, render):
-    """True when decision already accepted another cut of this job, or anything in another job under the store root.
-    The same cut under a new deliver_check render (a bed record update) is the same decision, not another. An
-    unreadable record of another job refuses too, since it may hold the decision."""
+    """True when decision already accepted another cut of this job, accepted anything in another job or recorded a FIX
+    round anywhere under the store root. The same cut under a new deliver_check render (a bed record update) is the
+    same acceptance, not another. An unreadable record of any job refuses too, since it may hold the decision."""
+    from . import rerun  # rerun imports this module
+
     for directory in sorted(store.root.iterdir()):
         if directory.is_symlink() or not directory.is_dir() or not ID.match(directory.name):
             continue
         path = directory / ACCEPTANCE
-        if not present(path):
-            continue
-        for row in read_path(path, directory.name)["acceptances"]:
-            if row["decision"] == decision and (
-                directory.name != store.job_id or row["video_sha256"] != render["video_sha256"]
-            ):
-                return True
+        if present(path):
+            for row in read_path(path, directory.name)["acceptances"]:
+                if row["decision"] == decision and (
+                    directory.name != store.job_id or row["video_sha256"] != render["video_sha256"]
+                ):
+                    return True
+        ledger = directory / rerun.LEDGER
+        if present(ledger) and any(
+            row["decision"] == decision for row in rerun.read_path(ledger, directory.name)["fixes"]
+        ):
+            return True
     return False
 
 
@@ -291,6 +299,8 @@ def accept(store, gate, decision, video_sha256, now=utc_now):
     """Record one acceptance of the cut whose sha256 is video_sha256. Returns {ok, job_id, gate, decision, resolution,
     accepted_utc, recorded, render, operator_states_open}; recorded is False when the same gate, decision and render
     were already recorded."""
+    from . import rerun  # rerun imports this module
+
     check_decision(decision)
     check_gate(gate)
     check_video(video_sha256)
@@ -305,7 +315,9 @@ def accept(store, gate, decision, video_sha256, now=utc_now):
         record = read(store)
         rows = record["acceptances"]
         if bound_elsewhere(store, decision, render):
-            raise JobError("decision_bound_elsewhere", "this decision already accepted another cut or job")
+            raise JobError("decision_bound_elsewhere", "this decision already answered another cut, job or FIX")
+        if rerun.fix_of(rerun.read(store), video_sha256) is not None:
+            raise JobError("cut_sent_back", "the operator sent this cut back by FIX, so no decision accepts it")
         existing = next((r for r in rows if r["gate"] == gate and same_render(r, render)), None)
         recorded = existing is None
         if existing is not None and existing["decision"] != decision:

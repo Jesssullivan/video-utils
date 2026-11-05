@@ -177,6 +177,55 @@ def test_an_event_holds_one_render(card):
     assert refused(render_stage.result, event(job, 1), s, ENV) == "rerun_event_reused"
 
 
+@pytest.mark.parametrize("changes", [{"packet_id": "another-packet"}, {"rerun": {"scope": "compose_only"}}])
+def test_a_reused_event_with_another_request_refuses_before_any_scope_check(card, changes):
+    job, s = card
+    render_stage.result(event(job, 1), s, ENV)
+    written = (s.dir / rerun.LEDGER).read_bytes()
+    assert refused(render_stage.result, event(job, 1, **changes), s, ENV) == "rerun_event_reused"
+    assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_a_reused_event_with_another_deliver_check_refuses(card):
+    job, s = card
+    render_stage.result(event(job, 1), s, ENV)
+    value = ledger(s)
+    value["renders"][0]["deliver_check"]["content_sha256"] = sha("another report")
+    (s.dir / rerun.LEDGER).write_text(json.dumps(value))
+    assert refused(render_stage.result, event(job, 1), s, ENV) == "rerun_event_reused"
+
+
+def test_a_retry_of_a_later_event_reads_the_same_previous_render(card):
+    job, s = card
+    render_stage.result(event(job, 1), s, ENV)
+    job = edited(job, s, burn)
+    render_stage.result(event(job, 2), s, ENV)
+    job = edited(job, s, lambda j: burn(j, "srt"))
+    first = render_stage.result(event(job, 3), s, ENV)["rerun"]
+    assert first["previous"]["run_id"] == "hatchet-run-02" and first["ran"] == ["compose", "deliver_check"]
+    assert render_stage.result(event(job, 3), s, ENV)["rerun"] == first
+
+
+@pytest.mark.parametrize("stage", ["place", "mix"])
+def test_place_or_mix_alone_refuses_the_compose_only_scope(card, stage):
+    job, s = card
+    render_stage.result(event(job, 1), s, ENV)
+    run.force(s, job, {stage})
+    settle(job, records(), s, plain_ctx())
+    assert refused(render_stage.result, event(job, 2, rerun={"scope": "compose_only"}), s, ENV) == (
+        "rerun_not_compose_only"
+    )
+    shown = render_stage.result(event(job, 3), s, ENV)["rerun"]
+    assert shown["ran"] == [stage] and shown["compose_only"] is False
+
+
+def test_compose_only_needs_a_node_that_ran_and_takes_handoff():
+    before = {"run_id": "run", "video_sha256": "0" * 64, "seq": 2, "keys": {"compose": "k"}}
+    assert rerun.proof(before, {"compose": {"key": "k", "seq": 2}})["compose_only"] is False
+    stages = {"compose": {"key": "new", "seq": 3}, "handoff": {"key": "h", "seq": 4}}
+    assert rerun.proof(before, stages)["compose_only"] is True
+
+
 def test_a_rerun_request_form(card):
     job, _ = card
     assert refused(render_stage.check_request, event(job, 2, rerun={"scope": "all"})) == "rerun_invalid"
@@ -217,6 +266,17 @@ def round_trip(job, s, number):
     out = rerun.fix(s, DECISIONS[number - 1], video_of(s))
     job = edited(job, s, lambda j: burn(j, ("burn", "srt", "vtt")[number - 1]))
     return job, out
+
+
+def test_a_ledger_of_another_job_or_with_rounds_out_of_order_is_store_invalid(card):
+    job, s = card
+    for number in (1, 2):
+        job, _ = round_trip(job, s, number)
+    value = ledger(s)
+    (s.dir / rerun.LEDGER).write_text(json.dumps(value | {"fixes": value["fixes"][::-1]}))
+    assert refused(rerun.read, s) == "store_invalid"
+    (s.dir / rerun.LEDGER).write_text(json.dumps(value | {"job_id": "nv-other"}))
+    assert refused(rerun.read, s) == "store_invalid"
 
 
 def test_three_rounds_then_the_fourth_stops_and_records_nothing(card):
@@ -277,14 +337,51 @@ def test_a_fix_refuses_an_accepted_cut_and_a_go_decision(card):
     assert refused(rerun.fix, s, DECISIONS[1], video) == "cut_accepted"
 
 
-def test_a_decision_from_another_job_refuses(tmp_path):
+def two_jobs(tmp_path):
     job_a, s_a = settled(tmp_path)
     other = store.JobStore(s_a.root, "nv-other")
     job_b = copy.deepcopy(job_a) | {"id": "nv-other"}
     other.write_job(job_b)
     settle(job_b, records(), other, plain_ctx())
+    return s_a, other
+
+
+def test_a_decision_from_another_job_refuses(tmp_path):
+    s_a, other = two_jobs(tmp_path)
     accept.accept(s_a, "listening", DECISIONS[0], video_of(s_a))
     assert refused(rerun.fix, other, DECISIONS[0], video_of(other)) == "decision_bound_elsewhere"
+
+
+def test_a_fix_decision_binds_one_cut_of_one_job(tmp_path):
+    s_a, other = two_jobs(tmp_path)
+    rerun.fix(s_a, DECISIONS[0], video_of(s_a))
+    assert refused(rerun.fix, other, DECISIONS[0], video_of(other)) == "decision_bound_elsewhere"
+    assert refused(accept.accept, other, "listening", DECISIONS[0], video_of(other)) == "decision_bound_elsewhere"
+    assert not (other.dir / rerun.LEDGER).exists() and not (other.dir / accept.ACCEPTANCE).exists()
+
+
+def test_an_unreadable_ledger_of_another_job_refuses(tmp_path):
+    s_a, other = two_jobs(tmp_path)
+    (other.dir / rerun.LEDGER).write_text("not json")
+    assert refused(accept.accept, s_a, "listening", DECISIONS[0], video_of(s_a)) == "store_invalid"
+    assert refused(rerun.fix, s_a, DECISIONS[0], video_of(s_a)) == "store_invalid"
+
+
+def test_a_cut_sent_back_closes_no_gate(card):
+    _, s = card
+    video = video_of(s)
+    rerun.fix(s, DECISIONS[0], video)
+    assert refused(accept.accept, s, "listening", DECISIONS[0], video) == "decision_bound_elsewhere"
+    assert refused(accept.accept, s, "listening", DECISIONS[1], video) == "cut_sent_back"
+    assert not (s.dir / accept.ACCEPTANCE).exists()
+
+
+def test_a_fix_decision_accepts_no_later_cut_and_a_new_decision_does(card):
+    job, s = card
+    rerun.fix(s, DECISIONS[0], video_of(s))
+    edited(job, s, burn)
+    assert refused(accept.accept, s, "listening", DECISIONS[0], video_of(s)) == "decision_bound_elsewhere"
+    assert accept.accept(s, "listening", DECISIONS[1], video_of(s))["recorded"] is True
 
 
 def test_a_cut_sent_back_must_change(card):
@@ -295,6 +392,32 @@ def test_a_cut_sent_back_must_change(card):
     assert render_stage.result(event(job, 1), s, ENV)["rerun"]["fix"]["answers_round"] is None
     job = edited(job, s, burn)
     assert render_stage.result(event(job, 2), s, ENV)["rerun"]["fix"]["answers_round"] == 1
+
+
+def test_a_cut_any_round_sent_back_cannot_return(card):
+    job, s = card
+    render_stage.result(event(job, 1), s, ENV)
+    first = video_of(s)
+    rerun.fix(s, DECISIONS[0], first)
+    job = edited(job, s, burn)
+    render_stage.result(event(job, 2), s, ENV)
+    rerun.fix(s, DECISIONS[1], video_of(s))
+    job = edited(job, s, burn)
+    assert video_of(s) == first
+    written = (s.dir / rerun.LEDGER).read_bytes()
+    assert refused(render_stage.result, event(job, 3), s, ENV) == "fix_unchanged_cut"
+    assert refused(accept.accept, s, "listening", DECISIONS[2], first) == "cut_sent_back"
+    assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_a_fix_with_no_render_row_binds_its_cut_and_the_next_render_answers_it(card):
+    job, s = card
+    rerun.fix(s, DECISIONS[0], video_of(s))
+    assert refused(render_stage.result, event(job, 1), s, ENV) == "fix_unchanged_cut"
+    job = edited(job, s, burn)
+    assert render_stage.result(event(job, 1), s, ENV)["rerun"]["fix"]["answers_round"] == 1
+    job = edited(job, s, lambda j: burn(j, "srt"))
+    assert render_stage.result(event(job, 2), s, ENV)["rerun"]["fix"]["answers_round"] is None
 
 
 def test_more_rounds_than_the_cap_in_the_ledger_is_store_invalid(card):
@@ -393,6 +516,7 @@ def test_a_mixed_plan_voices_only_the_beats_it_names():
     for phase in ("voice_plan", "voice_gpu", "voice_render"):
         assert next(p for p in out["phases"] if p["id"] == phase)["segments"] == ["seg-2", "seg-3"]
     assert [p["id"] for p in out["phases"] if p["gpu"]] == ["voice_gpu"]
+    assert next(p for p in out["phases"] if p["id"] == "voice_ready")["runs"].endswith("--after-window")
 
 
 @pytest.mark.parametrize(
@@ -436,24 +560,29 @@ def two_beats(s_root):
     return job, recs, s
 
 
-def takes_of(request_value, job, recs, s):
-    return render_stage.takes(
-        request_value | {"job_id": job["id"]}, graph.plan(job, recs, s, plain_ctx()), s, job, gpu_draft=True
-    )
+def takes_of(request_value, job, recs, s, after=False):
+    g = graph.plan(job, recs, s, plain_ctx())
+    return render_stage.takes(request_value | {"job_id": job["id"]}, g, s, job, gpu_draft=True, after=after)
+
+
+def change_beat(job, recs, index):
+    """A new script on one beat of two_beats, so its voice node plans stale."""
+    segment = job["segments"][index]
+    segment["scriptSha256"] = sha(f"a changed beat {index}")
+    recs["jobs"][segment["narrateJob"]]["inputSha256"] = segment["scriptSha256"]
 
 
 def test_takes_keeps_a_held_take_and_voices_only_the_changed_beat(tmp_path):
     job, recs, s = two_beats(tmp_path)
     render_stage.result(event(job, 1) | {"voice": {"mode": "from_run", "runs": {"seg-1": RUN, "seg-2": RUN}}}, s, ENV)
-    job["segments"][1]["scriptSha256"] = sha("a changed second beat")
-    recs["jobs"]["job-fixture-fake-2"]["inputSha256"] = job["segments"][1]["scriptSha256"]
+    change_beat(job, recs, 1)
     s.write_job(job, replace=True)
     value = mixed({"seg-1": RUN, "seg-2": None})
     out = takes_of(value, job, recs, s)
     assert out["takes"] == {"seg-1": "keep", "seg-2": "revoice"}
     assert out["revoice"] == ["seg-2"] and out["ready"] is False
     settle(job, recs, s, plain_ctx())  # the fake runner stands in for the window and voice_adopt
-    out = takes_of(value, job, recs, s)
+    out = takes_of(value, job, recs, s, after=True)
     assert out["takes"] == {"seg-1": "keep", "seg-2": "revoiced"} and out["ready"] is True
 
 
@@ -461,6 +590,45 @@ def test_takes_refuses_a_window_on_a_beat_that_needs_no_take(tmp_path):
     job, recs, s = two_beats(tmp_path)
     render_stage.result(event(job, 1) | {"voice": {"mode": "from_run", "runs": {"seg-1": RUN, "seg-2": RUN}}}, s, ENV)
     assert refused(takes_of, mixed({"seg-1": RUN, "seg-2": None}), job, recs, s) == "revoice_unneeded"
+
+
+def test_before_a_window_a_fresh_beat_refuses_on_a_root_with_no_render(tmp_path):
+    job, recs, s = two_beats(tmp_path)
+    assert refused(takes_of, mixed({"seg-1": RUN, "seg-2": None}), job, recs, s) == "revoice_unneeded"
+
+
+def test_before_a_window_a_beat_committed_since_the_last_render_still_refuses(tmp_path):
+    job, recs, s = two_beats(tmp_path)
+    render_stage.result(event(job, 1) | {"voice": {"mode": "from_run", "runs": {"seg-1": RUN, "seg-2": RUN}}}, s, ENV)
+    change_beat(job, recs, 1)
+    s.write_job(job, replace=True)
+    settle(job, recs, s, plain_ctx())  # a resume finds the take already in
+    value = mixed({"seg-1": RUN, "seg-2": None})
+    assert refused(takes_of, value, job, recs, s) == "revoice_unneeded"
+    assert takes_of(value, job, recs, s, after=True)["takes"]["seg-2"] == "revoiced"
+
+
+def test_after_a_window_an_unchanged_beat_still_refuses(tmp_path):
+    job, recs, s = two_beats(tmp_path)
+    render_stage.result(event(job, 1) | {"voice": {"mode": "from_run", "runs": {"seg-1": RUN, "seg-2": RUN}}}, s, ENV)
+    assert refused(takes_of, mixed({"seg-1": RUN, "seg-2": None}), job, recs, s, after=True) == "revoice_unneeded"
+
+
+def test_a_gpu_window_voices_every_beat_so_a_fresh_one_refuses(tmp_path):
+    job, recs, s = two_beats(tmp_path)
+    change_beat(job, recs, 0)
+    s.write_job(job, replace=True)
+    assert refused(takes_of, gpu_request(), job, recs, s) == "revoice_unneeded"
+
+
+def test_a_changed_beat_named_with_its_old_take_refuses_before_any_spend(tmp_path):
+    job, recs, s = two_beats(tmp_path)
+    change_beat(job, recs, 0)
+    change_beat(job, recs, 1)
+    s.write_job(job, replace=True)
+    assert refused(takes_of, mixed({"seg-1": RUN, "seg-2": None}), job, recs, s) == "voice_run_mismatch"
+    out = takes_of(mixed({"seg-1": "e" * 64, "seg-2": None}), job, recs, s)
+    assert out["takes"] == {"seg-1": "adopt", "seg-2": "revoice"}  # another take is checked at voice_adopt
 
 
 def test_takes_adopts_on_a_new_root_and_refuses_another_run(tmp_path):
@@ -481,11 +649,12 @@ def test_takes_names_every_segment_and_the_right_job(tmp_path):
     assert refused(render_stage.takes, other, g, s, job) == "gpu_window_not_v1"
 
 
-def test_takes_refuses_a_blocked_voice_node(tmp_path):
+@pytest.mark.parametrize("state", ["blocked", "refused"])
+def test_takes_refuses_a_blocked_or_refused_voice_node(tmp_path, state):
     job, recs, s = two_beats(tmp_path)
     g = graph.plan(job, recs, s, plain_ctx())
     row = next(n for n in g["nodes"] if n["id"] == "voice/seg-2")
-    row |= {"state": "blocked", "reason": "source_missing"}
+    row |= {"state": state, "reason": "source_missing"}
     value = mixed({"seg-1": RUN, "seg-2": None}) | {"job_id": job["id"]}
     assert refused(render_stage.takes, value, g, s, job, gpu_draft=True) == "voice_blocked"
 
@@ -592,7 +761,8 @@ def test_a_changed_beat_re_voices_alone_and_the_held_take_stays(root, capsys):
 
     voiced = root.run(capsys, until="voice_qa")  # the fake engine stands in for the window
     assert ran(voiced) == ["script/result", "voice/result", "voice_qa/result"]
-    out = render_stage.takes(value, graph.plan(job, records_now, s, ctx), s, job, gpu_draft=True)
+    planned = graph.plan(job, records_now, s, ctx)
+    out = render_stage.takes(value, planned, s, job, gpu_draft=True, after=True)
     assert out["ready"] is True and out["takes"] == {"intro": "keep", "result": "revoiced"}
 
     root.run(capsys)
@@ -607,6 +777,48 @@ def test_a_refused_re_intake_keeps_the_earlier_one(root):
     set_script(root.w["bundle"], "forty two percent", "forty three percent")
     assert root.intake("--replace") == 1
     assert (root.out / "intake.json").read_bytes() == before
+
+
+def test_replace_binds_the_same_job(root):
+    assert root.intake() == 0
+    before = (root.out / "intake.json").read_bytes()
+    assert root.intake("--replace", "--job", "some-other-job") == 1
+    assert (root.out / "intake.json").read_bytes() == before
+    assert not (root.out.parent / "history").exists()
+
+
+@pytest.mark.parametrize("fault", [OSError, KeyboardInterrupt])
+def test_a_failed_swap_brings_the_earlier_intake_back(root, monkeypatch, fault):
+    assert root.intake() == 0
+    before = (root.out / "intake.json").read_bytes()
+    real = bundle.os.rename
+
+    def failing(source, target):
+        if ".intake-" in str(source):
+            raise fault("the swap failed")
+        return real(source, target)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(bundle.os, "rename", failing)
+        if fault is OSError:
+            assert root.intake("--replace") == 1
+        else:
+            with pytest.raises(KeyboardInterrupt):
+                root.intake("--replace")
+    assert (root.out / "intake.json").read_bytes() == before
+    assert list((root.out.parent / "history").iterdir()) == []
+    assert not list(root.out.parent.glob(".intake.intake-*"))
+
+
+def test_replace_refuses_a_symlinked_intake_json(ws, tmp_path):  # noqa: F811
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "elsewhere.json").write_text("{}")
+    (out / "intake.json").symlink_to(out / "elsewhere.json")
+    args = {"template": TEMPLATE, "voice": VOICE, "engine": ENGINE, "store": ws["store"], "replace": True}
+    with pytest.raises(bundle.BundleError) as caught:
+        bundle.intake(ws["bundle"], out, ws["records"], **args)
+    assert caught.value.code == "out_exists"
 
 
 def test_replace_takes_only_an_earlier_intake(ws, tmp_path):  # noqa: F811
@@ -629,12 +841,15 @@ def test_a_re_intake_with_no_replace_still_refuses(root):
 def test_the_cli_takes_path(root, capsys):
     assert root.intake() == 0 and root.init() == 0
     root.run(capsys)
-    root.result(1)
     s = store.JobStore(root.root, JOB)
     held = s.manifest("voice/intro")["measurements"]["narrate_content_sha256"]
     path = root.root.parent / "request.json"
     path.write_text(json.dumps(mixed({"intro": held, "result": None}) | {"job_id": JOB}))
     argv = ["render-stage", "takes", JOB, "--request", str(path), *root.common[:6]]
+    capsys.readouterr()
+    assert cli.main([*argv, "--gpu-draft", "--after-window"]) == 0
+    assert json.loads(capsys.readouterr().out)["takes"]["result"] == "revoiced"
+    root.result(1)
     capsys.readouterr()
     assert cli.main(argv) == 1
     assert json.loads(capsys.readouterr().err)["refused"] == "gpu_window_not_v1"
@@ -643,4 +858,6 @@ def test_the_cli_takes_path(root, capsys):
     assert cli.main(["render-stage", "takes", "--request", str(path)]) == 1
     assert json.loads(capsys.readouterr().err)["refused"] == "usage"
     assert cli.main([*argv, "--inputs", str(root.root)]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "usage"
+    assert cli.main(["render-stage", "check", "--request", str(path), "--after-window"]) == 1
     assert json.loads(capsys.readouterr().err)["refused"] == "usage"

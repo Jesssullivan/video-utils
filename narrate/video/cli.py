@@ -437,6 +437,8 @@ def cmd_render_stage(a):
         return refusal("usage", "--inputs and --gpu-draft go with check")
     if a.action == "takes" and a.inputs:
         return refusal("usage", "--inputs goes with check")
+    if a.action != "takes" and a.after_window:
+        return refusal("usage", "--after-window goes with takes")
     if a.action in ("result", "takes") and not a.job:
         return refusal("usage", f"{a.action} names the job")
     request = read_request(a.request)
@@ -447,7 +449,8 @@ def cmd_render_stage(a):
     if a.action == "takes":
         s = job_store(a, a.job)
         job = s.read_job()
-        emit(render_stage.takes(request, graph.plan(job, records_for(a, job), s, context(a)), s, job, a.gpu_draft))
+        g = graph.plan(job, records_for(a, job), s, context(a))
+        emit(render_stage.takes(request, g, s, job, a.gpu_draft, a.after_window))
         return 0
     value = render_stage.result(request, job_store(a, a.job))
     if a.export:
@@ -660,6 +663,11 @@ def main(argv=None):
         "--gpu-draft",
         action="store_true",
         help="check and takes: read a gpu_window or mixed request, which v1 otherwise refuses",
+    )
+    rs.add_argument(
+        "--after-window",
+        action="store_true",
+        help="takes: the voice_ready phase, after voice_adopt. Without it a fresh beat named null refuses",
     )
     rs.add_argument("--export", help="result: copy the video, the report and the result here by sha256")
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")

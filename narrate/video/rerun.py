@@ -11,6 +11,10 @@ fresh and only what changed runs again. rerun.json, beside job.json, records eac
   checked, not Softproxy (resolution form_only), and the decision must name the cut it saw. The fourth FIX on a root
   refuses fix_cap_reached with nothing recorded, so the caller stops and asks the operator.
 
+A decision binds one cut of one job, whether it was a GO or a FIX: accept.bound_elsewhere reads every job's rerun.json
+under the store root, under the root lock. A round binds its cut for good: accept refuses that cut and a later result
+refuses to record it, whichever round sent it back and whether or not a render row names it.
+
 The counter is per job root, not per packet: a fixed bundle arrives as a new packet on the same root, so the rounds
 add up across packets. A FIX stores ids and digests, never its notes. rerun.json carries no signature, so a reader
 that needs the count to survive a hand edit keeps its own ledger too, as Cade does.
@@ -77,16 +81,15 @@ def valid_fix(row, position):
     )
 
 
-def read(store):
-    """The job root's ledger, an empty one when there is none. store_invalid when it is malformed, holds a row this
-    module would not write or holds more FIX rounds than the cap."""
-    path = store.dir / LEDGER
+def read_path(path, job_id):
+    """The ledger at path for job_id, an empty one when there is none. store_invalid when it is malformed, holds a row
+    this module would not write or holds more FIX rounds than the cap."""
     if path.is_symlink():
         raise JobError("stage_symlink", f"{LEDGER} is a symlink")
     if not path.exists():
-        return empty(store.job_id)
+        return empty(job_id)
     if not path.is_file():
-        raise JobError("store_invalid", f"{store.job_id}/{LEDGER} is not a regular file")
+        raise JobError("store_invalid", f"{job_id}/{LEDGER} is not a regular file")
     value = load_store_json(path)
     renders = value.get("renders") if isinstance(value, dict) else None
     fixes = value.get("fixes") if isinstance(value, dict) else None
@@ -94,15 +97,20 @@ def read(store):
         not isinstance(value, dict)
         or value.get("kind") != KIND
         or value.get("schema_version") != SCHEMA_VERSION
-        or value.get("job_id") != store.job_id
+        or value.get("job_id") != job_id
         or not isinstance(renders, list)
         or not isinstance(fixes, list)
         or len(fixes) > FIX_CAP
         or not all(valid_render(r) for r in renders)
         or not all(valid_fix(r, i) for i, r in enumerate(fixes, 1))
     ):
-        raise JobError("store_invalid", f"{store.job_id}/{LEDGER} is not that job's {KIND} record")
+        raise JobError("store_invalid", f"{job_id}/{LEDGER} is not that job's {KIND} record")
     return value
+
+
+def read(store):
+    """The job root's ledger, as read_path gives it."""
+    return read_path(store.dir / LEDGER, store.job_id)
 
 
 def fix_summary(ledger, answers=None):
@@ -113,6 +121,12 @@ def fix_summary(ledger, answers=None):
 def fix_of(ledger, video):
     """The FIX round recorded against this cut, or None."""
     return next((r for r in ledger["fixes"] if r["video_sha256"] == video), None)
+
+
+def unanswered(ledger):
+    """The FIX round a new render answers: the last one, unless a render answered it. None with no such round."""
+    last = ledger["fixes"][-1]["round"] if ledger["fixes"] else None
+    return None if any(r["fix_round"] == last for r in ledger["renders"]) else last
 
 
 def previous_seq(previous):
@@ -152,35 +166,39 @@ def check_scope(scope, previous, shown):
 
 
 def record_render(store, job, request, render, stages, seq, now=utc_now):
-    """Refuse or record this event's render and return its proof for the result. The same event with the same render
-    is a no-op that returns the same proof, so a retried collect writes nothing. The same event with another render
-    refuses rerun_event_reused, because a resume takes a new event. A rerun of a cut the operator sent back refuses
-    fix_unchanged_cut when it made that same cut again."""
-    video = render["video_sha256"]
+    """Refuse or record this event's render and return its proof for the result. The same event with the same request
+    and render is a no-op that writes nothing and reads the proof against the same previous row, so a retried collect
+    is safe. The same event with another request or render refuses rerun_event_reused, because a resume takes a new
+    event. A render of a cut any FIX round sent back refuses fix_unchanged_cut, so it never records. A FIX needs no
+    render row, because it binds the current composed video, so this holds on a root with no render recorded."""
+    video, request_sha256 = render["video_sha256"], keys.digest(request)
     with accept.locked(store):
         ledger = read(store)
         rows = ledger["renders"]
         at = next((i for i, r in enumerate(rows) if r["run_id"] == request["run_id"]), None)
         if at is not None:
             row = rows[at]
-            if row["video_sha256"] != video or row["deliver_check"] != render["deliver_check"]:
+            if (
+                row["request_sha256"] != request_sha256
+                or row["video_sha256"] != video
+                or row["deliver_check"] != render["deliver_check"]
+            ):
                 raise JobError(
-                    "rerun_event_reused", "this event already recorded another render; a resume is a new event"
+                    "rerun_event_reused", "this event already recorded another request or render; resume with a new one"
                 )
             previous = rows[at - 1] if at else None
             return proof(previous, stages) | {"event": row["run_id"], "fix": fix_summary(ledger, row["fix_round"])}
         previous = rows[-1] if rows else None
         shown = proof(previous, stages)
         check_scope((request.get("rerun") or {}).get("scope"), previous, shown)
-        sent_back = fix_of(ledger, previous["video_sha256"]) if previous is not None else None
-        if sent_back is not None and video == sent_back["video_sha256"]:
-            raise JobError("fix_unchanged_cut", "the rerun made the cut the operator sent back")
-        answers = sent_back["round"] if sent_back is not None else None
+        if fix_of(ledger, video) is not None:
+            raise JobError("fix_unchanged_cut", "the rerun made a cut the operator sent back")
+        answers = unanswered(ledger)
         rows.append(
             {
                 "run_id": request["run_id"],
                 "packet_id": request["packet_id"],
-                "request_sha256": keys.digest(request),
+                "request_sha256": request_sha256,
                 "job_sha256": keys.digest(job),
                 "video_sha256": video,
                 "deliver_check": render["deliver_check"],
@@ -212,9 +230,7 @@ def fix(store, decision, video_sha256, now=utc_now):
             raise JobError("fix_already_recorded", f"this cut's round is already held by {existing['decision']}")
         if existing is None:
             rows = accept.read(store)["acceptances"]
-            if any(r["decision"] == decision for r in ledger["fixes"] + rows) or accept.bound_elsewhere(
-                store, decision, render
-            ):
+            if any(r["decision"] == decision for r in rows) or accept.bound_elsewhere(store, decision, render):
                 raise JobError("decision_bound_elsewhere", "this decision already answered another cut or gate")
             if any(r["video_sha256"] == video_sha256 for r in rows):
                 raise JobError("cut_accepted", "the operator already accepted a gate of this cut")

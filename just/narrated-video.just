@@ -96,8 +96,9 @@ nv-render-stage-check request *args:
     python3 -m narrate video render-stage check --request {{quote(request)}} {{args}}
 
 # Compare a job's voice nodes with a request, one action per segment: keep, adopt, revoice or revoiced. It writes
-# nothing and refuses a request that would spend on an unchanged beat. ARGS: --gpu-draft reads a gpu_window or mixed
-# request, which v1 otherwise refuses, --root DIR, --records DIR, --store DIR.
+# nothing and refuses a request that would spend on a fresh beat or adopt a take its beat outgrew. ARGS: --after-window
+# is the voice_ready phase, --gpu-draft reads a gpu_window or mixed request, which v1 otherwise refuses, --root DIR,
+# --records DIR, --store DIR.
 nv-render-stage-takes job request *args:
     python3 -m narrate video render-stage takes {{quote(job)}} --request {{quote(request)}} {{args}}
 

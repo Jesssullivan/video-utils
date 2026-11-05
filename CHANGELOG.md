@@ -16,6 +16,8 @@
   `current.json`, `JOB/rerun.json`, a compose-only proof in the render stage
   result, `narrate video fix` with a cap of 3 rounds, a `mixed` voice mode with
   `render-stage takes`, and a spend cap per GPU window as a request parameter.
+  A FIX binds its decision and its cut: `nv accept` refuses `cut_sent_back` and
+  a render of that cut refuses `fix_unchanged_cut`.
   A real mixed window stays refused until the Lease gaps close.
 
 ### Changed

@@ -10,11 +10,11 @@ GPU window runs outside this process (docs/spec/RENDER_STAGE.md, "Lease protocol
                                    the worker) also check the worker's commit and re-hash every input under
                                    DIR/<sha256>. --gpu-draft plans a gpu_window or mixed request, which v1 otherwise
                                    refuses; it never goes with --inputs. Writes nothing.
-    takes JOB --request REQUEST [--gpu-draft]
+    takes JOB --request REQUEST [--after-window] [--gpu-draft]
                                    the voice nodes against the request: which takes stay, which are adopted and which
                                    a window voices. Before a window it refuses a request that would spend on a beat
-                                   that needs no take. After voice_adopt, ready says every take is in place. Writes
-                                   nothing.
+                                   that needs no take or adopt a take the beat outgrew. With --after-window, the
+                                   voice_ready phase, ready says every take is in place. Writes nothing.
     result JOB --request REQUEST [--export DIR]
                                    the result of a job that ran to deliver_check: every output by digest and the
                                    deliver_check gates, after binding the request's inputs to the job's intake
@@ -364,7 +364,7 @@ def phases(request):
     if scope != "compose_only":
         rows.append({"id": "voice_adopt", "gpu": False, "runs": "narrate video stage JOB voice --from-run"})
     if mode == "mixed":
-        rows.append({"id": "voice_ready", "gpu": False, "runs": "render-stage takes"})
+        rows.append({"id": "voice_ready", "gpu": False, "runs": "render-stage takes --after-window"})
     rows += [
         {"id": "compose", "gpu": False, "runs": "narrate video run JOB --until deliver_check"},
         {"id": "collect", "gpu": False, "runs": "render-stage result"},
@@ -472,16 +472,21 @@ def voice_runs(store, job):
     return out
 
 
-def take_action(row, digest, held, is_new):
-    """What one segment needs. row is its voice node from the plan, digest the request's take (None voices the beat),
-    held the run the node holds and is_new whether the node was committed since the job's last render."""
+def take_action(row, digest, held, after, is_new):
+    """What one segment needs. row is its voice node from the plan, digest the request's take (None voices the beat)
+    and held the run the node holds. after is true once the window ran, and is_new says the node was committed since
+    the job's last render. Before a window a null on a fresh node always refuses, because no commit time can tell a
+    take already in place from a take this window has yet to pay for. A stale node that holds the named take refuses
+    here, before any spend, because voice_adopt would refuse that take after the window."""
     fresh = row["state"] == "fresh"
     if row["state"] in ("blocked", "refused"):
         _refuse("voice_blocked", f"{row['id']} is {row['state']}: {row['reason']}")
     if digest is None:
-        if fresh and not is_new:
-            _refuse("revoice_unneeded", f"{row['id']} is fresh, so a window would spend on an unchanged beat")
+        if fresh and not (after and is_new):
+            _refuse("revoice_unneeded", f"{row['id']} is fresh, so a window would spend on a beat that needs no take")
         return "revoiced" if fresh else "revoice"
+    if row["state"] == "stale" and digest == held:
+        _refuse("voice_run_mismatch", f"{row['id']} changed since this take: name a newer take or null to voice it")
     if not fresh:
         return "adopt"
     if held != digest:
@@ -489,10 +494,12 @@ def take_action(row, digest, held, is_new):
     return "keep"
 
 
-def takes(request, g, store, job, gpu_draft=False):
+def takes(request, g, store, job, gpu_draft=False, after=False):
     """The voice nodes of a planned job against the request, by segment: keep (the node holds that take), adopt (the
     take goes in at voice_adopt), revoice (the window voices the beat) or revoiced (the window's take is in). ready is
-    true once every take is in place. A gpu_window request names no runs, so it voices every beat that is stale."""
+    true once every take is in place. after is false at voice_takes, before any spend, and true at voice_ready, which
+    alone may show revoiced. A gpu_window request names no runs, so it voices every beat, and any fresh beat refuses
+    revoice_unneeded: a job with some fresh beats takes mixed."""
     check_request(request, gpu_draft)
     if store.job_id != request["job_id"]:
         _refuse("job_mismatch", "the store holds another job than the request names")
@@ -510,7 +517,7 @@ def takes(request, g, store, job, gpu_draft=False):
         manifest = store.manifest(node) or {}
         held = (manifest.get("measurements") or {}).get("narrate_content_sha256")
         is_new = (stages.get(node) or {}).get("seq", 0) > since
-        out[segment] = take_action(rows[node], runs[segment], held, is_new)
+        out[segment] = take_action(rows[node], runs[segment], held, after, is_new)
     return {
         "ok": True,
         "kind": "narrate_render_stage_takes",
