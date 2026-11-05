@@ -5,7 +5,7 @@ import itertools
 import pytest
 from conftest import dhall_check
 
-from narrate import adapters, policy
+from narrate import adapters, policy, registry
 from narrate.config import Config
 from narrate.policy import Refused
 
@@ -90,6 +90,49 @@ def test_a_likeness_consent_never_grants_a_voice(workspace):
     workspace.voices[0]["scope"] = workspace.job["scope"] = "Likeness"
     caught = refused(workspace, "consent_scope")
     assert "Likeness" in caught.detail
+
+
+def older_row(workspace):
+    """A voice row from before the Voice type: an id, a consent and a clip digest."""
+    old = {k: workspace.voices[0][k] for k in ("consentId", "refClipSha256")}
+    workspace.voices.append({"id": "voice-older", **old})
+    return workspace.voices[-1]
+
+
+def listing(workspace):
+    return {v["id"]: v for v in registry.voices(Config(workspace.write("Hello.\n")))}
+
+
+def test_the_listing_reads_an_older_row_and_keeps_its_gaps_visible(workspace):
+    older_row(workspace)
+    entries = listing(workspace)
+    older = entries["voice-older"]
+    assert (older["scope"], older["allowed_engines"], older["fixture"]) == (None, [], None)
+    assert (older["ref_clip_stored"], older["ref_text_stored"]) == (True, False)
+    assert older["consent_state"] == "active"
+    typed = entries[workspace.voices[0]["id"]]
+    assert typed["scope"] == workspace.voices[0]["scope"]
+    assert typed["allowed_engines"] == workspace.voices[0]["allowedEngines"]
+    assert typed["fixture"] is workspace.voices[0]["fixture"]
+    assert typed["ref_text_stored"] is True
+
+
+@pytest.mark.parametrize(
+    ("edit", "state"),
+    [
+        (lambda c: c.update(revokedAt="2026-11-05T00:00:00Z"), "revoked"),
+        (lambda c: c.update(id="consent-other"), "missing"),
+    ],
+)
+def test_the_listing_reports_the_consent_state_of_an_older_row(workspace, edit, state):
+    older_row(workspace)
+    edit(workspace.consents[0])
+    assert listing(workspace)["voice-older"]["consent_state"] == state
+
+
+def test_an_older_row_refuses_by_name_and_never_renders(workspace):
+    workspace.job["voice"] = older_row(workspace)["id"]
+    refused(workspace, "consent_invalid")
 
 
 def test_ref_clip_digest_must_match_a_stored_clip(workspace):

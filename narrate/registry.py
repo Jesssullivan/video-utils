@@ -40,6 +40,8 @@ def consent_state(consent, index):
 
 
 def voices(cfg):
+    """One entry per registered voice. A private row older than the Voice type may lack scope, allowedEngines, fixture
+    or refTextSha256: the entry lists a missing field as null or empty, and check_consent refuses that row."""
     registry = cfg.registry()
     index = policy.store_index(cfg.store) if cfg.store else None
     out = []
@@ -49,15 +51,15 @@ def voices(cfg):
             "id": voice["id"],
             "consent_id": voice["consentId"],
             "consent_state": consent_state(consent, index),
-            "scope": voice["scope"],
+            "scope": voice.get("scope"),
             "consent_scopes": consent["scopes"] if consent else [],
-            "allowed_engines": voice["allowedEngines"],
-            "fixture": voice["fixture"],
+            "allowed_engines": voice.get("allowedEngines", []),
+            "fixture": voice.get("fixture"),
             "hosted_allowed": bool(consent and consent["hostedAllowed"]),
         }
         if index is not None:
             entry["ref_clip_stored"] = voice["refClipSha256"] in index
-            entry["ref_text_stored"] = voice["refTextSha256"] in index
+            entry["ref_text_stored"] = voice.get("refTextSha256") in index
         out.append(entry)
     return out
 

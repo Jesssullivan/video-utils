@@ -119,7 +119,7 @@ def check_consent(voice_id, registry, index, job_scope):
     scopes, evidence = consent["scopes"], consent["evidenceSha256"]
     if (
         type(job_scope) is not str
-        or type(voice["scope"]) is not str
+        or type(voice.get("scope")) is not str
         or type(scopes) is not list
         or any(type(s) is not str for s in scopes)
         or type(evidence) is not str
