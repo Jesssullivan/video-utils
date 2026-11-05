@@ -23,7 +23,7 @@ synthetic. It is a speech workflow beside the guitar workflow and beside
 | GPU use | Attended windows of 30 min or less on the GPU host, each holding the single GPU lease by compare-and-swap and leaving a receipt (load, synthesise, release). Development runs on the Mac host with MLX. Modal or another offsite GPU carries work that does not fit on the local card, with its own spend go and no local lease (TIN-7125 `704438d7`). Switch-native serving through the model coordinator waits for N1 |
 | Voices | v0 clones only the operator's own voice: a 10 to 30 s clip with a human-verified transcript and a consent record. Clip, transcript and consent evidence are hash-bound and kept outside git |
 | Engine order | Local open weights first, then rented or offsite GPUs running open weights, then hosted APIs. A cloned voice reaches a rented or hosted engine only when its consent record allows it (TIN-7125 `af4ceb3b`) |
-| Lexical rules | Pinned xoxd-lexical 0.7.0 `narration` register and its shared pronunciation table, followed by the local Dhall overlay (TIN-7097/E7) |
+| Lexical rules | Pinned xoxd-lexical 0.8.0 `narration` register and its shared pronunciation table, followed by the local Dhall overlay (TIN-7097/E7) |
 
 ## Lanes
 
@@ -553,7 +553,7 @@ lease helper, to exit.
 
 A job pins one xoxd-lexical release by all of:
 
-- `release` (for example `xoxd-lexical@0.7.0`) and `commit`;
+- `release` (for example `xoxd-lexical@0.8.0`) and `commit`;
 - `lexiconSha256`: the `dist/estate-lexicon.json` digest the release's
   `DIGESTS` file pins with the tag (tag and digest together);
 - `promptDigestSha256`: `dist/prompt-digest-narration.txt` for `narration`
