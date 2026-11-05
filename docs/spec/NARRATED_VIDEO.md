@@ -403,10 +403,11 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX] [--replace]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal. `--replace` lets a rerun event replace an earlier intake at `--out`, which moves to `history/` beside it once the new one passes |
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
+| `preflight JOB` | `just nv-preflight` | the frame gates a job can fail before any voice spend (see "Frame gates"). Exit 1 on a finding. Writes nothing |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
 | `fix JOB --decision ID --video-sha256 HEX` | `just nv-fix JOB DECISION VIDEO` | records the operator's FIX of the current cut against the job root's 3 rounds. The fourth refuses `fix_cap_reached`. See "Reruns" in `docs/spec/RENDER_STAGE.md` |
 | `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken, each shown asset's stored text, and `shown_unread`, the kinds of asset it shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard. On a guarded intake's `never_name` marker it refuses `shown_text_unread` when any shown text is unreadable. See "Guard subject and cut" |
-| `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
+| `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the pages no frame gate read, the operator gates still pending and the gates an acceptance of that render closed. Digests, gate names and page ids only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 `--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
@@ -593,6 +594,7 @@ mutation to be refused.
 | tighten edits on narrate segments | only with `tighten.enabled` | `tighten_on_synthetic` |
 | `avatar.fadeS` | 0 to 2.0 | out of bounds |
 | `avatar.avatarOff` | ids of the job's pages | `page_unknown` |
+| `avatar.boxExempt` | ids of the job's pages, or of its segments when it has no slides | `page_unknown` |
 | `slides.cardWidth` | 0.25 to 0.60 | out of bounds |
 | `slides.fadeS` | above 0, at most 2.0 | out of bounds |
 | `slides.dimTo` | 0 to 1.0 | out of bounds |
@@ -879,6 +881,8 @@ that ends after the program refuses `slides_exceed_program` at compose.
 | `loudness` | the delivered sound (after the AAC encode) is within `driftLu` of `targetLufs` and its true peak is at or under `truePeakDbtp` |
 | `flash` | at each slide change the largest adjacent-frame mean-luma jump is at most 30%. `not_applicable` without slides |
 | `captions` | the files `captions` asks for exist, the persona cue opens the first cue and `extraNotice` ends `description.txt` when set |
+| `avatar_box` | every page it could read keeps its flat picture out of the avatar's box plus 16 px (see "Frame gates"). `not_applicable` when it read no page. A page it could not read does not fail it, and `frame_review` lists that page |
+| `slide_match` | the store holds each slide, each fills the frame and each appears in the composed frames (see "Frame gates"). `not_applicable` without slides |
 | `listening`, `lip_sync` | `pending_operator` here. Lip sync only with an overlay |
 | `bed_licence_pdf`, `bed_content_id` | with `upload` and a bed: the record holds the licence PDF digest and a clear Content ID result, else `pending_operator` |
 | `visible_text` | records from a guarded intake: `passed` when the guard read a text source for every shown asset and none was opaque. `pending_operator` when one was unread or opaque, or when the marker holds no summary. `not_applicable` without a guarded intake. `deliver_check.json` repeats the summary under `visible_text`. admit lists the open gate as `visible_text_unread`, so `plan` and `status` show `deliver_check` as `pending_operator` |
@@ -890,6 +894,61 @@ A jump is |Y1 - Y0| / max(min(Y0, Y1), 16): relative to the darker frame, with
 video black as the floor. The 30% limit is the deck seat's gate. The formula is
 this lane's reading of "the largest mean-luma jump between adjacent frames",
 not a port of the deck's check.
+
+#### Frame gates
+
+`narrate/video/frames.py`, Linear TIN-7788. The four gates above read sound,
+captions, the profile and flash, so a cut with a slide under the avatar passed
+them. `avatar_box` and `slide_match` read frames. They run twice: `preflight`
+reads the pictures from the private store before any voice spend, and
+`deliver_check` reads them again with the composed video. `deliver_check.json`
+holds both reports. They name pages, counts and digests only.
+
+| `avatar_box` step | Reads | Fails on |
+| --- | --- | --- |
+| picture | each page the avatar is on: its Full slide at a tolerance of 8 per RGB channel, or its base (a still, or a video sampled at 2 per second, slower past 400 samples) at 32 | `avatar_box_occupied`, a pixel off the picture's background in the box plus 16 px. The whole box counts, because the avatar would hide what sits under it |
+| card | a `CardLowerLeft` page's card box | `card_in_avatar_box`, the card reaches the box |
+| composed frame | `deliver_check` only: the frame at each page's midpoint, at 32 | `avatar_box_occupied`, a pixel off background outside the overlay's alpha, dilated 4 px |
+
+The background is the modal colour of a picture where at least half its pixels
+sit within 8 of that colour. A picture with no such colour has no background to
+measure against. A page is `checked` only when every sample of it had one, so a
+base that opens on a title card and turns busy stays under `unchecked`. A finding
+in the samples that did have one still fails the gate. The composed frame is one
+more sample and does not replace them. The exception is a `CardLowerLeft` page:
+its base is one frozen frame, so the composed midpoint reads it and can check it.
+A deck base is unchecked until L8.
+
+`unchecked` means no gate read the page. It does not fail `avatar_box`, and a gate
+with no checked page reads `not_applicable`, so `machine_passed` says nothing about
+that page. The person who gives the GO reads it: `deliver_check` records
+`frame_review`, `{unchecked, exempt}`, and `nv cut` and the render stage result
+print it. A cut with no page read at all can still reach her, with every page id
+listed.
+
+An `avatarOff` page or a hidden segment is not read. A page in `avatar.boxExempt`
+is listed under `exempt` and not read. A bundle asset declares this with
+`avatar_box: exempt`, for a render whose edge reaches the box with no text there.
+A job with no slides has no pages, so its `boxExempt` holds segment ids and its one
+page, `program`, is exempt when every segment the avatar is on is listed.
+
+| `slide_match` step | Reads | Fails on |
+| --- | --- | --- |
+| digest | the private store: a file there must hash to each slide's digest | `slide_digest_mismatch`, the slide changed or left the store. The store is indexed by content, so both read the same |
+| fit | a Full slide's size against the frame | `slide_letterbox`, a strip over 2 px |
+| citation | `preflight` with an intake: each page against its row in `intake.json` | `slide_page_mismatch`. One `convert` wrote both, so this catches an `intake.json` edited later, not a wrong citation in a bundle |
+| layers | `deliver_check` only: compose's layers against the job's pages | `slide_layer_missing`, `slide_layer_mismatch` |
+| composed frame | `deliver_check` only: the frame at each slide page's midpoint against the slide, without the overlay's square while the avatar covers it | `slide_not_shown`, over 0.5% of pixels differ by more than 32 in a channel |
+
+These gates compare pixels with pixels. Whether a slide draws the numbers its beat
+speaks stays with the producer, in its own demo check. A slide with transparency
+is compared without its alpha, so it may read as a mismatch.
+
+`preflight JOB` runs the first half on any job, prints the report and exits 1 on a
+finding. It writes nothing. The render stage's `preflight` phase runs it on the job
+an intake wrote and also requires `claims: passed` (`claims_not_passed`). It removes
+any earlier report, then records this one with its `intake_sha256` at
+`JOB/intake/preflight.json` (docs/spec/RENDER_STAGE.md).
 
 `delivery_gate.internal_review_allowed` is true when every machine gate passes.
 `upload_gates_closed` also needs `upload`, a closed bed gate and, for a client
@@ -1098,10 +1157,10 @@ output.
 
 `cut` prints the current `deliver_check` render as `accept` binds it: the
 composed video's sha256, the `deliver_check` stage key and content digest, the
-machine gate states, `internal_review_allowed`, the gates still
-`pending_operator` and the gates an acceptance of that same render closed. An
-acceptance of an earlier cut closes nothing. It holds digests and gate names
-only. The Cade worker's `outbox_post` task names this cut when it asks Jess for
+machine gate states, `internal_review_allowed`, `frame_review` (the page ids no
+frame gate read, see "Frame gates"), the gates still `pending_operator` and the
+gates an acceptance of that same render closed. An acceptance of an earlier cut
+closes nothing. It holds digests, gate names and page ids only. The Cade worker's `outbox_post` task names this cut when it asks Jess for
 her decision, and `accept` later checks the same sha256. It refuses as `accept`
 does: `deliver_check_missing`, `deliver_check_corrupt`, `deliver_check_stale`,
 `deliver_check_invalid`, `store_invalid` or `stage_symlink`.
@@ -1140,6 +1199,7 @@ that repeats, an unknown field or a missing field refuses `bundle_invalid`. Ids 
 | `receipt` | non-empty text naming the asset's source receipt (`asset_unreceipted` when empty) |
 | `size` | optional `{w, h}`. A PNG's header must hold the same size |
 | `fps` | optional `{num, den}`, recorded and never used |
+| `avatar_box` | optional, only `exempt`: each beat that shows this asset joins `avatar.boxExempt` ("Frame gates") |
 | `text` | optional `{path, sha256}` on a `png` or `mp4` asset: the text source of what it shows on screen (see "Private terms"). `path` follows the asset path rules and ends in `.svg` or `.json`. The file is hashed, and a different digest refuses `asset_digest_mismatch`. It is read and bound, never copied to the store |
 
 `script.md` is a sequence of beats. Before the first beat it allows one `# title` line, notes (lines starting with

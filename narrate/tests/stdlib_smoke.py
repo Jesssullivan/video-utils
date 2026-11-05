@@ -53,6 +53,7 @@ VIDEO_MODULES = (
     "deliver",
     "face",
     "fixture",
+    "frames",
     "graph",
     "handoff",
     "job",

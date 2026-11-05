@@ -8,6 +8,8 @@ real stage keys. No model and no GPU runs, and every digest, decision id and run
 
 import copy
 import json
+import os
+from unittest import mock
 
 import pytest
 from test_narrated_video_graph import example, new_store, plain_ctx, records
@@ -243,7 +245,14 @@ def test_a_rerun_re_intakes_and_compose_only_skips_voice_adopt(card):
     assert "--replace" not in next(p for p in plain["phases"] if p["id"] == "intake")["runs"]
     assert "--replace" in next(p for p in resume["phases"] if p["id"] == "intake")["runs"]
     assert "voice_adopt" in [p["id"] for p in resume["phases"]]
-    assert [p["id"] for p in scoped["phases"]] == ["verify_inputs", "intake", "compose", "collect"]
+    assert [p["id"] for p in scoped["phases"]] == [
+        "verify_inputs",
+        "claims_gate",
+        "intake",
+        "preflight",
+        "compose",
+        "collect",
+    ]
 
 
 def test_a_malformed_ledger_refuses_store_invalid(card):
@@ -503,7 +512,9 @@ def test_a_mixed_plan_voices_only_the_beats_it_names():
     assert out["gpu"] is True and out["draft"] is True
     assert [p["id"] for p in out["phases"]] == [
         "verify_inputs",
+        "claims_gate",
         "intake",
+        "preflight",
         "voice_takes",
         "voice_plan",
         "voice_gpu",
@@ -700,7 +711,14 @@ class Root:
         }
         return value | changes
 
+    def preflight(self, number, **changes):
+        path = self.root / f"request-{number}.json"
+        path.write_text(json.dumps(self.event(number, **changes)))
+        with mock.patch.dict(os.environ, ENV):
+            return cli.main(["render-stage", "preflight", JOB, "--request", str(path), *self.common])
+
     def result(self, number, **changes):
+        assert self.preflight(number, **changes) == 0
         return render_stage.result(self.event(number, **changes), store.JobStore(self.root, JOB), ENV)
 
 
@@ -731,6 +749,10 @@ def test_one_slide_rerun_on_the_same_root_runs_only_compose_and_deliver_check(ro
     assert root.intake("--replace") == 0 and root.init("--replace") == 0
     second = root.run(capsys)
     assert ran(second) == ["compose", "deliver_check"]
+
+    # The replaced intake took its preflight to history, so a rerun's new intake must run preflight again.
+    assert not (root.out / "preflight.json").exists()
+    assert refused(render_stage.result, root.event(2, rerun={"scope": "compose_only"}), s, ENV) == "intake_missing"
 
     value = root.result(2, rerun={"scope": "compose_only"})
     shown = value["rerun"]

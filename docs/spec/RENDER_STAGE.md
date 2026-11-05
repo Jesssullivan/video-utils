@@ -9,8 +9,8 @@ and ends when `deliver_check` has run. Delivery is the next task, `deliver_inter
 
 ```
 claim_job -> verify_packet -> assets_build -> bs21_privacy_guard -> readiness_check
-  -> [render stage: verify_inputs -> intake -> voice_plan -> voice_gpu (Lease) -> voice_render -> voice_adopt
-      -> compose ... deliver_check -> collect]
+  -> [render stage: verify_inputs -> claims_gate -> intake -> preflight -> voice_plan -> voice_gpu (Lease)
+      -> voice_render -> voice_adopt -> compose ... deliver_check -> collect]
   -> deliver_internal
 ```
 
@@ -20,11 +20,13 @@ The task body is `python -m narrate video render-stage` (`narrate/video/render_s
 | --- | --- | --- |
 | `check --request R [--inputs DIR]` | Validates the request and prints its phases. With `--inputs`, the `verify_inputs` phase, it also compares the worker's commit with the request and then re-hashes every input at `DIR/<sha256>` | nothing |
 | `check --request R --gpu-draft` | Prints the plan of a `gpu_window` or `mixed` request, which v1 refuses otherwise. It never goes with `--inputs` | nothing |
+| `preflight JOB --request R` | Binds the request to the job's intake, removes any earlier report, runs the frame gates on the job the intake wrote and refuses the first finding with its own code. It accepts a `gpu_window` request, because this phase comes before the window | `JOB/intake/preflight.json` |
 | `takes JOB --request R [--after-window] [--gpu-draft]` | Compares the voice nodes with the request, one action per segment (see "Mixed takes") | nothing |
-| `result JOB --request R [--export DIR]` | Binds the request to the job's intake and reports a job that ran to `deliver_check`, every output by digest, and what ran since its last render. With `--export`, it copies the cut, the report and the result into `DIR` under their sha256 names | `JOB/rerun.json`, `DIR/<sha256>.mp4`, `DIR/<sha256>.json` |
+| `result JOB --request R [--export DIR]` | Binds the request to the job's intake and to a passed preflight, then reports a job that ran to `deliver_check`, every output by digest, and what ran since its last render. With `--export`, it copies the cut, the report and the result into `DIR` under their sha256 names | `JOB/rerun.json`, `DIR/<sha256>.mp4`, `DIR/<sha256>.json` |
 
-The recipes are `just nv-render-stage-check`, `just nv-render-stage-takes` and `just nv-render-stage-result`. The phases between them run the
-existing commands: `narrate video intake`, `narrate plan`, `narrate render --prerendered`,
+The recipes are `just nv-render-stage-check`, `just nv-render-stage-preflight`, `just nv-render-stage-takes` and
+`just nv-render-stage-result`. The other phases run the existing commands: `narrate video claims`,
+`narrate video intake`, `narrate plan`, `narrate render --prerendered`,
 `narrate video stage JOB voice --from-run` and `narrate video run JOB --until deliver_check`. This stage adds no new
 processing primitive, so it has no MCP tool of its own. The `narrated-video-verify` skill points at it.
 
@@ -96,7 +98,9 @@ and, for each input, how it is bound:
 | Phase | GPU | Runs | Output |
 | --- | --- | --- | --- |
 | `verify_inputs` | no | `render-stage check --inputs` | none |
+| `claims_gate` | no | `narrate video claims` on the bundle | the claims report. A number no claim backs refuses here |
 | `intake` | no | `narrate video intake --out JOB/intake` with the bundle, the records and the denylist, then `init --from` | the job, its narrate jobs and `JOB/intake/intake.json` |
+| `preflight` | no | `render-stage preflight JOB --request R --records JOB/intake/records` | `JOB/intake/preflight.json` by digest. A slide in the avatar box, a slide that changed or left the store, a letterboxed slide or an `intake.json` that disagrees with the job refuses here |
 | `voice_takes` | no | `render-stage takes`, `mixed` only, before any GPU spend | one action per segment |
 | `voice_plan` | no | `narrate plan`, the AudioCppBatch requests | a plan directory and its digest |
 | `voice_gpu` | yes | the lease helper's `run`, then `audiocpp_batch.py run` inside it | WAVs and a batch receipt by sha256 |
@@ -110,6 +114,11 @@ A `from_run` request skips `voice_plan`, `voice_gpu` and `voice_render`. It adop
 each by `content_sha256`. The result refuses `voice_run_mismatch` when the voice nodes hold other runs. A
 `mixed` request scopes those three phases to the segments it voices, and each of their rows lists them under
 `segments`. A `rerun` request re-intakes with `--replace`. A `compose_only` rerun also skips `voice_adopt`.
+
+Every request runs `claims_gate`, `intake` and `preflight` first, so a planted fault refuses before any GPU
+spend. The two gates that read the voice or the mix stay after it: `voice_qa` and `deliver_check`. This order is the
+plan's. `result` proves that a preflight passed for this job and intake, and it does not prove when, so the caller
+must run the phases in plan order and refuse voice work without a passed preflight.
 
 No phase name matches the cade-infra `SEND_TASKS` pattern. If Cade maps phases to Hatchet tasks one to one, the
 names stay as they are.
@@ -127,9 +136,11 @@ every stage whose key held stays fresh. Its order is:
    moves it back. `--replace` takes only a directory that holds an `intake.json`, and refuses `job_mismatch` when that
    intake wrote another job.
 2. `init --from JOB/intake/narrated-video.json --replace`.
-3. `narrate video run JOB --until deliver_check` runs what the new job changed, and a resume runs what the last event
+3. `render-stage preflight`. The earlier `preflight.json` moved to history with its intake, so `result` refuses
+   `intake_missing` until this phase runs on the new intake.
+4. `narrate video run JOB --until deliver_check` runs what the new job changed, and a resume runs what the last event
    left.
-4. `render-stage result` records the render in `JOB/rerun.json` and reports it.
+5. `render-stage result` records the render in `JOB/rerun.json` and reports it.
 
 A resume after a crash uses `{scope: any}`, because `JOB/intake` already exists and a plain intake refuses
 `out_exists`.
@@ -326,17 +337,19 @@ A result is `narrate_render_stage_result` at schema version 1. It holds no path.
 | `voice` | the mode and each segment's narrate `content_sha256` |
 | `rerun` | what ran since the previous render and the FIX count (see "Compose-only proof") |
 | `intake_sha256`, `inputs_bound_by` | the digest of the job's `intake.json` and how each input is bound (see "Binding inputs to the job") |
+| `preflight_sha256` | the digest of the job's `preflight.json`. A missing one refuses `intake_missing`, one of another schema version `intake_invalid`, one for another job or `intake.json` `preflight_stale` and one with findings `preflight_failed` |
 | `lease` | null in v1. Only `from_run` results pass, so no Lease attests the voice |
 | `outputs.video_sha256` | the composed cut |
 | `outputs.deliver_check` | the stage key, the content digest and `report_sha256` of `deliver_check.json` |
 | `outputs.stages` | every current node's content digest |
-| `deliver_check` | the gates, `delivery_gate`, `machine_passed` and the gates still `pending_operator` |
+| `deliver_check` | the gates, `delivery_gate`, `machine_passed`, `frame_review` and the gates still `pending_operator`. `frame_review` is `{unchecked, exempt}`, the page ids no frame gate read. Those pages do not fail `machine_passed`, so Cade must show them to the person who gives the GO (`docs/spec/NARRATED_VIDEO.md`, "Frame gates") |
 
 `result` reads the current render through the same check `nv accept` uses. A `deliver_check` that ran for another
 `job.json`, or did not read the current compose, refuses `deliver_check_stale`. A node that fails re-hashing refuses
-`stage_corrupt`. `deliver_check` must hold all four machine gates (`profile`, `loudness`, `flash` and `captions`,
-`accept.AUTOMATED`), and its `delivery_gate.machine_gates_passed` must agree with them. Otherwise the result refuses
-`deliver_check_invalid`. `machine_passed` is true only when every one of the four passed or does not apply.
+`stage_corrupt`. `deliver_check` must hold all six machine gates (`profile`, `loudness`, `flash`, `captions`, `avatar_box` and
+`slide_match`, `accept.AUTOMATED`), and its `delivery_gate.machine_gates_passed` must agree with them. Otherwise the
+result refuses `deliver_check_invalid`. `machine_passed` is true only when every one of the six passed or does not
+apply.
 `--export` copies by sha256 and re-hashes each copy. A file already there, the result's own JSON included, is
 re-hashed, and other content refuses `export_conflict`. A second export of the same result is a no-op.
 
@@ -368,5 +381,5 @@ re-hashed, and other content refuses `export_conflict`. A second export of the s
   `takes` and the keys. A fake engine stands in for the window.
 - `check --inputs` proves that the mounted inputs match the request. It does not prove where the request came from.
   Cade's `verify_packet` checks the packet signature first.
-- `machine_passed` reads the four machine gates. It closes no operator gate. Listening and lip sync close only through
+- `machine_passed` reads the six machine gates. It closes no operator gate. Listening and lip sync close only through
   `nv accept` with a Softproxy decision id.

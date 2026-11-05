@@ -43,7 +43,7 @@ MAX_SCRIPT_BYTES = 1024 * 1024
 MAX_TARGET_S = Decimal(3600)
 ASSET_KINDS = ("png", "mp4", "gif")
 ASSET_FIELDS = {"id", "path", "sha256", "kind", "receipt"}
-ASSET_OPTIONAL = {"size", "fps", "text"}
+ASSET_OPTIONAL = {"size", "fps", "text", "avatar_box"}
 TEXT_FIELDS = {"path", "sha256"}
 TEXT_KINDS = ("png", "mp4")  # the kinds a beat shows; a GIF is never shown (asset_needs_conversion)
 MANIFEST_FIELDS = {"assets"}
@@ -208,6 +208,8 @@ def read_manifest(bundle):
         bundle_path(path, where)
         if not path.lower().endswith(SUFFIX[asset["kind"]]):
             raise BundleError("asset_kind_mismatch", f"{where}: path does not end in {SUFFIX[asset['kind']]}")
+        if asset.get("avatar_box", "exempt") != "exempt":
+            raise BundleError("bundle_invalid", f"{where}: avatar_box is exempt or absent")
         for key, names in (("size", ("w", "h")), ("fps", ("num", "den"))):
             if key in asset:
                 fields(asset[key], set(names), set(), f"{where} {key}")
@@ -711,12 +713,13 @@ def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s
     slides = None
     if any(isinstance(p["show"], dict) for p in pages):
         slides = copy.deepcopy(d["slides"]) | {"pages": pages}
+    exempt = [beat["id"] for beat in b["beats"] if b["assets"][beat["asset_id"]].get("avatar_box")]
     job = {
         "id": job_id,
         "edition": EDITION,
         "base": base,
         "segments": segments,
-        "avatar": copy.deepcopy(d["avatar"]) if persona else None,
+        "avatar": copy.deepcopy(d["avatar"]) | {"boxExempt": exempt} if persona else None,
         "slides": slides,
         "music": None,
         "tighten": copy.deepcopy(d["tighten"]),

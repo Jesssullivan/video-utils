@@ -20,8 +20,11 @@
 --   when set, its sha256. admit refuses it without the model's likeness consent and appearance approval.
 --   width is a fraction of the base width, 0.10 to 0.30. avatarOff names pages (Slides.pages ids) whose whole
 --   span hides the overlay, the deck pattern for dense screens; it fades out over fadeS before such a span and
---   back in over fadeS after it. The avatar is on by default for an edition that allows one (NV-8); a job turns
---   it off with avatar None or a segment's avatar False.
+--   back in over fadeS after it. boxExempt names pages, or segments in a job with no slides, that the avatar_box
+--   gate lists as exempt and does not read: a render whose edge reaches the box with no text there, as a bundle
+--   asset declares with avatar_box exempt. The
+--   avatar is on by default for an edition that allows one (NV-8); a job turns it off with avatar None or a
+--   segment's avatar False.
 -- Slides: named pages on the base clock, each showing the base, a slide picture (by SHA-256 in the private
 --   store) or a hold of the base frame at the page's start. layout Full shows a slide over the whole frame.
 --   CardLowerLeft (the deck seat's slide card, built here from its description only) shows it as a card in the
@@ -99,6 +102,7 @@ let Avatar =
       , width : Double
       , marginPx : Natural
       , avatarOff : List Text
+      , boxExempt : List Text
       , fadeS : Double
       }
 
@@ -251,6 +255,7 @@ let defaults =
         , width = 0.22
         , marginPx = 32
         , avatarOff = [] : List Text
+        , boxExempt = [] : List Text
         , fadeS = 0.35
         }
       , slides =
