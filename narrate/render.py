@@ -747,6 +747,10 @@ def plan(cfg, out, takes=None, **kwargs):
         "job": {"id": job["id"], "seed": renderer.seed, "gates": job["gates"]}
         | ({"overrides": renderer.overrides} if renderer.overrides else {}),
         "engine": engine_record(renderer.engine, renderer.cfg),
+        "consents": [
+            {"id": consent["id"], "hostedAllowed": consent["hostedAllowed"]}
+            for _, consent in sorted(renderer.consents.items())
+        ],
         "input": {
             "kind": renderer.script.kind,
             "sha256": renderer.input_sha,

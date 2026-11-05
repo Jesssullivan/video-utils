@@ -179,4 +179,25 @@ let rentedBatchBackendBehindDirectProfileIsOffsite =
               )
         ===  True
 
+let modalBatchDraft
+    : Engine.Type
+    =     base
+      //  { id = "voxcpm2-batch-modal"
+          , profile = Engine.Profile.RentedOpen
+          , backend = Engine.Backend.RentedAudioCppBatch
+          , endpoint = "audiocpp://voxcpm2"
+          , model = "voxcpm2-bf16"
+          , estateControlled = False
+          , confidentialAllowed = False
+          }
+
+let modalBatchDraftConsistent =
+      assert : Engine.consistent modalBatchDraft === True
+
+let modalBatchDraftIsOffsite =
+      assert : Engine.isOffsite modalBatchDraft === True
+
+let modalBatchDraftIsNotHosted =
+      assert : Engine.isHosted modalBatchDraft === False
+
 in  True

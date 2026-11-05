@@ -14,10 +14,11 @@
 -- Every client edition gates the bed: it is cleared only when its licence PDF digest is recorded, its
 -- Content ID result is clear and a voice-only listen pass is recorded (NV-2).
 --
--- Leaves: avatar is a kitpip overlay; pip is any other picture-in-picture, such as a camera of the
+-- Leaves: avatar is an avatar overlay, kitpip or vrm; pip is any other picture-in-picture, such as a camera of the
 -- operator. One rule, `check`, runs at three points: Plan (admit, over the job), Place (over the placed
 -- stems' manifests) and DeliverCheck (over the labels re-derived from the composed leaves). Each point sees
 -- its own Leaves, so a synthetic stem that reaches place under a clean job is still refused there.
+-- program/dags/narrated-video.json names each point's stage under edition_point (narrate/dhall/check.py).
 let Edition = < Internal | OwnContent | ClientVoiceOnly | ClientNarrated >
 
 let Point = < Plan | Place | DeliverCheck >

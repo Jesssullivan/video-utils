@@ -8,7 +8,8 @@ bounded unit, with VK_DRIVER_FILES naming the RADV ICD, and watches VRAM.
 
     audiocpp_batch.py run DIR --requests requests/NAME.json --binary PATH --binary-sha256 SHA \\
         --model PATH --model-sha256 SHA [--family voxcpm2] [--backend vulkan] [--device 0] \\
-        [--audiocpp-commit REV] [--deadline-s N] [--stall-s N] [--only-missing] [--lease-holder H]
+        [--audiocpp-commit REV] [--deadline-s N] [--stall-s N] [--only-missing] [--lease-holder H] \\
+        [--placement on-prem|rented] [--checkpoint-s N]
     audiocpp_batch.py check DIR --requests requests/NAME.json     the request and reference checks alone
 
 DIR is a `narrate plan` directory (copied to the GPU host): requests/, refs/ and plan.json. `run`:
@@ -33,8 +34,13 @@ DIR is a `narrate plan` directory (copied to the GPU host): requests/, refs/ and
    this process SIGTERM, which stops the runtime as in step 4;
 7. writes DIR/receipts/NAME.json: schema narrate-audiocpp-batch-receipt/1, the requests file and its sha256, each
    reference's sha256, runtime, commit, binary and weights sha256, family, task, backend, device, VK_DRIVER_FILES,
-   exit code, stop rule, times, and every output's file and sha256. Missing outputs are listed, never invented.
-   The pin prints no model load time, so the receipt records none.
+   exit code, stop rule, times, placement and every output's file and sha256. Missing outputs are listed, never
+   invented. The pin prints no model load time, so the receipt records none.
+
+--placement says where this runner runs (default on-prem). The caller states it, because neither the binary nor the
+batch can tell, and a render refuses a rented receipt under an engine record that is not offsite (narrate/prerender.py).
+--checkpoint-s N (default 0, none) moves finished takes to DIR/wav/ every N seconds and rewrites the receipt with stop
+rule "checkpoint", so a process killed with no warning leaves its finished takes bound to a receipt.
 
 --only-missing runs only the requests whose WAV is not yet in DIR/wav/ from an earlier receipt: it writes the subset
 as requests/NAME.partK.json and its receipt as receipts/NAME.partK.json, so a window that stopped early can be
@@ -62,6 +68,7 @@ NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 KEYS = {"id", "text", "seed", "voice_ref", "audio", "reference_text"}
 TASKS = {"voxcpm2": "clon"}
 EXIT_OK, EXIT_PARTIAL, EXIT_REFUSED, EXIT_STOPPED = 0, 1, 2, 20
+PLACEMENTS = ("on-prem", "rented")
 KILL_AFTER_S = 10
 STALL_S = 120.0
 FINISHED = (
@@ -340,10 +347,67 @@ def batch(a, root, name, relative, requests, batch_sha, refs, receipt_path, reco
     started, started_utc = time.monotonic(), now()
     deadline = started + a.deadline_s if a.deadline_s else None
     rule, gone = "exit", True
+    outputs = {}
+
+    def keep(rid, walls):
+        """Move a complete take to DIR/wav/ and list it. False when it is not there or not complete."""
+        source = out_dir / f"{rid}.wav"
+        if not source.is_file() or source.is_symlink() or not wav_ok(source):
+            return False
+        target = root / "wav" / f"{rid}.wav"
+        source.replace(target)
+        outputs[rid] = {"file": f"wav/{rid}.wav", "sha256": sha256_file(target), "bytes": target.stat().st_size}
+        if rid in walls:
+            outputs[rid]["wall_ms"] = walls[rid]
+        return True
+
+    def write_receipt(code, stop_rule, process_group_gone, missing):
+        receipt = {
+            "schema": RECEIPT_SCHEMA,
+            "requests_file": relative,
+            "requests_sha256": batch_sha,
+            "requests": len(requests),
+            "refs": refs,
+            "runtime": "audio.cpp audiocpp_cli",
+            "audiocpp_commit": a.audiocpp_commit,
+            "binary_sha256": a.binary_sha256,
+            "model_sha256": a.model_sha256,
+            "model_file": Path(a.model).name,
+            "family": a.family,
+            "task": task,
+            "backend": a.backend,
+            "device": str(a.device),
+            "out_format": "pcm16",
+            "placement": a.placement,
+            "vk_driver_files": os.environ.get("VK_DRIVER_FILES"),
+            "exit_code": code,
+            "stop_rule": stop_rule,
+            "process_group_gone": process_group_gone,
+            "started_utc": started_utc,
+            "ended_utc": now(),
+            "wall_s": round(time.monotonic() - started, 3),
+            "log": {"file": f"logs/{name}.log", "sha256": sha256_file(log)},
+            "test_mode": os.environ.get("NARRATE_AUDIOCPP_BATCH_TEST_MODE") == "1",
+            "run_id": record.data["run_id"],
+            "lease_holder": record.data["lease_holder"],
+            "outputs": outputs,
+            "missing": missing,
+        }
+        write_json(receipt_path, receipt)
+        return receipt
+
+    def checkpoint():
+        text = log.read_text(encoding="utf-8", errors="replace")
+        walls = {m.group(1): float(m.group(2)) for pattern in WALL for m in pattern.finditer(text)}
+        finished = finished_ids(text) - set(outputs)
+        if sum([keep(body["id"], walls) for body in requests if body["id"] in finished]):
+            write_receipt(None, "checkpoint", False, [r["id"] for r in requests if r["id"] not in outputs])
+
     with open(log, "wb") as out:
         proc = subprocess.Popen(argv, cwd=work, stdout=out, stderr=subprocess.STDOUT, start_new_session=True)
         record.update(engine_pgid=proc.pid)
         seen, moved = None, time.monotonic()
+        saved = time.monotonic()
         while proc.poll() is None:
             current = progress(log, out_dir)
             if current != seen:
@@ -357,56 +421,21 @@ def batch(a, root, name, relative, requests, batch_sha, refs, receipt_path, reco
             if rule != "exit":
                 gone = stop_group(proc)
                 break
+            if a.checkpoint_s and time.monotonic() - saved >= a.checkpoint_s:
+                saved = time.monotonic()
+                checkpoint()
             time.sleep(0.2)
     code = proc.returncode
-    ended = time.monotonic()
     text = log.read_text(encoding="utf-8", errors="replace")
     walls = {m.group(1): float(m.group(2)) for pattern in WALL for m in pattern.finditer(text)}
     finished = finished_ids(text)
     clean = rule == "exit" and code == 0
-    outputs, missing = {}, []
+    missing = []
     for body in requests:
         rid = body["id"]
-        source = out_dir / f"{rid}.wav"
-        if source.is_file() and not source.is_symlink() and (clean or rid in finished) and wav_ok(source):
-            target = root / "wav" / f"{rid}.wav"
-            source.replace(target)
-            outputs[rid] = {"file": f"wav/{rid}.wav", "sha256": sha256_file(target), "bytes": target.stat().st_size}
-            if rid in walls:
-                outputs[rid]["wall_ms"] = walls[rid]
-        else:
+        if rid not in outputs and not ((clean or rid in finished) and keep(rid, walls)):
             missing.append(rid)
-    receipt = {
-        "schema": RECEIPT_SCHEMA,
-        "requests_file": relative,
-        "requests_sha256": batch_sha,
-        "requests": len(requests),
-        "refs": refs,
-        "runtime": "audio.cpp audiocpp_cli",
-        "audiocpp_commit": a.audiocpp_commit,
-        "binary_sha256": a.binary_sha256,
-        "model_sha256": a.model_sha256,
-        "model_file": Path(a.model).name,
-        "family": a.family,
-        "task": task,
-        "backend": a.backend,
-        "device": str(a.device),
-        "out_format": "pcm16",
-        "vk_driver_files": os.environ.get("VK_DRIVER_FILES"),
-        "exit_code": code,
-        "stop_rule": rule,
-        "process_group_gone": gone,
-        "started_utc": started_utc,
-        "ended_utc": now(),
-        "wall_s": round(ended - started, 3),
-        "log": {"file": f"logs/{name}.log", "sha256": sha256_file(log)},
-        "test_mode": os.environ.get("NARRATE_AUDIOCPP_BATCH_TEST_MODE") == "1",
-        "run_id": record.data["run_id"],
-        "lease_holder": record.data["lease_holder"],
-        "outputs": outputs,
-        "missing": missing,
-    }
-    write_json(receipt_path, receipt)
+    receipt = write_receipt(code, rule, gone, missing)
     for leftover in out_dir.iterdir():
         leftover.unlink()
     out_dir.rmdir()
@@ -447,6 +476,8 @@ def main(argv=None):
             c.add_argument("--stall-s", type=float, default=STALL_S)
             c.add_argument("--only-missing", action="store_true")
             c.add_argument("--lease-holder", default=None, help="the Lease holder id, for the run record")
+            c.add_argument("--placement", choices=PLACEMENTS, default=PLACEMENTS[0])
+            c.add_argument("--checkpoint-s", type=float, default=0.0)
     a = p.parse_args(argv)
     try:
         if a.command == "check":

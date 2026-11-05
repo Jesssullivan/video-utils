@@ -1,4 +1,4 @@
--- One narrated-video job: a base picture, narrated segments, an optional kitpip avatar, an optional music bed,
+-- One narrated-video job: a base picture, narrated segments, an optional avatar, an optional music bed,
 -- captions, labels and a delivery target (docs/spec/NARRATED_VIDEO.md). A job holds digests and store ids,
 -- never paths. The executor reads its dhall-to-json render, never Dhall, at stage time.
 --
@@ -20,8 +20,11 @@
 --   when set, its sha256. admit refuses it without the model's likeness consent and appearance approval.
 --   width is a fraction of the base width, 0.10 to 0.30. avatarOff names pages (Slides.pages ids) whose whole
 --   span hides the overlay, the deck pattern for dense screens; it fades out over fadeS before such a span and
---   back in over fadeS after it. The avatar is on by default for an edition that allows one (NV-8); a job turns
---   it off with avatar None or a segment's avatar False.
+--   back in over fadeS after it. boxExempt names pages, or segments in a job with no slides, that the avatar_box
+--   gate lists as exempt and does not read: a render whose edge reaches the box with no text there, as a bundle
+--   asset declares with avatar_box exempt. The
+--   avatar is on by default for an edition that allows one (NV-8); a job turns it off with avatar None or a
+--   segment's avatar False.
 -- Slides: named pages on the base clock, each showing the base, a slide picture (by SHA-256 in the private
 --   store) or a hold of the base frame at the page's start. layout Full shows a slide over the whole frame.
 --   CardLowerLeft (the deck seat's slide card, built here from its description only) shows it as a card in the
@@ -36,6 +39,8 @@
 --   when a segment's voice has one. No visible label is required in captions or description.txt (KP-15,
 --   TIN-7476 comment 4ab7fc27). personaCue (an opening caption cue) and extraNotice (a description.txt line)
 --   are optional; when a job sets one, the stages keep it.
+-- Stage selection: avatar, Segment.avatar, music and Delivery.handoff turn the optional stages on and off.
+--   program/dags/narrated-video.json names them under selected_by and narrate/dhall/check.py holds the two equal.
 -- Delivery: narration is measured at targetLufs integrated and the whole mix is never loudness-normalised.
 --   One limiter, in mix. driftLu (at most 0.5) and truePeakDbtp (at most -1.5) are hard gates. upload arms
 --   the licence and Content ID gates. voiceOnlyListen names the receipt of a voice-only listen pass, one of
@@ -99,6 +104,7 @@ let Avatar =
       , width : Double
       , marginPx : Natural
       , avatarOff : List Text
+      , boxExempt : List Text
       , fadeS : Double
       }
 
@@ -251,6 +257,7 @@ let defaults =
         , width = 0.22
         , marginPx = 32
         , avatarOff = [] : List Text
+        , boxExempt = [] : List Text
         , fadeS = 0.35
         }
       , slides =

@@ -49,6 +49,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `amounts.py` | numeric ranges and dollar amounts said in words, each read back to its written value |
 | `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`; for QwenTtsCpp a registered voice; or the offline fake engine |
 | `prerender.py`, `serve/audiocpp_batch.py` | `AudioCppBatch`: request ids, the plan directory, the receipt checks and the takes by id; the GPU-host batch runner |
+| `serve/modal_batch.py` | a sealed Modal app around that runner for `RentedAudioCppBatch`, and `run_plan`, the host side and only upload path. A draft: never deployed, and `just narrate-modal-dry-run` plays it with a fake `modal` client |
 | `qa.py` | per-chunk WER through condense's whisper path, SIM placeholder, best of `maxTakes` by seed |
 | `audio.py`, `render.py` | pauses, timing fit, placement, two-pass loudnorm, captions, EDL, manifest |
 | `verify.py`, `evaluate.py` | the re-check and the scores |
@@ -195,7 +196,7 @@ fail `Engine.consistent`.
 VoxCPM2 runs through audio.cpp's `audiocpp_cli` (pin `47c2756e`), which has no server, so its record uses
 `backend = AudioCppBatch`, `profile = GpuDirect` and `endpoint = "audiocpp://voxcpm2"`, and its `files` pin the
 binary and the weights by sha256. On a rented card it uses `backend = RentedAudioCppBatch` and
-`profile = RentedOpen`, and the consent record must set `hostedAllowed`. A render runs in three phases (`../docs/spec/NARRATE.md`, "Out-of-process batch
+`profile = RentedOpen`, and the consent record must set `hostedAllowed` (the Modal draft is `voxcpm2-batch-modal`). A render runs in three phases (`../docs/spec/NARRATE.md`, "Out-of-process batch
 engines"):
 
 ```sh
