@@ -1,9 +1,9 @@
-"""Consent and confidentiality policy (docs/spec/NARRATE.md, "Consent and confidentiality policy").
+"""Consent policy (docs/spec/NARRATE.md, "Consent policy").
 
 The engine predicates are Engine.dhall's, ported as narrate/dhall/check.py ports them; tests assert the three
 agree on the whole truth table. Every refusal raises Refused with a typed code before any audio is made:
 
-  engine_unknown, engine_inconsistent, confidential_engine_refused, hosted_not_allowed,
+  engine_unknown, engine_inconsistent, hosted_not_allowed,
   voice_unknown, engine_not_allowed, speaker_unmapped,
   consent_missing, consent_revoked, consent_scope, ref_clip_missing, ref_text_missing.
 
@@ -19,7 +19,7 @@ PROFILE_BACKENDS = {
     "GpuSwitch": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts"},
     "GpuDirect": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts", "AudioCppBatch"},
     "MacMlx": {"MlxAudio"},
-    "RentedOpen": {"RentedOpen"},
+    "RentedOpen": {"RentedOpen", "RentedAudioCppBatch"},
     "Hosted": {"Hosted"},
     "Fake": {"Fake"},
 }
@@ -39,7 +39,13 @@ def is_hosted(engine):
 
 
 def is_rented(engine):
-    return engine["profile"] == "RentedOpen" or engine["backend"] == "RentedOpen"
+    return engine["profile"] == "RentedOpen" or engine["backend"] in ("RentedOpen", "RentedAudioCppBatch")
+
+
+def is_offsite(engine):
+    """A hosted or rented engine. The text and any reference clip leave for a machine the operator does not run, so
+    the voice's consent record must allow it (check_voice)."""
+    return is_hosted(engine) or is_rented(engine)
 
 
 def consistent(engine):
@@ -48,12 +54,8 @@ def consistent(engine):
 
 
 def may_run_confidential(engine):
-    return (
-        consistent(engine)
-        and not is_hosted(engine)
-        and bool(engine["confidentialAllowed"])
-        and (not is_rented(engine) or bool(engine["estateControlled"]))
-    )
+    """A report-only label (TIN-7125 f98fd1ac). No refusal reads it; the TIN-7994 audit decides whether it stays."""
+    return consistent(engine)
 
 
 def store_index(store):
@@ -97,11 +99,6 @@ def check_engine(job, engine_id, engines):
             "engine_inconsistent",
             f"engine {engine_id}: profile {engine['profile']} and backend {engine['backend']} disagree",
         )
-    if job["confidential"] and not may_run_confidential(engine):
-        raise Refused(
-            "confidential_engine_refused",
-            f"job {job['id']} is confidential and engine {engine_id} may not run confidential jobs",
-        )
     if is_hosted(engine) and not job["allowHosted"]:
         raise Refused("hosted_not_allowed", f"engine {engine_id} is hosted and job {job['id']} lacks allowHosted")
     return engine
@@ -122,7 +119,7 @@ def check_consent(voice_id, registry, index, job_scope):
     scopes, evidence = consent["scopes"], consent["evidenceSha256"]
     if (
         type(job_scope) is not str
-        or type(voice["scope"]) is not str
+        or type(voice.get("scope")) is not str
         or type(scopes) is not list
         or any(type(s) is not str for s in scopes)
         or type(evidence) is not str
@@ -147,8 +144,8 @@ def check_voice(job, voice_id, engine, registry, index):
     voice, consent = check_consent(voice_id, registry, index, job["scope"])
     if engine["id"] not in voice["allowedEngines"]:
         raise Refused("engine_not_allowed", f"engine {engine['id']} is not in voice {voice_id}'s allowedEngines")
-    if is_hosted(engine) and not consent["hostedAllowed"]:
-        raise Refused("hosted_not_allowed", f"consent {consent['id']} does not allow hosted engines")
+    if is_offsite(engine) and consent["hostedAllowed"] is not True:
+        raise Refused("hosted_not_allowed", f"consent {consent['id']} does not allow hosted or rented engines")
     if voice["refClipSha256"] not in index:
         raise Refused("ref_clip_missing", f"voice {voice_id}: no stored clip has sha256 {voice['refClipSha256'][:12]}")
     if voice["refTextSha256"] not in index:

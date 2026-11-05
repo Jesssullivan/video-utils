@@ -566,7 +566,11 @@ def main(argv=None):
         " table, scope, gates and post settings every beat's narrate job copies",
     )
     t.add_argument("--voice", required=True, help="the voice record id every beat reads in")
-    t.add_argument("--engine", required=True, help="the engine record id; it must allow a confidential job")
+    t.add_argument(
+        "--engine",
+        required=True,
+        help="the engine record id; a rented or hosted one needs hostedAllowed",
+    )
     avatar = t.add_mutually_exclusive_group()
     avatar.add_argument("--persona", help="turn the kitpip avatar on with this labels.persona")
     avatar.add_argument("--no-avatar", action="store_true", help="no kitpip avatar")

@@ -27,9 +27,8 @@ Hardware vocabulary used below:
 | ElevenLabs Eleven v4 / v4 Turbo | closed, hosted | n/a | n/a | professional clone of your own voice only | n/a | n/a | Provider board 1329 / 1335 (#1-2, tied) |
 | HeyGen Voice Turbo | closed, hosted | n/a | n/a | bring-your-own clone key | n/a | n/a | Cloning board #1, 1202 +/-19 |
 
-Not shortlisted, with the reason: Breeze TTS 2 (AA #11 provider, 1225; weights and outputs non-commercial),
-Voxtral TTS and OmniVoice weights (CC BY-NC), Fish S2 Pro (research licence, non-commercial), Higgs TTS 3
-(research licence; 14.7 GB peak on a 24 GB card), VibeVoice (TTS code withdrawn upstream), Kokoro (no cloning).
+Not shortlisted, with the reason: Higgs TTS 3 (14.7 GB peak on a 24 GB card), VibeVoice (TTS code withdrawn
+upstream), Kokoro (no cloning).
 
 ### Ming-3.0-tts-0.5B
 
@@ -89,7 +88,7 @@ Voxtral TTS and OmniVoice weights (CC BY-NC), Fish S2 Pro (research licence, non
 - The AA entries are named "Preview"; whether they measure the released checkpoint is U.
 - Hosted API price ($10 per 1M characters until 2026-11-12, then $50) comes from a secondary source only (U).
 
-### Hosted ceiling (last resort, public non-confidential text only)
+### Hosted ceiling
 
 - Eleven v4 launched 2026-09-28; the docs warn behaviour "may shift over time", so outputs are not
   reproducible; professional cloning is limited to your own voice after verification. Official API prices:

@@ -6,6 +6,8 @@
 -- record in the private avatars.json names such a consent by id (likenessConsent.id), and narrate/video/vrm.py
 -- resolves it in this table; grantedBy must be "Operator". It never grants a voice: a voice or job scope of
 -- Likeness refuses consent_scope.
+-- hostedAllowed (TIN-7125 af4ceb3b): the speaker's consent to any engine the operator does not run, rented or hosted.
+-- A cloned voice reaches neither without it.
 let Scope = < OwnContent | ClientDisclosed | Likeness >
 
 let T =

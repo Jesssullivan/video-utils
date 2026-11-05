@@ -18,6 +18,13 @@
 - The condense edl stage validates every `edl.json` with the Rust timeline.
 - Condense defaults: 2 parallel jobs, 4 whisper threads and a 7200 s limit per
   tool call (`CONDENSE_TOOL_TIMEOUT_S`).
+- Narrate: a rented engine must pass the consent record's `hostedAllowed`, and
+  the `confidential` job label refuses no engine until the TIN-7994 audit. A demo
+  bundle's jobs keep the template's `confidential` and `allowHosted` flags. A rented
+  batch uses the `RentedAudioCppBatch` backend. SP-4 health rows stay kept on client
+  renders, and no narrate code enforces that limit.
+- Narrate: `narrate voices` lists a private voice row that predates the Voice type,
+  with missing fields as null or empty, and such a row refuses `consent_invalid`.
 - Narrated video: J168 removes the `ip_private` and BS-21 refusals for go-live,
   and the November 30, 2026 audit revisits them. `ip_private` needs no denylist,
   number and geometry entries and the `script` class stop matching, and

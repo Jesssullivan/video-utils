@@ -3,7 +3,7 @@ name: vrm-overlay
 description: Render and verify the VRM narrator overlay (draft) for each narrated segment from a pinned renderer and a consented, approved model, inside the job store.
 ---
 
-# Let an agent render the VRM narrator overlay for each segment from its narration's face timeline, bound to a pinned renderer and model by digest, as a draft for the 11-14 bench.
+# Let an agent render the VRM narrator overlay for each segment from its narration's face timeline, bound to a pinned renderer and model by digest, as a dark fallback draft.
 
 **Hook:** MCP tools `avatar_overlay` and `avatar_verify` with `avatar.external` `vrm` (skills `avatar-overlay` and `avatar-verify`; proposed as tools 66 and 67, drafted in `program/tool-drafts/narrated_video.json`, not yet admitted). Fallback: `just nv-stage JOB avatar --segment ID`, `just nv-stage JOB avatar_check --segment ID` or `just nv-run JOB`, inside `nix develop .#condense`. Check the pin first with `just vrm-pin-check`.
 
@@ -23,7 +23,7 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 
 ## Limits
 
-- Draft (SPR-128). The demos keep kitpip (SPR-120), and the switch waits for the 11-14 bench.
+- Draft (SPR-128). The demos keep kitpip (SPR-120), and VRM stays dark as a fallback.
 - The registered engine is three-vrm in headless Chromium, stepping `vrm.update(1/fps)` once per frame. Blender with the VRM add-on is the fallback. Neither is built here yet. Public CI renders the stub on a synthetic glTF with no mesh, and never downloads a browser.
 - GPU raster is not bit-exact. Compare `frames_sha256` only between renders on one host, renderer and driver.
 - The face timeline follows loudness only, so lip sync stays `pending_operator`. Whether offline VRM video carries a burned-in badge is open, so `deliver_check` plans `pending_operator`.

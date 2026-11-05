@@ -5,10 +5,17 @@
 -- AudioCppBatch is audio.cpp's audiocpp_cli run out of process as a request batch (it has no server at the
 -- pinned commit): `narrate plan` writes the requests, the GPU window runs them, and `narrate render
 -- --prerendered` reads the takes by request id (narrate/prerender.py). Its endpoint is audiocpp://<family>,
--- and its files pin the binary and the weights by sha256. Only the attended-window profile GpuDirect admits it.
+-- and its files pin the binary and the weights by sha256. GpuDirect admits it for an attended window on the local
+-- card. RentedAudioCppBatch is the same batch on a rented or offsite GPU, under the RentedOpen profile. A separate
+-- backend keeps the location in two fields, so changing the profile or the backend alone fails `consistent`.
+--
+-- isOffsite is a hosted or rented engine, and the voice's consent record must allow it (hostedAllowed, TIN-7125
+-- af4ceb3b). mayRunConfidential is a report-only label (TIN-7125 f98fd1ac): no refusal reads it, and it and the fields
+-- estateControlled and confidentialAllowed stay until the TIN-7994 audit decides what comes back.
 let Backend =
       < VulkanAudioCpp
       | AudioCppBatch
+      | RentedAudioCppBatch
       | QwenTtsCpp
       | LlamaTts
       | MlxAudio
@@ -56,6 +63,7 @@ let backendIsRented =
         merge
           { VulkanAudioCpp = False
           , AudioCppBatch = False
+          , RentedAudioCppBatch = True
           , QwenTtsCpp = False
           , LlamaTts = False
           , MlxAudio = False
@@ -82,6 +90,7 @@ let backendIsHosted =
         merge
           { VulkanAudioCpp = False
           , AudioCppBatch = False
+          , RentedAudioCppBatch = False
           , QwenTtsCpp = False
           , LlamaTts = False
           , MlxAudio = False
@@ -101,6 +110,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = True
                 , AudioCppBatch = False
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = True
                 , LlamaTts = True
                 , MlxAudio = False
@@ -114,6 +124,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = False
                 , AudioCppBatch = False
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = True
@@ -127,6 +138,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = False
                 , AudioCppBatch = False
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = False
@@ -140,6 +152,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = False
                 , AudioCppBatch = True
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = False
@@ -162,12 +175,9 @@ let backendFitsProfile =
 let consistent =
       \(e : T) -> backendFitsProfile e && e.hosted == profileIsHosted e
 
-let mayRunConfidential =
-      \(e : T) ->
-            consistent e
-        &&  isHosted e == False
-        &&  e.confidentialAllowed
-        &&  (isRented e == False || e.estateControlled)
+let isOffsite = \(e : T) -> isHosted e || isRented e
+
+let mayRunConfidential = consistent
 
 in  { Type = T
     , File
@@ -175,6 +185,7 @@ in  { Type = T
     , Profile
     , isRented
     , isHosted
+    , isOffsite
     , consistent
     , mayRunConfidential
     }

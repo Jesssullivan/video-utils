@@ -381,7 +381,7 @@ def qwentts_speech(engine, text, voice, ref, seed, options, sess):
     return wav_reply(engine, data), record
 
 
-AUDIOCPP_BATCH = "AudioCppBatch"
+AUDIOCPP_BATCH = ("AudioCppBatch", "RentedAudioCppBatch")
 
 
 SWITCH = "GpuSwitch"
@@ -460,7 +460,7 @@ def switch_speech(engine, text, ref, seed, options):
 def honours_speed(engine):
     """False for a runtime that ignores the speed knob, a switch take (the switch sends none), or a batch rendered
     before the fit; render.py then fits timing with atempo alone."""
-    return engine["backend"] not in (QWENTTS, AUDIOCPP_BATCH) and engine.get("profile") != SWITCH
+    return engine["backend"] not in (QWENTTS, *AUDIOCPP_BATCH) and engine.get("profile") != SWITCH
 
 
 def synthesize(engine, text, voice, ref, seed, speed, options, sess=None):
@@ -472,7 +472,7 @@ def synthesize(engine, text, voice, ref, seed, speed, options, sess=None):
         return fake(engine, text, seed, speed)
     if engine["endpoint"].startswith("fake://"):
         raise EngineError("engine_endpoint_invalid", f"engine {engine['id']} is not Fake but has a fake:// endpoint")
-    if engine["backend"] == AUDIOCPP_BATCH:
+    if engine["backend"] in AUDIOCPP_BATCH:
         raise EngineError(
             "engine_out_of_process",
             f"engine {engine['id']} runs as a batch on the GPU host: narrate plan, then render --prerendered",
@@ -490,6 +490,6 @@ def probe(engine):
         variant = urllib.parse.urlsplit(engine["endpoint"]).netloc
         espeak_found = shutil.which("espeak-ng") is not None
         return {"available": True, "variant": "espeak-ng" if variant == "espeak" and espeak_found else "sine"}
-    if engine["backend"] == AUDIOCPP_BATCH:
+    if engine["backend"] in AUDIOCPP_BATCH:
         return {"available": "out_of_process", "reason": "a batch run in a GPU window; narrate reads its takes"}
     return {"available": "not_probed", "reason": "http engines are reached only by a render"}

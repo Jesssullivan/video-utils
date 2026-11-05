@@ -32,11 +32,11 @@ narrate-export run_dir to stem:
 narrate-plan config out *args:
     python3 -m narrate plan {{quote(config)}} --out {{quote(out)}} {{args}}
 
-# Voices with consent state, and engines with confidentiality eligibility. Never a path or a clip.
+# Voices with consent state, and engines with their availability. Never a path or a clip.
 narrate-voices config="narrate.toml":
     python3 -m narrate voices {{quote(config)}}
 
-# Engine profiles with confidentiality eligibility and availability.
+# Engine profiles with their availability.
 narrate-engines config="narrate.toml":
     python3 -m narrate engines {{quote(config)}}
 

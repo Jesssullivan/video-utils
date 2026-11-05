@@ -22,7 +22,6 @@ Only public-safe facts are recorded here.
 | Narrate owner | A `narrate/` lane in this repository: client, CLI, spec, Dhall, MCP tools and evaluation. Serving, deployment and agent exposure are proposed to their owning repositories. Voice data stays outside git |
 | GPU | Attended windows of 30 min or less on the GPU host, each holding the single GPU lease, with a receipt. Development on the Mac host with MLX. Switch-native serving in N1, after P-TIN-193 M3 |
 | Voices | v0 clones the operator's own voice only. A 10–30 s clip with a verified transcript and a consent record, hash-bound and outside git |
-| Engine order | On-prem open weights, then rented GPUs with open weights, then hosted APIs last. Hosted calls are refused for confidential jobs |
 | Lexical rules | Pinned xoxd-lexical `slides` register plus a local pronunciation table. A narration register is a later upstream bump (TIN-7097) |
 | Sprint shape | S5 operator sessions and condense v5 closeout (11-06), S5 livecode shard (11-06), N0 (10-25), N1 (11-07). Project target 11-14 |
 
@@ -98,7 +97,7 @@ Rented tier: **Fish Audio Drama 3**.
   - no training on its outputs.
 - Sources: [model and licence](https://huggingface.co/fishaudio/drama-3), [code](https://github.com/fishaudio/fish-speech), [vLLM-Omni](https://docs.vllm.ai/projects/vllm-omni/en/latest/serving/speech_api/).
 
-Hosted, as a last resort and for public content only: ElevenLabs v4, then the Fish API.
+Hosted: ElevenLabs v4, then the Fish API.
 - Source: [ElevenLabs v4](https://elevenlabs.io/docs/overview/capabilities/text-to-speech/eleven-v4.md).
 
 Leaderboards: [AA controlled voice](https://artificialanalysis.ai/text-to-speech/leaderboard/controlled-voice) and

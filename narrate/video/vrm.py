@@ -38,9 +38,9 @@ Gates. The VRM path refuses at admit, and again before the renderer spawns, with
 (SP-R13: the record's likenessConsent {id, ruling} names a consents.json row with the Likeness scope, granted by
 the operator and unrevoked) and its appearance approval (TIN-7130: approved by the operator for this model digest).
 Whether offline VRM video carries a burned-in badge is open: no renderer draws one, the manifest records badge
-{burned_in: false, decision: open}, and a record that tries to settle it refuses vrm_badge_undecided. Until a ruling
-after the 11-14 bench, only the Internal edition may carry a VRM overlay (vrm_edition_unruled); the demos keep kitpip
-(SPR-120, SPR-128).
+{burned_in: false, decision: open}, and a record that tries to settle it refuses vrm_badge_undecided. VRM stays dark
+as a fallback (TIN-7125 93f6e869). Until a ruling, only the Internal edition may carry a VRM overlay
+(vrm_edition_unruled); the demos keep kitpip (SPR-120, SPR-128).
 """
 
 import hashlib
@@ -107,7 +107,6 @@ LICENCE_FIELDS = {
         "otherLicenseUrl",
     ),
 }
-REQUIRED_LICENCE = {"1.0": ("licenseUrl", "avatarPermission", "commercialUsage"), "0.x": ("licenseName",)}
 
 
 class VrmRefused(StageRefused):
@@ -356,7 +355,7 @@ def knobs(job, records, pin):
 # The model file ------------------------------------------------------------------------------------------------
 def read_meta(path):
     """{spec_version, meta} of a VRM file: a binary glTF whose JSON chunk carries VRMC_vrm (1.0) or VRM (0.x).
-    meta holds only the licence fields (absent ones as null). vrm_invalid or vrm_meta_missing otherwise."""
+    meta holds only the licence fields (absent ones as null). vrm_invalid otherwise."""
     with open(path, "rb") as stream:
         head = stream.read(20)
         if len(head) < 20:
@@ -376,8 +375,7 @@ def read_meta(path):
         spec, meta = "0.x", extensions["VRM"].get("meta")
     else:
         raise VrmRefused("vrm_invalid", "the model carries neither VRMC_vrm nor VRM")
-    if not isinstance(meta, dict) or any(meta.get(k) in (None, "") for k in REQUIRED_LICENCE[spec]):
-        raise VrmRefused("vrm_meta_missing", f"the model's VRM {spec} meta lacks its licence fields")
+    meta = meta if isinstance(meta, dict) else {}
     return {"spec_version": spec, "meta": {k: meta.get(k) for k in LICENCE_FIELDS[spec]}}
 
 

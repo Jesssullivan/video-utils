@@ -7,7 +7,7 @@ description: List narration engines and their reachability.
 
 **Hook:** MCP tool `narrate_engines` (admitted as tool 60, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m narrate engines`; the path rules and argument checks in scripts/tool_api.py run before it starts.
 
-**Capability:** Run `python -m narrate engines` on one narrate.toml: each engine id with its profile, backend, model, licence and licence notice, whether it is hosted, whether its profile and backend agree, whether it may run a confidential job, and its availability; with probe_reachability, a 2 s TCP connect to each http engine (no request, no token, no synthesis). Never an endpoint. Reads the registry records; writes nothing.
+**Capability:** Run `python -m narrate engines` on one narrate.toml: each engine id with its profile, backend, model, licence and licence notice, whether it is hosted, whether its profile and backend agree, the report-only may_run_confidential label, and its availability; with probe_reachability, a 2 s TCP connect to each http engine (no request, no token, no synthesis). Never an endpoint. Reads the registry records; writes nothing.
 
 ## Use and controls
 
@@ -24,4 +24,4 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 
 ## Agent iteration
 
-Read id, profile, backend, hosted, consistent, may_run_confidential, licence_notice, available and reach per engine. docs/spec/NARRATE.md "Engine profiles" gives the preference order and who may run confidential work. Probe again after an engine starts; never start, stop or switch a server from here. An engine is usable for a job only when the render admits it; this listing is advice. Never download a model, start or stop an engine, or send a clip anywhere implicitly.
+Read id, profile, backend, hosted, consistent, may_run_confidential, licence_notice, available and reach per engine. docs/spec/NARRATE.md "Engine profiles" gives the preference order and the consent each profile needs. Probe again after an engine starts; never start, stop or switch a server from here. An engine is usable for a job only when the render admits it; this listing is advice. Never download a model, start or stop an engine, or send a clip anywhere implicitly.

@@ -112,7 +112,7 @@ def test_happy_path_writes_the_existing_shapes(ws, tmp_path):
     for segment in job["segments"]:
         narrate_job = records["jobs"][segment["narrateJob"]]
         assert narrate_job["input"] == "Markdown"
-        assert narrate_job["confidential"] is True and narrate_job["allowHosted"] is False
+        assert narrate_job["confidential"] is False and narrate_job["allowHosted"] is False  # the template's
         assert narrate_job["voice"] == VOICE and narrate_job["engine"] == ENGINE and narrate_job["speakers"] == []
         assert narrate_job["inputSha256"] == segment["scriptSha256"]
         script = ws["store"] / f"{segment['scriptSha256']}.md"
@@ -460,12 +460,72 @@ def test_out_must_be_new_or_empty(ws, tmp_path):
     refused("out_exists", intake, ws, tmp_path / "out")
 
 
-def test_engine_must_allow_a_confidential_job(ws, tmp_path):
-    path = ws["records"] / "engines.json"
+def edit_records(ws, name, edit):
+    path = ws["records"] / name
     rows = json.loads(path.read_text())
-    rows[0]["confidentialAllowed"] = False
+    rows = rows if isinstance(rows, list) else [rows]
+    edit(rows)
     path.write_text(json.dumps(rows))
-    refused("confidential_engine_refused", intake, ws, tmp_path / "out")
+
+
+def set_engine(ws, **fields):
+    edit_records(ws, "engines.json", lambda rows: rows[0].update(fields))
+
+
+def set_template(ws, **fields):
+    edit_records(ws, "jobs.json", lambda rows: next(r for r in rows if r["id"] == TEMPLATE).update(fields))
+
+
+def set_consent(ws, **fields):
+    edit_records(ws, "consents.json", lambda rows: rows[0].update(fields))
+
+
+def test_a_rented_engine_needs_the_consent_records_hosted_allowed(ws, tmp_path):
+    set_engine(ws, profile="RentedOpen", backend="RentedOpen", endpoint="https://gpu.example.invalid")
+    refused("hosted_not_allowed", intake, ws, tmp_path / "a")
+    set_consent(ws, hostedAllowed=True)
+    intake(ws, tmp_path / "b")
+
+
+def test_a_string_hosted_allowed_grants_nothing_at_intake(ws, tmp_path):
+    set_engine(ws, profile="RentedOpen", backend="RentedOpen", endpoint="https://gpu.example.invalid")
+    set_consent(ws, hostedAllowed="false")
+    refused("hosted_not_allowed", intake, ws, tmp_path / "a")
+
+
+def test_a_hosted_engine_needs_the_template_and_the_consent(ws, tmp_path):
+    set_engine(ws, profile="Hosted", backend="Hosted", hosted=True, endpoint="https://speech.example.invalid")
+    set_template(ws, allowHosted=False)
+    refused("hosted_not_allowed", intake, ws, tmp_path / "a")
+    set_template(ws, allowHosted=True)
+    refused("hosted_not_allowed", intake, ws, tmp_path / "b")
+    set_consent(ws, hostedAllowed=True)
+    out = tmp_path / "c"
+    intake(ws, out)
+    assert json.loads((out / "intake.json").read_text())["narrate"]["allowHosted"] is True
+
+
+def test_an_engine_whose_profile_and_backend_disagree_refuses(ws, tmp_path):
+    set_engine(ws, profile="GpuDirect", backend="Fake")
+    refused("engine_inconsistent", intake, ws, tmp_path / "out")
+
+
+def test_the_confidential_label_refuses_no_engine(ws, tmp_path):
+    set_engine(ws, confidentialAllowed=False, estateControlled=False)
+    intake(ws, tmp_path / "out")
+
+
+@pytest.mark.parametrize("confidential", [False, True])
+@pytest.mark.parametrize("allow_hosted", [False, True])
+def test_each_beat_job_and_the_receipt_keep_the_templates_flags(ws, tmp_path, confidential, allow_hosted):
+    set_template(ws, confidential=confidential, allowHosted=allow_hosted)
+    out = tmp_path / "out"
+    intake(ws, out)
+    rows = json.loads((out / "records" / "jobs.json").read_text())
+    beats = [r for r in rows if r["id"] != TEMPLATE]
+    assert beats and {(r["confidential"], r["allowHosted"]) for r in beats} == {(confidential, allow_hosted)}
+    receipt = json.loads((out / "intake.json").read_text())["narrate"]
+    assert (receipt["confidential"], receipt["allowHosted"]) == (confidential, allow_hosted)
 
 
 def test_unknown_template_voice_and_engine_refuse(ws, tmp_path):

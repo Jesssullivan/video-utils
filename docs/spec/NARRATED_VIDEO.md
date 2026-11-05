@@ -32,8 +32,8 @@ source media.
 | NV-6 | `ClientNarrated` is the default edition of every client delivery: synthetic voice and kitpip allowed, the bed gated on licence and Content ID. `ClientVoiceOnly` stays available per project. This supersedes the voice-only part of KP-14 for client deliveries |
 | KP-19 | kitpip's default overlay is the unadorned character, with no ring, picture-in-picture background or logo stamp. `--badge` restores the ring and mark. The wrapper never passes it |
 | NV-8 | kitpip stayed opt-in until lane L6 landed. The avatar is now on by default (KP-13, NV-6), and a job can still turn it off |
-| SPR-120 | kitpip now, VRM after the bench. Internal demos use kitpip v0.1.0. The VRM offline renderer (`avatar.manifest/v1`, a second external) is built as a draft, and the switch waits for the 11-14 bench |
-| SPR-128 | The VRM offline renderer draft goes into this repository: `avatar.manifest/v1`, a second external and synthetic rig fixtures, ready for the 11-14 bench. The demos keep kitpip (see "Avatar externals and `avatar.manifest/v1`") |
+| SPR-120 | kitpip now. Internal demos use kitpip v0.1.0. The VRM offline renderer (`avatar.manifest/v1`, a second external) is built as a draft, and VRM stays dark as a fallback (TIN-7125 `93f6e869`) |
+| SPR-128 | The VRM offline renderer draft goes into this repository: `avatar.manifest/v1`, a second external and synthetic rig fixtures. The demos keep kitpip (see "Avatar externals and `avatar.manifest/v1`") |
 
 Music-bed levels (NV-2, from the deck seat's answers the operator adopted): the
 bed sits 20 dB under the voice and a sidechain ducks it a further 6 to 8 dB
@@ -253,8 +253,8 @@ and `show_badge`. Its states are `source_checks: passed`, `render: stub` or
 
 ### Avatar externals and `avatar.manifest/v1`
 
-SPR-120 and SPR-128 add a second avatar external, the VRM offline renderer, as a draft for the 11-14
-bench. The demos keep kitpip. A job picks its external with `avatar.external`: `kitpip` (the default)
+SPR-120 and SPR-128 add a second avatar external, the VRM offline renderer, as a dark fallback
+draft. The demos keep kitpip. A job picks its external with `avatar.external`: `kitpip` (the default)
 or `vrm`. Any other value refuses `avatar_external_unknown`. Both externals write `overlay/overlay.mov`
 (ProRes 4444, straight alpha) and `overlay/manifest.json` into the avatar stage directory, so `compose`
 and `handoff` read either one the same way. `narrate/video/avatar.py` sends each avatar node to its
@@ -334,7 +334,7 @@ an `approval` (`ref`, `state`, `decidedBy`, `decidedAt`, `vrmSha256`, `evidenceS
 {burnedIn: null}`. The model is a private-store blob found by digest and re-hashed before the renderer
 spawns. The wrapper reads its VRM meta from the glTF JSON chunk: `VRMC_vrm` for 1.0, `VRM` for 0.x. It
 records the licence fields and nothing else from the meta, so no author or model name. A model with no
-meta licence refuses `vrm_meta_missing`, and a file that is not a VRM binary glTF refuses `vrm_invalid`.
+meta licence records those fields as null, and a file that is not a VRM binary glTF refuses `vrm_invalid`.
 
 **Likeness consent.** The consent itself is not in the model record. `likenessConsent.id` names a row
 of `consents.json`, the table voice consent goes through, typed by `narrate/dhall/Consent.dhall`. Its
@@ -353,7 +353,7 @@ and the next render. `Likeness` never grants a voice: a voice or job scope of `L
 | `vrm_consent_missing`, `vrm_consent_revoked` | `likenessConsent` has no non-empty `id` or its `ruling` is not `SP-R13`; the id names no `consents.json` row; the row's `scopes` is not a list holding `Likeness`, its `grantedBy` is not `Operator` or it has no evidence digest; or the row is revoked |
 | `vrm_approval_missing` | no TIN-7130 approval with `state: approved`, `decidedBy: Operator`, an evidence digest and `vrmSha256` equal to this model. A new model revision needs a new approval |
 | `vrm_badge_undecided` | the record sets `badge.burnedIn`. Whether offline VRM video carries a burned-in badge is not ruled: no renderer draws one, and no record may settle it |
-| `vrm_edition_unruled` | the edition is not `Internal`. Other editions wait for a ruling after the 11-14 bench |
+| `vrm_edition_unruled` | the edition is not `Internal`. Other editions wait for a ruling |
 
 With a VRM avatar, admit also lists `vrm_badge_decision` as an operator gate at `deliver_check`, so
 `deliver_check` plans `pending_operator`. `deliver_check` reports the gate as well: when an avatar stage
@@ -1197,7 +1197,7 @@ in the file, and the claims gate refuses every number that relies on it.
 | `claim_invalid`, `claim_unknown` | a claim breaks its rules; a beat cites a claim id that `claims.json` lacks |
 | `denylist_missing`, `denylist_misplaced`, `denylist_digest_mismatch`, `denylist_invalid`, `denylist_pin_invalid`, `privacy_undeclared`, `private_term` | the private-terms guard (see "Private terms"): the declared denylist is not given, lies inside the bundle or a git work tree, is not bound or malformed, the operator's pin is malformed or names a private lane for an undeclared bundle, or a text says one of its terms |
 | `number_unclaimed`, `claim_unreceipted`, `claim_ambiguous`, `number_ambiguous` | the claims gate, per segment (below) |
-| `narrate_job_missing`, `records_invalid`, `voice_unknown`, `engine_unknown`, `engine_not_allowed`, `consent_scope`, `confidential_engine_refused` | the template narrate job, voice or engine cannot voice a confidential job |
+| `narrate_job_missing`, `records_invalid`, `voice_unknown`, `engine_unknown`, `engine_not_allowed`, `engine_inconsistent`, `consent_scope`, `hosted_not_allowed` | the template narrate job, voice or engine cannot voice this job |
 | `pronunciation_unknown`, `pronunciation_refused`, `pronunciation_adds_number`, `lexical_missing`, `lexical_digest_mismatch` | the template's pronunciation table has no record; narrate's normaliser refuses a beat; a table makes narrate say a number word or digit group that the voiced text lacks; the template pins the narration register and its xoxd-lexical release (`NARRATE_LEXICAL_DIR`) is absent or does not match its pin |
 | `out_exists`, `store_conflict`, `narrate_job_exists` | the output directory is not new or empty (or fills while the intake runs); the store holds a different file, a symlink or a directory under a digest name, or `--store` is `--out` itself; the records hold a different narrate job with a new job's id |
 | admit's codes | the converted job fails admit at Plan, such as `slides_invalid` for a PNG beat shorter than two fades |
@@ -1208,7 +1208,7 @@ in the file, and the claims gate refuses every number that relies on it.
 | --- | --- |
 | a beat | a segment with the beat's id, anchored `AtSeconds` at the beat's start. Beats run back to back from 0, each `target_s` long |
 | its voiced text | a narrate Markdown input: front matter `slide: <beat id>` and `target_seconds: <target_s>`, a blank line and the voiced text. Its SHA-256 is the narrate job's `inputSha256` and the segment's `scriptSha256` |
-| its narrate job | `<job>-<beat>`: a copy of the template narrate job (`--narrate-template`: lexical pin, pronunciation table, scope, gates, post settings) with `input` `Markdown`, `confidential` true, `allowHosted` false, no speakers table, and `voice` and `engine` from `--voice` and `--engine` |
+| its narrate job | `<job>-<beat>`: a copy of the template narrate job (`--narrate-template`: lexical pin, pronunciation table, scope, gates, post settings) with `input` `Markdown`, the template's `confidential` and `allowHosted` flags, no speakers table, and `voice` and `engine` from `--voice` and `--engine` |
 | a PNG beat | a `Slide` page by SHA-256 over the beat's span, layout `Full` |
 | an MP4 beat | a `Base` page over the beat's span. The MP4 is the base video (`keepBaseAudio` false) |
 | no MP4 | the default card (`#101820`, 1920x1080 at 30/1), held `--tail-s` (default 1 s) after the last narration |
@@ -1248,8 +1248,9 @@ the store digests written, the digest of every output, admit's verdict and pendi
 pronunciation table id and pinned upstream release (or `null`), and the states `source_checks: passed`,
 `claims: passed`, `pronunciation_numbers: passed`, `private_terms`, `visible_text`, `producer_review:
 pending_operator`, `render: not_run` and `listening: pending_operator`. Then
-`init --job ID --from OUT/narrated-video.json --records OUT/records` and `run` proceed as for any job. The beats'
-narrate jobs are confidential, so the engine must be one that `Engine.mayRunConfidential` admits.
+`init --job ID --from OUT/narrated-video.json --records OUT/records` and `run` proceed as for any job. A rented or
+hosted engine needs the voice's consent record to set `hostedAllowed`, and a hosted engine also needs the template's
+`allowHosted`.
 
 ### Claims gate
 
