@@ -25,6 +25,12 @@ the plan gate. A review reproduced a `GpuDirect` job with no hosted consent reac
 the Volume and rendering, because no narrate code ran before the upload and a
 receipt held no location. `run_plan` and `placement` close that path.
 
+The stack review found one more gap before merge. `preflight` read `hostedAllowed`
+from the `plan.json` snapshot, which has no `revokedAt`, so a consent revoked after
+`plan` still uploaded the reference clip. `preflight` now reads each listed consent
+again from the file named by `--consents`, and `run_plan` calls it before any put.
+The snapshot check stays. A revoked row refuses `consent_revoked` and uploads nothing.
+
 The first draft's mutation claim was too broad. It held for helpers and removal, and
 14 of 16 mutants on the call sites survived. The PR body lists the rerun.
 

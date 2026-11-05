@@ -38,7 +38,7 @@ narrate-modal-dry-run:
     python3 -I narrate/serve/modal_batch.py dry-run
 
 # The only upload path of a rented batch: preflight, put, the sealed run, get, checks and wipe. It spends money, so a
-# run takes its own go, and args carry --binary-sha256, --model-sha256, --health-class and --modal.
+# run takes its own go, and args carry --consents, --binary-sha256, --model-sha256, --health-class and --modal.
 narrate-modal-run plan run_id *args:
     python3 -I narrate/serve/modal_batch.py run {{quote(plan)}} --run-id {{quote(run_id)}} {{args}}
 

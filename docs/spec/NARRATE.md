@@ -438,7 +438,7 @@ record must set `hostedAllowed`. The placeholder binary digest refuses
 
 | Rule | How the draft holds it |
 | --- | --- |
-| Consent before upload | `plan` runs the consent check, and `preflight` runs before any byte leaves. It refuses `engine_not_rented` unless the plan's record is `RentedOpen` and `RentedAudioCppBatch`, and `hosted_not_allowed` unless every consent in the plan grants it. The run's pins must be files the record lists, and the plan's files must match its digests |
+| Consent before upload | `plan` runs the consent check, and `preflight` runs before any byte leaves. It refuses `engine_not_rented` unless the plan's record is `RentedOpen` and `RentedAudioCppBatch`, and `hosted_not_allowed` unless every consent in the plan grants it. `plan.json` is a snapshot with no `revokedAt`, so `preflight` then reads each listed consent again from the private file named by `--consents`. A row revoked since the plan refuses `consent_revoked`, a row now without the grant `hosted_not_allowed`, a row gone `consent_missing`, and an unreadable file or a row with no `revokedAt` field `consent_invalid`. This reads only those two fields, so a run that outlives the check keeps going, and a changed scope waits for the next `plan`. The run's pins must be files the record lists, and the plan's files must match its digests |
 | Location | The sealed call passes `--placement rented`, so the receipt states where it ran, and a render refuses `prerendered_placement_mismatch` for a rented receipt under an engine that is not offsite. The manifest's batches name each placement |
 | SP-4 | No job field carries the class, so the run must state `--health-class none`. Any other value refuses `sp4_health_row`. This is the author's statement, recorded in the report, and narrate does not read the text for health content |
 | Sealed at inference | `block_network` and `restrict_modal_access`, and `assert_sealed` stops the run before any file is read if a name or a literal address answers. A blocked resolver with open routes does not pass |
@@ -459,7 +459,7 @@ clients run off the CPU host (TIN-7856).
 | --- | --- | --- |
 | 1 | Plan | `just narrate-plan CONFIG PLAN` |
 | 2 | Pin, once per pin | `MODAL volume put narrate-rented-batch BINARY bin/SHA/audiocpp_cli`, and the same for `weights/SHA/voxcpm2-bf16.gguf`. These hold no clip or script |
-| 3 | Run | `just narrate-modal-run PLAN RUN --binary-sha256 SHA --model-sha256 SHA --health-class none --modal MODAL` |
+| 3 | Run | `just narrate-modal-run PLAN RUN --consents FILE --binary-sha256 SHA --model-sha256 SHA --health-class none --modal MODAL` |
 | 4 | Render | `just narrate-render CONFIG --prerendered PLAN` |
 
 Step 3 is the only upload path: preflight, put, one `modal run` per requests file,

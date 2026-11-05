@@ -18,8 +18,9 @@ The container side follows the Modal burst lessons on TIN-7856 `9e90b4fe`:
 
 The host side, run_plan, is the only upload path. It holds these steps together, so no step is left to a person:
 
-    preflight   the plan's engine is rented and offsite, its consent allows that, the run states it holds no SP-4
-                health row, and the pins are the record's. It reads no network, and runs before any byte leaves.
+    preflight   the plan's engine is rented and offsite, its consent allows that in plan.json and again in the live
+                consents file, the run states it holds no SP-4 health row, and the pins are the record's. It reads no
+                network, and runs before any byte leaves.
     stage_in    `modal volume put` of requests/ and refs/, what the engine needs
     run         `modal run`, one call per requests file, stopping at the first that fails
     stage_back  `modal volume get` into an empty directory, the reply's digest checked, every take checked, then merged
@@ -34,8 +35,9 @@ The Volume holds three trees:
 
     modal_batch.py dry-run                          the whole phase with a fake `modal` client and fake audiocpp_cli
     modal_batch.py engine-record [--binary-sha256 SHA]   the record for the private engines.json
-    modal_batch.py preflight PLAN --binary-sha256 SHA --model-sha256 SHA --health-class none
-    modal_batch.py run PLAN --run-id RUN --binary-sha256 SHA --model-sha256 SHA --health-class none [--modal CLIENT]
+    modal_batch.py preflight PLAN --consents FILE --binary-sha256 SHA --model-sha256 SHA --health-class none
+    modal_batch.py run PLAN --run-id RUN --consents FILE --binary-sha256 SHA --model-sha256 SHA --health-class none
+                                                    [--modal CLIENT]
     modal_batch.py runs [--modal CLIENT]            the run ids on the Volume
     modal_batch.py abandon RUN [--modal CLIENT]     remove a run whose takes will not come home
 """
@@ -422,9 +424,35 @@ def listed_files(plan_dir, tree, listed, spare=None):
         raise Refused("plan_extra_file", f"{tree}/ holds {len(extra)} file(s) the plan does not list")
 
 
-def preflight(plan_dir, binary_sha256, model_sha256, health_class):
+def live_consent(consents_file, listed):
+    """Each consent the plan lists, read again from the private consents file. plan.json holds what `narrate plan` saw
+    and carries no revokedAt, so a consent revoked since then stops here. The file is a rendered record or list of
+    records, as config.read_list takes it. A row that cannot show it is live and grants rented engines refuses."""
+    try:
+        value = json.loads(Path(consents_file).read_text(encoding="utf-8"))
+    except (OSError, TypeError, ValueError):
+        raise Refused("consent_invalid", "the live consents file cannot be read") from None
+    rows = value if isinstance(value, list) else [value]
+    if not all(isinstance(row, dict) for row in rows):
+        raise Refused("consent_invalid", "the live consents file holds something other than records")
+    for entry in listed:
+        cid = entry.get("id")
+        found = [row for row in rows if isinstance(cid, str) and row.get("id") == cid]
+        if not found:
+            raise Refused("consent_missing", f"consent {cid!r} is not in the live consents file")
+        for row in found:
+            if "revokedAt" not in row:
+                raise Refused("consent_invalid", f"consent {cid} has no revokedAt field")
+            if row["revokedAt"] is not None:
+                raise Refused("consent_revoked", f"consent {cid} was revoked {row['revokedAt']}")
+            if row.get("hostedAllowed") is not True:
+                raise Refused("hosted_not_allowed", f"consent {cid} no longer allows rented engines")
+
+
+def preflight(plan_dir, consents_file, binary_sha256, model_sha256, health_class):
     """The gate before any byte leaves the host. A plan carries the record it was admitted under, so a plan on an
-    on-prem engine stops here, whatever its digests. Returns the batches to run and the request ids they must yield."""
+    on-prem engine stops here, whatever its digests. The plan's consent snapshot must grant rented engines, and so must
+    the live consents file. Returns the batches to run and the request ids they must yield."""
     plan_dir = Path(plan_dir)
     try:
         plan = json.loads((plan_dir / "plan.json").read_text(encoding="utf-8"))
@@ -438,6 +466,7 @@ def preflight(plan_dir, binary_sha256, model_sha256, health_class):
     consents = plan.get("consents")
     if not consents or any(c.get("hostedAllowed") is not True for c in consents):
         raise Refused("hosted_not_allowed", "a consent in this plan does not allow rented engines")
+    live_consent(consents_file, consents)
     if health_class != HEALTH_NONE:
         raise Refused("sp4_health_row", f"--health-class {health_class}: SP-4 health rows stay off a rented host")
     pins = {f.get("sha256") for f in engine.get("files") or []}
@@ -526,12 +555,12 @@ def wipe(plan_dir, client, run_id, replies=()):
     drop(client, run_id)
 
 
-def run_plan(plan_dir, client, run_id, binary_sha256, model_sha256, health_class):
+def run_plan(plan_dir, consents_file, client, run_id, binary_sha256, model_sha256, health_class):
     """The whole of phase B from the host, and the only upload path. Returns (exit code, report): 0 every request has
     its take and the run is wiped; 1 takes are home and the run is wiped, and the same plan under a new run id voices
     the rest; 3 the run stays on the Volume, because its takes are not home or the wipe failed. Refused before an
     upload is exit 2 from main."""
-    facts = preflight(plan_dir, binary_sha256, model_sha256, health_class)
+    facts = preflight(plan_dir, consents_file, binary_sha256, model_sha256, health_class)
     run_path(run_id)
     if run_id in client.runs():
         raise Refused("run_exists", f"{run_id} is on the Volume; every run gets a new id")
@@ -619,6 +648,11 @@ def fixture_plan(plan, binary_sha, model_sha, **engine):
     return texts
 
 
+def fixture_consent(**changes):
+    """The live row of the fixture plan's consent."""
+    return {"id": "consent-fixture", "hostedAllowed": True, "revokedAt": None, **changes}
+
+
 def seed_pins(vol, fake_cli):
     """A fake binary and fake weights on the fake Volume. Returns their digests."""
     source = Path(fake_cli).read_text(encoding="utf-8")
@@ -656,8 +690,10 @@ def dry_run(fake_cli=None):
         vol, plan, run_id = tmp / "vol", tmp / "plan", "dry-run-1"
         binary_sha, model_sha = seed_pins(vol, fake_cli)
         texts = fixture_plan(plan, binary_sha, model_sha)
+        consents = tmp / "consents.json"
+        consents.write_text(json.dumps(fixture_consent()), encoding="utf-8")
         client = fake_client(tmp, {"NARRATE_AUDIOCPP_BATCH_TEST_MODE": "1"})
-        code, report = run_plan(plan, client, run_id, binary_sha, model_sha, HEALTH_NONE)
+        code, report = run_plan(plan, consents, client, run_id, binary_sha, model_sha, HEALTH_NONE)
         reply = report["replies"][0] if report["replies"] else {}
         receipt_path = plan / "receipts" / "fixture.json"
         receipt = json.loads(receipt_path.read_text(encoding="utf-8")) if receipt_path.is_file() else {"outputs": {}}
@@ -665,10 +701,18 @@ def dry_run(fake_cli=None):
         on_prem = tmp / "on-prem"
         fixture_plan(on_prem, binary_sha, model_sha, profile="GpuDirect", backend="AudioCppBatch")
         try:
-            run_plan(on_prem, client, "dry-run-2", binary_sha, model_sha, HEALTH_NONE)
+            run_plan(on_prem, consents, client, "dry-run-2", binary_sha, model_sha, HEALTH_NONE)
             refusal = None
         except Refused as refused:
             refusal = refused.code
+        revoked_plan = tmp / "revoked"
+        fixture_plan(revoked_plan, binary_sha, model_sha)
+        consents.write_text(json.dumps(fixture_consent(revokedAt="2026-11-05T00:00:00Z")), encoding="utf-8")
+        try:
+            run_plan(revoked_plan, consents, client, "dry-run-3", binary_sha, model_sha, HEALTH_NONE)
+            revoked = None
+        except Refused as refused:
+            revoked = refused.code
         checks = {
             "run_plan_exit_0": code == EXIT_DONE,
             "every_request_has_a_take": report.get("takes") == len(texts) and report.get("missing") == 0,
@@ -685,6 +729,7 @@ def dry_run(fake_cli=None):
             "work_dir_removed": not list(tmp.glob("narrate-batch-*")),
             "pins_stay": (vol / "bin" / binary_sha).is_dir() and (vol / "weights" / model_sha).is_dir(),
             "on_prem_plan_refused_before_upload": refusal == "engine_not_rented" and not client.runs(),
+            "revoked_consent_refused_before_upload": revoked == "consent_revoked" and not client.runs(),
         }
     return {
         "ok": all(checks.values()),
@@ -730,6 +775,7 @@ def main(argv=None):
     for command in ("preflight", "run"):
         host = sub.add_parser(command)
         host.add_argument("plan")
+        host.add_argument("--consents", required=True, help="the private consents file, read again before any upload")
         host.add_argument("--binary-sha256", required=True)
         host.add_argument("--model-sha256", required=True)
         host.add_argument("--health-class", required=True, help="the SP-4 class of the script text: none uploads")
@@ -746,13 +792,13 @@ def main(argv=None):
             print(json.dumps(engine_record(args.binary_sha256), indent=1))
             return 0
         if args.command == "preflight":
-            facts = preflight(args.plan, args.binary_sha256, args.model_sha256, args.health_class)
+            facts = preflight(args.plan, args.consents, args.binary_sha256, args.model_sha256, args.health_class)
             print(json.dumps({"ok": True, **{k: v for k, v in facts.items() if k != "wanted"}}))
             return 0
         if args.command == "run":
             client = Client(args.modal)
             code, report = run_plan(
-                args.plan, client, args.run_id, args.binary_sha256, args.model_sha256, args.health_class
+                args.plan, args.consents, client, args.run_id, args.binary_sha256, args.model_sha256, args.health_class
             )
             print(json.dumps(report, indent=1))
             return code

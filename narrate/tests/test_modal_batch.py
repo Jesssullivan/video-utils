@@ -241,6 +241,11 @@ def put_run(app, vol, run_id, plan):
         app.copy_tree(plan / sub, vol / "runs" / run_id / sub)
 
 
+def live(workspace):
+    """The consents file the workspace wrote, which is what modal_batch reads at upload."""
+    return workspace.base / "consents.json"
+
+
 def volume_files(vol):
     return sorted(p.relative_to(vol).as_posix() for p in vol.rglob("*") if p.is_file())
 
@@ -615,7 +620,7 @@ def test_a_rented_job_runs_sealed_and_renders_with_nothing_left_behind(app, work
     path, _ = render.plan(cfg, tmp_path / "plan", takes=1)
     plan = path.parent
     client, binary, model = driver(app, tmp_path, kit)
-    code, report = app.run_plan(plan, client, "run-1", binary, model, "none")
+    code, report = app.run_plan(plan, live(workspace), client, "run-1", binary, model, "none")
     assert code == 0 and report["wiped"] and report["missing"] == 0 and not report["failed_batch"]
     assert client.runs() == [], "the run is gone from the Volume"
     assert not [f for f in volume_files(tmp_path / "vol") if f.startswith("runs/")]
@@ -637,7 +642,7 @@ def test_a_job_on_an_on_prem_record_never_leaves_the_host(app, workspace, kit, t
     client, binary, model = driver(app, tmp_path, kit)
     before = volume_files(tmp_path / "vol")
     with pytest.raises(app.Refused) as refused:
-        app.run_plan(plan, client, "run-1", binary, model, "none")
+        app.run_plan(plan, live(workspace), client, "run-1", binary, model, "none")
     assert refused.value.code == "engine_not_rented"
     assert volume_files(tmp_path / "vol") == before, "no byte left the host"
 
@@ -699,24 +704,117 @@ def edit_plan(plan, change):
 )
 def test_preflight_refuses_a_plan_it_cannot_send(app, workspace, kit, tmp_path, change, code):
     _, plan = rented_job(app, workspace, kit, tmp_path)
-    assert app.preflight(plan, kit.binary_sha, kit.model_sha, "none")["batches"] == [batch_name(plan)]
+    assert app.preflight(plan, live(workspace), kit.binary_sha, kit.model_sha, "none")["batches"] == [batch_name(plan)]
     edit_plan(plan, change)
     with pytest.raises(app.Refused) as refused:
-        app.preflight(plan, kit.binary_sha, kit.model_sha, "none")
+        app.preflight(plan, live(workspace), kit.binary_sha, kit.model_sha, "none")
     assert refused.value.code == code
+
+
+def test_a_consent_revoked_after_the_plan_uploads_nothing(app, workspace, kit, tmp_path):
+    """plan.json still says hostedAllowed, and its snapshot has no revokedAt: only the live row can stop this."""
+    _, plan = rented_job(app, workspace, kit, tmp_path)
+    client, binary, model = driver(app, tmp_path, kit)
+    app.preflight(plan, live(workspace), binary, model, "none")
+    snapshot = (plan / "plan.json").read_bytes()
+    before = volume_files(tmp_path / "vol")
+    workspace.consents[0]["revokedAt"] = "2026-11-05T00:00:00Z"
+    workspace.write(SLIDE)
+    with pytest.raises(app.Refused) as refused:
+        app.run_plan(plan, live(workspace), client, "run-1", binary, model, "none")
+    assert refused.value.code == "consent_revoked"
+    assert (plan / "plan.json").read_bytes() == snapshot, "the snapshot is the same, and it did not decide"
+    assert volume_files(tmp_path / "vol") == before, "no byte left the host"
+    assert client.runs() == []
+
+
+def test_the_commands_need_the_live_consents_and_refuse_a_revoked_one(app, workspace, kit, tmp_path, capsys):
+    _, plan = rented_job(app, workspace, kit, tmp_path)
+    workspace.consents[0]["revokedAt"] = "2026-11-05T00:00:00Z"
+    workspace.write(SLIDE)
+    argv = ["preflight", str(plan), "--binary-sha256", kit.binary_sha, "--model-sha256", kit.model_sha]
+    argv += ["--health-class", "none"]
+    with pytest.raises(SystemExit):
+        app.main(argv)
+    capsys.readouterr()
+    assert app.main([*argv, "--consents", str(live(workspace))]) == app.EXIT_REFUSED
+    assert json.loads(capsys.readouterr().err)["refused"] == "consent_revoked"
+
+
+@pytest.mark.parametrize(
+    "write, code",
+    [
+        (lambda rows: rows[0].update(revokedAt="2026-11-05"), "consent_revoked"),
+        (lambda rows: rows[0].update(revokedAt=""), "consent_revoked"),
+        (lambda rows: rows[0].pop("revokedAt"), "consent_invalid"),
+        (lambda rows: rows[0].update(hostedAllowed=False), "hosted_not_allowed"),
+        (lambda rows: rows[0].update(hostedAllowed="true"), "hosted_not_allowed"),
+        (lambda rows: rows[0].pop("hostedAllowed"), "hosted_not_allowed"),
+        (lambda rows: rows[0].update(id="another-consent"), "consent_missing"),
+        (lambda rows: rows.clear(), "consent_missing"),
+        (lambda rows: rows.append(dict(rows[0], revokedAt="2026-11-05")), "consent_revoked"),
+        (lambda rows: rows.append("a row that is no record"), "consent_invalid"),
+    ],
+    ids=[
+        "revoked",
+        "revoked-empty",
+        "no-revoked-field",
+        "no-longer-granted",
+        "only-true-grants",
+        "no-grant-field",
+        "row-gone",
+        "file-empty",
+        "duplicate-revoked",
+        "not-a-record",
+    ],
+)
+def test_preflight_reads_the_live_row_of_every_consent(app, workspace, kit, tmp_path, write, code):
+    _, plan = rented_job(app, workspace, kit, tmp_path)
+    rows = json.loads(live(workspace).read_text())
+    write(rows)
+    live(workspace).write_text(json.dumps(rows))
+    with pytest.raises(app.Refused) as refused:
+        app.preflight(plan, live(workspace), kit.binary_sha, kit.model_sha, "none")
+    assert refused.value.code == code
+
+
+def test_preflight_refuses_a_live_file_it_cannot_read_and_takes_a_single_record(app, workspace, kit, tmp_path):
+    _, plan = rented_job(app, workspace, kit, tmp_path)
+    check = lambda path: app.preflight(plan, path, kit.binary_sha, kit.model_sha, "none")  # noqa: E731
+    rows = json.loads(live(workspace).read_text())
+    for path, text in ((tmp_path / "absent.json", None), (tmp_path / "broken.json", "not json")):
+        if text:
+            path.write_text(text)
+        with pytest.raises(app.Refused) as refused:
+            check(path)
+        assert refused.value.code == "consent_invalid"
+    single = tmp_path / "single.json"
+    single.write_text(json.dumps(rows[0]))
+    assert check(single)["batches"] == [batch_name(plan)]
+
+
+def test_preflight_reads_every_consent_the_plan_lists(app, workspace, kit, tmp_path):
+    _, plan = rented_job(app, workspace, kit, tmp_path)
+    edit_plan(plan, lambda d: d["consents"].append({"id": "another-consent", "hostedAllowed": True}))
+    with pytest.raises(app.Refused) as refused:
+        app.preflight(plan, live(workspace), kit.binary_sha, kit.model_sha, "none")
+    assert refused.value.code == "consent_missing"
 
 
 @pytest.mark.parametrize("health_class", ["health", "unknown", "", "None"])
 def test_preflight_keeps_sp4_rows_off_a_rented_host(app, workspace, kit, tmp_path, health_class):
     _, plan = rented_job(app, workspace, kit, tmp_path)
     with pytest.raises(app.Refused) as refused:
-        app.preflight(plan, kit.binary_sha, kit.model_sha, health_class)
+        app.preflight(plan, live(workspace), kit.binary_sha, kit.model_sha, health_class)
     assert refused.value.code == "sp4_health_row"
 
 
 def test_preflight_binds_the_run_to_the_record_and_the_files(app, workspace, kit, tmp_path):
     _, plan = rented_job(app, workspace, kit, tmp_path)
-    check = lambda binary=kit.binary_sha, model=kit.model_sha: app.preflight(plan, binary, model, "none")  # noqa: E731
+
+    def check(binary=kit.binary_sha, model=kit.model_sha):
+        return app.preflight(plan, live(workspace), binary, model, "none")
+
     for binary, model, code in (
         ("7" * 64, kit.model_sha, "pin_not_in_record"),
         (kit.binary_sha, "7" * 64, "pin_not_in_record"),
@@ -758,7 +856,7 @@ def test_only_what_the_engine_needs_leaves_the_host(app, workspace, kit, tmp_pat
     (plan / "wav").mkdir()
     (plan / "wav" / "stray.wav").write_bytes(b"stays home")
     client, binary, model = driver(app, tmp_path, kit)
-    facts = app.preflight(plan, binary, model, "none")
+    facts = app.preflight(plan, live(workspace), binary, model, "none")
     app.stage_in(plan, client, "run-1", facts)
     held = tmp_path / "vol" / "runs" / "run-1"
     assert {p.relative_to(held).parts[0] for p in held.rglob("*") if p.is_file()} == {"requests", "refs"}
@@ -808,7 +906,7 @@ def test_a_changed_volume_is_not_taken_home_and_the_run_stays(app, workspace, ki
         else:
             next((run / "wav").glob("*.wav")).write_bytes(b"another take")
 
-    code, report = app.run_plan(plan, Tampering(client, change), "run-1", binary, model, "none")
+    code, report = app.run_plan(plan, live(workspace), Tampering(client, change), "run-1", binary, model, "none")
     assert code == app.EXIT_RUN_STAYS and not report["takes_home"] and not report["wiped"]
     assert report["stopped"] == ("receipt_digest_mismatch" if target == "receipt" else "take_missing")
     assert client.runs() == ["run-1"] and not (plan / "receipts").exists()
@@ -829,7 +927,7 @@ def test_a_failed_get_leaves_the_run_and_abandon_removes_it(app, workspace, kit,
                 raise app.Refused("client_failed", "`modal volume get` exited 1")
             return client.volume(verb, *args)
 
-    code, report = app.run_plan(plan, NoGet(), "run-1", binary, model, "none")
+    code, report = app.run_plan(plan, live(workspace), NoGet(), "run-1", binary, model, "none")
     assert code == app.EXIT_RUN_STAYS and report["stopped"] == "client_failed"
     assert report["next"].endswith("abandon run-1") and client.runs() == ["run-1"]
     app.drop(client, "run-1")
@@ -841,7 +939,7 @@ def test_a_batch_that_refuses_leaves_nothing_on_the_volume(app, workspace, kit, 
     _, plan = rented_job(app, workspace, kit, tmp_path)
     client, binary, model = driver(app, tmp_path, kit)
     (tmp_path / "vol" / "bin" / binary / app.BINARY_NAME).write_bytes(b"another binary")
-    code, report = app.run_plan(plan, client, "run-1", binary, model, "none")
+    code, report = app.run_plan(plan, live(workspace), client, "run-1", binary, model, "none")
     assert code == app.EXIT_PARTIAL and report["wiped"] and report["failed_batch"] == batch_name(plan)
     assert report["takes"] == 0 and report["missing"] > 0
     assert report["replies"][0]["exit_code"] == 2 and report["replies"][0]["outputs"] is None
@@ -860,7 +958,7 @@ def test_a_call_that_prints_no_reply_is_a_failed_batch(app, workspace, kit, tmp_
             client.run(*args)
             return 0, None
 
-    code, report = app.run_plan(plan, Silent(), "run-1", binary, model, "none")
+    code, report = app.run_plan(plan, live(workspace), Silent(), "run-1", binary, model, "none")
     assert code == app.EXIT_PARTIAL and report["failed_batch"] == batch_name(plan)
     assert client.runs() == []
 
@@ -870,13 +968,13 @@ def test_a_stopped_batch_comes_home_and_a_new_run_finishes_it(app, workspace, ki
     the rest, and a render takes both receipts."""
     cfg, plan = rented_job(app, workspace, kit, tmp_path, takes=3)
     client, binary, model = driver(app, tmp_path, kit, {"FAKE_AUDIOCPP_FAIL_AFTER": "1"})
-    code, report = app.run_plan(plan, client, "run-1", binary, model, "none")
+    code, report = app.run_plan(plan, live(workspace), client, "run-1", binary, model, "none")
     assert code == app.EXIT_PARTIAL and report["takes"] == 1 and report["missing"] > 0
     assert report["replies"][0]["exit_code"] == 1 and report["wiped"] and client.runs() == []
     left = report["missing"]
 
     client, _, _ = driver(app, tmp_path, kit)
-    code, report = app.run_plan(plan, client, "run-2", binary, model, "none")
+    code, report = app.run_plan(plan, live(workspace), client, "run-2", binary, model, "none")
     assert code == 0 and report["missing"] == 0, report
     assert report["replies"][0]["outputs"] == left, "the takes went back up, so only the rest is voiced"
     assert (plan / "requests" / f"{batch_name(plan)}.part1.json").is_file()
@@ -890,7 +988,7 @@ def test_a_run_id_on_the_volume_is_refused_before_any_upload(app, workspace, kit
     client, binary, model = driver(app, tmp_path, kit)
     (tmp_path / "vol" / "runs" / "run-1").mkdir(parents=True)
     with pytest.raises(app.Refused) as refused:
-        app.run_plan(plan, client, "run-1", binary, model, "none")
+        app.run_plan(plan, live(workspace), client, "run-1", binary, model, "none")
     assert refused.value.code == "run_exists"
     assert not list((tmp_path / "vol" / "runs" / "run-1").iterdir())
 
@@ -913,14 +1011,14 @@ def test_a_failed_upload_takes_the_partial_run_with_it(app, workspace, kit, tmp_
             return client.volume(verb, *args)
 
     with pytest.raises(app.Refused) as refused:
-        app.run_plan(plan, FailsSecondPut(), "run-1", binary, model, "none")
+        app.run_plan(plan, live(workspace), FailsSecondPut(), "run-1", binary, model, "none")
     assert refused.value.code == "client_failed" and client.runs() == []
 
 
 def test_wipe_removes_one_run_by_its_exact_name(app, workspace, kit, tmp_path):
     _, plan = rented_job(app, workspace, kit, tmp_path)
     client, binary, model = driver(app, tmp_path, kit)
-    assert app.run_plan(plan, client, "run-2", binary, model, "none")[0] == 0
+    assert app.run_plan(plan, live(workspace), client, "run-2", binary, model, "none")[0] == 0
     for run in ("run-1", "run-10"):
         (tmp_path / "vol" / "runs" / run).mkdir(parents=True)
     app.wipe(plan, client, "run-1")
