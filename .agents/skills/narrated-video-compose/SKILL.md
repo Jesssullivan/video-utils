@@ -13,7 +13,8 @@ description: Compose a narrated video from its base, kitpip overlays, slide page
 
 1. `mix` and, with an avatar, every `avatar` and `avatar_check` node must be fresh (`run` runs those when `KITPIP_BIN` resolves to its pin). `just nv-plan JOB` shows what waits.
 2. `just nv-stage JOB compose`, then read `compose.json`: the overlay boxes and starts, the slide runs and their layers, and the avatar-off spans.
-3. Change one picture knob and run again: only `compose`, `deliver_check` and `handoff` rerun.
+3. Change one picture knob and run again: only `compose`, `deliver_check` and `handoff` rerun. `handoff` waits on `deliver_check` and reads nothing from it, so a `deliver_check` rerun alone leaves the layers fresh.
+4. On a changed cut, run `just nv-stage JOB compose`, `just nv-stage JOB deliver_check`, then `just nv-stage JOB handoff`. Through the tools the sequence is `narrated_video_compose`, `narrated_video_verify`, then `narrated_video_compose` with `handoff` true. Out of order, `nv-stage JOB handoff`, `nv-run JOB --stages handoff` and `nv-run JOB --stages compose,handoff` refuse `stage_input_stale`. The last one keeps its `compose`.
 
 Knobs:
 

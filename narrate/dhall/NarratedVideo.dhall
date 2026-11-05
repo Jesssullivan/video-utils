@@ -1,4 +1,4 @@
--- One narrated-video job: a base picture, narrated segments, an optional kitpip avatar, an optional music bed,
+-- One narrated-video job: a base picture, narrated segments, an optional avatar, an optional music bed,
 -- captions, labels and a delivery target (docs/spec/NARRATED_VIDEO.md). A job holds digests and store ids,
 -- never paths. The executor reads its dhall-to-json render, never Dhall, at stage time.
 --
@@ -39,6 +39,8 @@
 --   when a segment's voice has one. No visible label is required in captions or description.txt (KP-15,
 --   TIN-7476 comment 4ab7fc27). personaCue (an opening caption cue) and extraNotice (a description.txt line)
 --   are optional; when a job sets one, the stages keep it.
+-- Stage selection: avatar, Segment.avatar, music and Delivery.handoff turn the optional stages on and off.
+--   program/dags/narrated-video.json names them under selected_by and narrate/dhall/check.py holds the two equal.
 -- Delivery: narration is measured at targetLufs integrated and the whole mix is never loudness-normalised.
 --   One limiter, in mix. driftLu (at most 0.5) and truePeakDbtp (at most -1.5) are hard gates. upload arms
 --   the licence and Content ID gates. voiceOnlyListen names the receipt of a voice-only listen pass, one of

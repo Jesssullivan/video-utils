@@ -20,6 +20,7 @@ from conftest import EXAMPLES, SLIDE
 from narrate import render
 from narrate.config import ROOT, Config
 from narrate.video import admit, cli, graph, keys, kitpip, store
+from narrate.video import run as runner
 from narrate.video.job import DEFAULTS, JobError, check_shape, init_job, load_records
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "narrated-video"
@@ -154,6 +155,139 @@ def test_the_avatar_stage_tools_are_neutral_and_keyed_by_avatar_external():
     for tool in graph.AVATAR_TOOLS.values():
         draft = next(t for t in drafts["tools"] if t["name"] == tool)
         assert (ROOT / draft["skill"]).is_file() and "avatar.external" in draft["description"]
+
+
+# The render row's task graph, literal so a change to the published DAG cannot move both sides of this test. It is the
+# shape cade-infra's catalog row and cade's pinned graph must hold (TIN-7125 3672cb05, one general row, one graph).
+GUARD = "bs21_privacy_guard"
+ROW_GRAPH = [
+    ("admit", [], "narrated_video_plan", False, "none"),
+    (GUARD, ["admit"], None, False, "none"),
+    ("script", ["admit", GUARD], "narrate lexical-check", False, "render"),
+    ("voice", ["script", GUARD], "narrate_render", False, "render"),
+    ("voice_qa", ["voice"], "narrate_evaluate", False, "none"),
+    ("base", ["admit", GUARD], "narrated_video_place", False, "render"),
+    ("place", ["base", "voice", "voice_qa", GUARD], "narrated_video_place", False, "render"),
+    ("avatar", ["voice", "base", GUARD], "avatar_overlay", True, "render"),
+    ("avatar_check", ["avatar", "voice"], "avatar_verify", True, "none"),
+    ("music", ["admit", GUARD], "music_bed_build", True, "render"),
+    ("mix", ["place", "music", GUARD], "narrated_video_mix", False, "render"),
+    ("compose", ["base", "place", "mix", "avatar", "avatar_check", GUARD], "narrated_video_compose", False, "render"),
+    ("deliver_check", ["compose"], "narrated_video_verify", False, "none"),
+    (
+        "handoff",
+        ["base", "place", "mix", "avatar", "compose", "deliver_check", GUARD],
+        "narrated_video_compose",
+        True,
+        "render",
+    ),
+    ("quiet_window_check", ["deliver_check"], None, False, "none"),
+    ("outbox_post", ["deliver_check", "handoff", "quiet_window_check"], None, False, "none"),
+]
+
+
+def published_dag():
+    return json.loads(DAG.read_text())
+
+
+def test_the_row_task_graph_is_the_published_dag_and_its_digest_is_recorded():
+    dag = published_dag()
+    tasks = graph.row_tasks(dag)
+    rows = [(t["name"], t["parents"], t.get("source_tool"), t["optional"], t["effect"]) for t in tasks]
+    assert rows == ROW_GRAPH
+    assert dag["row"]["name"] == "client-video-narrated-render"
+    assert dag["row"]["tasks_sha256"] == graph.row_tasks_sha256(tasks), (
+        "the row's task graph changed: record the new tasks_sha256 and re-pin the catalog row and the pinned graph"
+    )
+
+
+def drop_order_edge(dag):
+    stage = next(s for s in dag["stages"] if s["id"] == "handoff")
+    stage["depends_on"] = [d for d in stage["depends_on"] if d["how"] != "order"]
+
+
+def stale_tool(dag):
+    next(s for s in dag["stages"] if s["id"] == "avatar")["tool"] = "kitpip_overlay"
+
+
+def optional_flip(dag):
+    next(s for s in dag["stages"] if s["id"] == "music")["optional"] = False
+
+
+def effect_flip(dag):
+    dag["row"]["effect_none"].remove("voice_qa")
+
+
+def extra_stage(dag):
+    dag["stages"].append({"id": "extra", "tool": "extra", "optional": True, "depends_on": []})
+
+
+def operator_task_edge(dag):
+    dag["row"]["operator_tasks"][1]["parents"].remove("handoff")
+
+
+@pytest.mark.parametrize(
+    "drift", [drop_order_edge, stale_tool, optional_flip, effect_flip, extra_stage, operator_task_edge]
+)
+def test_any_drift_in_the_row_task_graph_changes_its_digest(drift):
+    dag = published_dag()
+    drift(dag)
+    assert graph.row_tasks_sha256(graph.row_tasks(dag)) != dag["row"]["tasks_sha256"]
+
+
+def test_the_row_digest_ignores_parent_order():
+    dag = published_dag()
+    for stage in dag["stages"]:
+        stage["depends_on"].reverse()
+    assert graph.row_tasks_sha256(graph.row_tasks(dag)) == dag["row"]["tasks_sha256"]
+
+
+def test_every_stage_tool_is_admitted_or_drafted():
+    listed = set()
+    for path in ("tools.json", "tool-drafts/narrated_video.json"):
+        listed |= {t["name"] for t in json.loads((ROOT / "program" / path).read_text())["tools"]}
+    assert {s["tool"] for s in published_dag()["stages"]} - {"narrate lexical-check"} <= listed
+
+
+def turned_off(job, selector):
+    """The job with one selected_by field turned off."""
+    if selector == "segments.avatar":
+        job["segments"][0]["avatar"] = False
+    elif selector == "delivery.handoff":
+        job["delivery"]["handoff"] = False
+    else:
+        job[selector] = None
+    return job
+
+
+def test_the_dag_pins_each_edition_point_and_every_selector():
+    """Literal, so a swapped point or a dropped selector cannot pass as a list of real names."""
+    stages = published_dag()["stages"]
+    assert {s["edition_point"]: s["id"] for s in stages if "edition_point" in s} == {
+        "Plan": "admit",
+        "Place": "place",
+        "DeliverCheck": "deliver_check",
+    }
+    assert {s["id"]: s["selected_by"] for s in stages if "selected_by" in s} == {
+        "avatar": ["avatar", "segments.avatar"],
+        "avatar_check": ["avatar", "segments.avatar"],
+        "music": ["music"],
+        "handoff": ["delivery.handoff"],
+    }
+
+
+def test_selected_by_names_the_fields_the_planner_reads():
+    on = example("nv-fixture-avatar")
+    on["delivery"]["handoff"] = True
+    on["music"] = on["music"] or {"bed": "bed-fixture-emaj"}
+    segment = on["segments"][0]
+    for stage in published_dag()["stages"]:
+        node = segment if stage["fan_out"] else None
+        assert graph.selection(stage["id"], node, on)[0] is True
+        for selector in stage.get("selected_by", []):
+            job = turned_off(copy.deepcopy(on), selector)
+            assert graph.selection(stage["id"], job["segments"][0] if node else None, job)[0] is False
+    assert graph.BY_ID["handoff"].optional and graph.BY_ID["music"].optional and not graph.BY_ID["mix"].optional
 
 
 def test_a_looping_or_dangling_graph_refuses():
@@ -552,6 +686,136 @@ def test_a_refusal_holds_for_its_key_only(settled):
     job["music"]["duckDb"] = 6
     s.write_job(job, replace=True)
     assert plan_state(settled, "mix") == ("stale", "no_run")
+
+
+@pytest.fixture
+def settled_handoff(tmp_path):
+    job = example("nv-fixture-card")
+    job["delivery"]["handoff"] = True
+    recs = records()
+    s = new_store(tmp_path, job)
+    ran, g = run_all(job, recs, s, plain_ctx())
+    return job, recs, s, ran, g
+
+
+def test_handoff_runs_after_deliver_check_with_an_operator_gate_open(tmp_path):
+    """The bed gates leave deliver_check pending_operator. handoff still runs: the row asks Jess only after it, so
+    waiting on her would hang the run."""
+    job = example("nv-fixture-avatar")
+    job["delivery"].update(upload=True, handoff=True)
+    recs = records()
+    ran, g = run_all(job, recs, new_store(tmp_path, job), stub_ctx())
+    assert ran.index("deliver_check") < ran.index("handoff")
+    assert states(g)["deliver_check"] == "pending_operator" and states(g)["handoff"] == "fresh"
+    assert next(n for n in g["nodes"] if n["id"] == "handoff")["depends_on"][-1] == "deliver_check"
+
+
+def test_handoff_waits_while_deliver_check_is_stale(settled_handoff):
+    job, recs, s, _, _ = settled_handoff
+    s.archive("deliver_check")
+    s.archive("handoff")
+    g = graph.plan(job, recs, s, plain_ctx())
+    assert states(g)["handoff"] == "stale" and g["runnable"] == ["deliver_check"]
+
+
+def test_a_refused_deliver_check_blocks_handoff(settled_handoff):
+    job, recs, s, _, _ = settled_handoff
+    s.archive("deliver_check")
+    s.archive("handoff")
+    key = next(n["key"] for n in graph.plan(job, recs, s, plain_ctx())["nodes"] if n["id"] == "deliver_check")
+    s.record_refusal("deliver_check", key, "label_chain_broken", "fixture")
+    g = graph.plan(job, recs, s, plain_ctx())
+    row = next(n for n in g["nodes"] if n["id"] == "handoff")
+    assert (row["state"], row["reason"]) == ("blocked", "upstream_blocked") and g["runnable"] == []
+
+
+# The handoff key of nv-fixture-card before the order edge existed, computed at e3761ee6. Update it only when an impl
+# or the fixture moves on purpose: the edge alone must leave it, so stores on disk keep their layers.
+HANDOFF_DIGEST = "019ae486d8c8b8aefd888f86d9adcaad3d45d87af1fb56584d239ef24e607b65"
+
+
+def test_the_handoff_key_is_the_one_recorded_before_the_edge(settled_handoff):
+    _, _, _, _, g = settled_handoff
+    assert ("deliver_check", "order") in graph.BY_ID["handoff"].depends_on
+    assert next(n for n in g["nodes"] if n["id"] == "handoff")["key"] == HANDOFF_DIGEST
+
+
+def test_the_order_edge_stays_out_of_the_handoff_key(settled_handoff):
+    """A deliver_check rerun alone leaves the layers fresh, because handoff reads nothing from it."""
+    job, recs, s, _, g = settled_handoff
+    document = g["_documents"]["handoff"]
+    assert ("deliver_check", "order") in graph.BY_ID["handoff"].depends_on
+    assert "deliver_check" in next(n for n in g["nodes"] if n["id"] == "handoff")["depends_on"]
+    assert "deliver_check" not in {i["stage"] for i in document["inputs"]}
+    was = s.entry("handoff")["dir"]
+    job["delivery"]["upload"] = not job["delivery"]["upload"]
+    s.write_job(job, replace=True)
+    ran, g = run_all(job, recs, s, plain_ctx())
+    assert ran == ["deliver_check"] and states(g)["handoff"] == "fresh" and s.entry("handoff")["dir"] == was
+
+
+def fake_stage(rc, row, partial):
+    """A stage body for the real executor: one small JSON output per node, as run_all writes."""
+    (partial / "out.json").write_text(json.dumps({"node": row["id"], "key": row["key"]}))
+    return {"measurements": {"fps": FPS}} if row["id"] == "base" else {}
+
+
+@pytest.fixture
+def executor(settled_handoff, monkeypatch):
+    """(run with the real run.run, job, store) over the settled fixture. run re-reads the changed job each call."""
+    job, recs, s, _, _ = settled_handoff
+    monkeypatch.setattr(runner, "RUNNERS", dict.fromkeys(runner.RUNNERS, fake_stage))
+
+    def call(**limits):
+        return runner.run(runner.RunContext(job, recs, s, plain_ctx(), {}), **limits)[0]
+
+    return call, job, s
+
+
+def test_a_selected_stage_with_a_stale_upstream_outside_the_limit_refuses(executor):
+    """The row runs `run JOB --stages handoff` and reads ok as finished, so a skipped handoff must not read ok."""
+    call, job, s = executor
+    job["delivery"]["upload"] = not job["delivery"]["upload"]
+    s.write_job(job, replace=True)
+    result = call(stages=["handoff"])
+    assert result["ok"] is False and result["ran"] == []
+    assert (result["refused"], result["node"]) == ("stage_input_stale", "handoff")
+    assert "deliver_check" in result["detail"]
+    assert call(only="handoff")["refused"] == "stage_input_stale"
+    result = call(stages=["deliver_check", "handoff"])
+    assert result["ok"] is True and [row["node"] for row in result["ran"]] == ["deliver_check"]
+    assert call(stages=["handoff"])["ok"] is True
+
+
+def test_compose_and_handoff_on_a_changed_cut_compose_then_refuse(executor):
+    call, job, s = executor
+    job["captions"]["vtt"] = not job["captions"]["vtt"]
+    s.write_job(job, replace=True)
+    result = call(stages=["compose", "handoff"])
+    assert [row["node"] for row in result["ran"]] == ["compose"]
+    assert (result["ok"], result["refused"], result["node"]) == (False, "stage_input_stale", "handoff")
+    assert result["states"]["compose"] == "fresh" and result["states"]["deliver_check"] == "stale"
+
+
+def test_a_stale_upstream_refuses_for_any_selected_stage(executor):
+    call, _, s = executor
+    s.archive("place")
+    result = call(stages=["mix"])
+    assert (result["ok"], result["refused"], result["node"]) == (False, "stage_input_stale", "mix")
+
+
+def test_a_limit_with_nothing_to_do_stays_ok(executor):
+    """A fresh stage and a stage the job turns off are finished. A stale stage outside the limit is not asked for."""
+    call, job, s = executor
+    fresh = call(stages=["handoff"])
+    assert fresh["ok"] is True and fresh["ran"] == []
+    s.archive("deliver_check")
+    stale_outside = call(stages=["compose"])
+    assert stale_outside["ok"] is True and stale_outside["ran"] == []
+    job["delivery"]["handoff"] = False
+    s.write_job(job, replace=True)
+    off = call(stages=["handoff"])
+    assert off["ok"] is True and off["ran"] == [] and off["states"]["handoff"] == "not_selected"
 
 
 def test_the_store_refuses_guitar_runs_narrate_runs_and_symlinks(tmp_path):
