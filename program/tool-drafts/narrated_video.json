@@ -741,7 +741,7 @@
      "handoff": {
       "type": "boolean",
       "default": false,
-      "description": "Also run the handoff stage (it runs only when the job's delivery.handoff is true)."
+      "description": "Also run the handoff stage (it runs only when the job's delivery.handoff is true, after deliver_check). Without a current deliver_check it refuses stage_input_stale."
      },
      "externals": {
       "type": "string",

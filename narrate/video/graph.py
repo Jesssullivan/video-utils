@@ -10,6 +10,9 @@ stage reads three kinds of input into its key:
   projection). avatar reads only the base's measured fps, so re-assembling a deck with the same rate keeps
   every overlay fresh.
 
+An "order" edge carries no input. handoff waits on deliver_check that way: a refused cut never reaches handoff, and a
+deliver_check rerun leaves the layers fresh.
+
 admit is a gate, not a data input: it runs at every plan, and a refusal blocks every other stage. Plan is read-only:
 it keys each node in topological order from the store's current.json and reports one state per node:
 
@@ -38,7 +41,8 @@ from .job import JobError
 Stage = namedtuple("Stage", "id fan_out depends_on optional mapping intent")
 
 # depends_on: (upstream stage, how) with how one of "segment" (the same segment's node), "all" (every selected
-# node of that stage) or "measure:<field>" (one value from the upstream manifest's measurements, not its digest).
+# node of that stage), "measure:<field>" (one value from the upstream manifest's measurements, not its digest) or
+# "order" (wait for that stage and read nothing from it, so the edge stays out of the key).
 STAGES = (
     Stage(
         "admit",
@@ -47,7 +51,7 @@ STAGES = (
         False,
         None,
         "Resolve the job and refuse before any render: consent, persona, bed "
-        "acquisition, tighten, bounds, kitpip pin and the edition at Plan",
+        "acquisition, tighten, bounds, avatar pin and the edition at Plan",
     ),
     Stage("script", True, (), False, None, "Lexical findings (advisory, R-N12) and the spoken-text digest"),
     Stage("voice", True, (("script", "segment"),), False, "narration_v1", "One narrate run per segment"),
@@ -105,7 +109,14 @@ STAGES = (
     Stage(
         "handoff",
         False,
-        (("base", "all"), ("place", "all"), ("mix", "all"), ("avatar", "all"), ("compose", "all")),
+        (
+            ("base", "all"),
+            ("place", "all"),
+            ("mix", "all"),
+            ("avatar", "all"),
+            ("compose", "all"),
+            ("deliver_check", "order"),
+        ),
         True,
         "narrated_video_v1",
         "pre-VFX layers and edit.json",
@@ -145,6 +156,9 @@ AVATAR_BLOCKED = {
 }
 RENDER_STAGES = ("base", "place", "music", "mix", "compose", "handoff")
 STATES = ("fresh", "stale", "corrupt", "blocked", "refused", "not_selected", "pending_operator")
+# pending_operator is a fresh deliver_check with an operator gate open, so what follows it may still run.
+DONE = ("fresh", "pending_operator")
+ORDER_ONLY = "order"
 MUSIC_RATE_HZ = 48000
 
 
@@ -166,6 +180,40 @@ def toposort(stages):
 
 
 ORDER = toposort(STAGES)
+
+
+def row_tasks(dag):
+    """The Hatchet task list of the published DAG's row, in row order. One stage is one task. A task's parents are its
+    stage's depends_on, each root stage takes the gate as a parent, and a render task lists the guard as a direct
+    parent. The guard follows the gate, and the operator tasks close the list."""
+    row = dag["row"]
+    guard = row["guard"]
+    tasks = []
+    for stage in dag["stages"]:
+        parents = list(dict.fromkeys(edge["stage"] for edge in stage["depends_on"]))
+        if not parents and stage["id"] != dag["gated_by"]:
+            parents = [dag["gated_by"]]
+        effect = "none" if stage["id"] in row["effect_none"] else "render"
+        if effect == "render":
+            parents.append(guard["name"])
+        tasks.append(
+            {
+                "name": stage["id"],
+                "parents": parents,
+                "source_tool": stage["tool"],
+                "optional": stage["optional"],
+                "effect": effect,
+            }
+        )
+        if stage["id"] == dag["gated_by"]:
+            tasks.append(dict(guard))
+    return tasks + [dict(task) for task in row["operator_tasks"]]
+
+
+def row_tasks_sha256(tasks):
+    """The digest the stage graph, the catalog row and the pinned graph must share: SHA-256 of the canonical JSON of
+    the ordered task list with each task's parents sorted, because parent order means nothing to Hatchet."""
+    return keys.digest([{**task, "parents": sorted(task["parents"])} for task in tasks])
 
 
 def avatar_external(job):
@@ -377,7 +425,7 @@ def nodes_for(job):
 
 
 def upstream(node, by_stage):
-    """[(slot, upstream node, how)] for one node: how is 'digest' or a measurement field."""
+    """[(slot, upstream node, how)] for one node: how is 'digest', 'order' or a measurement field."""
     rows = []
     for up_stage, how in BY_ID[node["stage"]].depends_on:
         candidates = by_stage.get(up_stage, [])
@@ -385,6 +433,9 @@ def upstream(node, by_stage):
             candidates = [c for c in candidates if c["segment"] and c["segment"]["id"] == node["segment"]["id"]]
         for up in candidates:
             slot = up["id"].replace("/", ":")
+            if how == ORDER_ONLY:
+                rows.append((slot, up, ORDER_ONLY))
+                continue
             rows.append((slot, up, how.split(":", 1)[1] if how.startswith("measure:") else "digest"))
     return rows
 
@@ -448,7 +499,7 @@ def plan(job, records, store, ctx):
         if sources is not None and any(row["digest"] not in sources for row in node_sources):
             node["state"], node["reason"] = "blocked", "source_missing"
             continue
-        waiting = [up for _, up, _ in ups if up["state"] != "fresh"]
+        waiting = [up for _, up, _ in ups if up["state"] not in DONE]
         if any(up["state"] in ("blocked", "refused") for up in waiting):
             node["state"], node["reason"] = "blocked", "upstream_blocked"
             continue
@@ -457,6 +508,8 @@ def plan(job, records, store, ctx):
             continue
         inputs = list(node_sources)
         for slot, up, how in ups:
+            if how == ORDER_ONLY:
+                continue
             if how == "digest":
                 inputs.append({"slot": slot, "stage": up["stage"], "digest": up["content_sha256"]})
             else:
@@ -505,7 +558,7 @@ def graph_document(job, gate, nodes):
                 "optional": BY_ID[node["stage"]].optional,
             }
         )
-    fresh = {n["id"] for n in nodes if n["state"] in ("fresh", "pending_operator")}
+    fresh = {n["id"] for n in nodes if n["state"] in DONE}
     runnable = [
         n["id"]
         for n in nodes
@@ -565,7 +618,7 @@ def explain(job, records, store, ctx, node_id):
         "key": row["key"],
         "key_document": document,
         "last": {"key": last["stage_key"], "dir": store.entry(node_id)["dir"]} if last else None,
-        "waiting_on": [d for d in row["depends_on"] if states.get(d) not in ("fresh", "pending_operator")],
+        "waiting_on": [d for d in row["depends_on"] if states.get(d) not in DONE],
         "changed": None,
     }
     if document is not None and last is not None:

@@ -18,6 +18,11 @@ deflate blocks so every zlib writes the same bytes), and every job against a por
 the Plan point), the persona label rule, the tighten rule, the slide and avatarOff rules, the delivery gates and the
 bounds the spec sets.
 
+It also holds program/dags/narrated-video.json to the Dhall types the graph reads: each edition_point is a point
+of Edition.dhall's Point union and every point has one stage, each optional stage names the job fields that select
+it under selected_by and those fields render in every narrated-video example, and every avatar.external an example
+uses is in the DAG's dispatch.externals. Workflow task graphs stay out of Dhall here: the DAG is the graph.
+
 `--self-test` is the negative control: it mutates copies of the examples and drafts and expects
 every mutation to be refused.
 
@@ -41,6 +46,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "narrate" / "dhall" / "examples"
+STAGE_GRAPH = ROOT / "program" / "dags" / "narrated-video.json"
+EDITION_TYPES = ROOT / "narrate" / "dhall" / "Edition.dhall"
 DRAFT_SCHEMA = ROOT / "program" / "model-drafts" / "models-v2.schema.json"
 DRAFT_ENTRIES = ROOT / "program" / "model-drafts" / "narrate-tts-v2.json"
 BENCH_SOURCES = ROOT / "narrate" / "bench" / "sources.json"
@@ -206,6 +213,8 @@ def load_examples() -> dict:
         "jobs": load_json(EXAMPLES / "jobs.json"),
         "pronunciation": tables if isinstance(tables, list) else [tables],
         "script": (EXAMPLES / "script.md").read_bytes(),
+        "stage_graph": load_json(STAGE_GRAPH),
+        "edition_types": EDITION_TYPES.read_text(encoding="utf-8"),
     }
 
 
@@ -481,6 +490,41 @@ def slides_problems(nv: dict) -> list:
     return out
 
 
+def field_present(record, path: list) -> bool:
+    """True when a rendered job holds this dotted field, in every element of any list on the way."""
+    if not path:
+        return True
+    if isinstance(record, list):
+        return all(field_present(item, path) for item in record)
+    return isinstance(record, dict) and path[0] in record and field_present(record[path[0]], path[1:])
+
+
+def check_stage_graph(data: dict, errors: list) -> None:
+    """program/dags/narrated-video.json against the Dhall types its stages read."""
+    where = "stage graph"
+    stages = data["stage_graph"]["stages"]
+    union = re.search(r"let Point = <([^>]*)>", data["edition_types"])
+    points = [p.strip() for p in union.group(1).split("|")] if union else []
+    if set(points) != set(POINTS):
+        errors.append(f"{where}: Edition.dhall Point is {points}, not {sorted(POINTS)}")
+    named = [s["edition_point"] for s in stages if "edition_point" in s]
+    if sorted(named) != sorted(points):
+        errors.append(f"{where}: edition_point names {sorted(named)}, not one stage for each of {sorted(points)}")
+    jobs = data["narrated_videos"]
+    for stage in stages:
+        selectors = stage.get("selected_by", [])
+        if bool(selectors) != stage["optional"]:
+            errors.append(f"{where}: {stage['id']} is optional {stage['optional']} with selected_by {selectors}")
+        for selector in selectors:
+            for job in jobs:
+                if not field_present(job, selector.split(".")):
+                    errors.append(f"{where}: {stage['id']} selected_by {selector} is no field of {job['id']}")
+    externals = {j["avatar"]["external"] for j in jobs if j["avatar"]}
+    for stage in stages:
+        if stage.get("dispatch") and not externals <= set(stage["dispatch"]["externals"]):
+            errors.append(f"{where}: {stage['id']} dispatch misses {sorted(externals)}")
+
+
 def check_narrated_videos(data: dict, errors: list) -> None:
     files = fixtures()
     jobs = {j["id"]: j for j in data["jobs"]}
@@ -673,6 +717,7 @@ def run_checks(data: dict, schema: dict, draft: dict, bench: dict) -> list:
     for name, step in (("examples", lambda: check_examples(data, errors)),
                        ("music beds", lambda: check_music_beds(data, errors)),
                        ("narrated videos", lambda: check_narrated_videos(data, errors)),
+                       ("stage graph", lambda: check_stage_graph(data, errors)),
                        ("drafts", lambda: check_drafts(schema, draft, bench, errors))):
         try:
             step()
@@ -816,6 +861,9 @@ def narrated_video_mutations() -> list:
     def persona_differs(d, m):
         d["consents"][0].update(persona="fixture-persona-other")
 
+    def stage(d, stage_id):
+        return next(s for s in d["stage_graph"]["stages"] if s["id"] == stage_id)
+
     def slides(d):
         return nv(d, "nv-fixture-slides")["slides"]
 
@@ -874,6 +922,18 @@ def narrated_video_mutations() -> list:
         ("avatarOff names an unknown page", lambda d, m: nv(d, "nv-fixture-slides")["avatar"].update(
             avatarOff=["no-such-page"])),
         ("avatar fade out of range", lambda d, m: nv(d, "nv-fixture-slides")["avatar"].update(fadeS=3.0)),
+        ("edition point has no stage", lambda d, m: stage(d, "place").pop("edition_point"), "stage graph"),
+        ("edition point outside the union", lambda d, m: stage(d, "admit").update(edition_point="Compose"),
+         "stage graph"),
+        ("Edition.dhall drops a point", lambda d, m: d.update(
+            edition_types=d["edition_types"].replace("| DeliverCheck ", "")), "stage graph"),
+        ("optional stage names no selector", lambda d, m: stage(d, "handoff").pop("selected_by"), "stage graph"),
+        ("required stage names a selector", lambda d, m: stage(d, "mix").update(selected_by=["music"]), "stage graph"),
+        ("selector is no job field", lambda d, m: stage(d, "handoff").update(selected_by=["delivery.layers"]),
+         "stage graph"),
+        ("job field the selector reads is gone", lambda d, m: card(d)["delivery"].pop("handoff"), "stage graph"),
+        ("avatar external outside dispatch", lambda d, m: stage(d, "avatar")["dispatch"].update(externals=["vrm"]),
+         "stage graph"),
     ]
 
 

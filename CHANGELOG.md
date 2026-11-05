@@ -25,6 +25,11 @@
   renders, and no narrate code enforces that limit.
 - Narrate: `narrate voices` lists a private voice row that predates the Voice type,
   with missing fields as null or empty, and such a row refuses `consent_invalid`.
+- Narrated video: `handoff` waits on `deliver_check` through an `order` edge that
+  stays out of its stage key, so existing handoff keys hold. The published DAG gains
+  a `row` block whose `tasks_sha256` binds the 16-task Hatchet row (TIN-7788), and
+  `narrate/dhall/check.py` holds its `selected_by` and `edition_point` fields to
+  the Dhall types.
 - Narrated video: J168 removes the `ip_private` and BS-21 refusals for go-live,
   and the November 30, 2026 audit revisits them. `ip_private` needs no denylist,
   number and geometry entries and the `script` class stop matching, and

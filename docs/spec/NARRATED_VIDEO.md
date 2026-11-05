@@ -92,6 +92,28 @@ consent ids, output digest) stays intact.
 `program/dags/narrated-video.json` publishes this table, and
 `narrate/video/graph.py` holds the same table. A test keeps the two equal.
 
+The DAG is the one render graph (TIN-7125 `3672cb05`: one general row, one
+pinned graph, for client, internal and hardware jobs). Its `row` block names
+the Hatchet row, the guard task, the stages with no effect and the operator
+tasks. `graph.row_tasks` turns the table into the row's 16 tasks, and
+`row.tasks_sha256` records `graph.row_tasks_sha256` of them: SHA-256 of the
+canonical JSON of the ordered task list, each task's parents sorted. The
+catalog row and the pinned graph pin the file by commit and blob and hold the
+same digest. A test fails when the table moves and the digest does not.
+
+`selected_by` names the job fields that select an optional stage, and
+`edition_point` names the stage that runs each `Edition.Point`.
+`narrate/dhall/check.py` holds both to the Dhall types. No task graph lives in
+Dhall in this repository.
+
+`handoff` waits on `deliver_check` through an `order` edge, which carries no
+input. A cut `deliver_check` refuses never reaches `handoff`, and a row whose
+`deliver_check` task refuses failed machine gates stops there too. A
+`deliver_check` rerun alone leaves the layers fresh. With an operator gate open
+`handoff` still runs, because the row asks Jess after it. `nv run` by hand still
+writes layers for a cut with a failed machine gate, since a failed gate is a
+state, not a refusal.
+
 ## Stage keys and the store
 
 Lane L3 implements this section in `narrate/video/{keys,store,graph,admit}.py`.
@@ -124,7 +146,8 @@ A key reads three kinds of input:
   stage whose source is missing (`source_missing`).
 - **Upstream inputs.** An upstream node's manifest `content_sha256`, or one
   measured value from it. `avatar` reads only the base's measured `fps`, so a
-  deck re-assembled at the same rate keeps every overlay fresh.
+  deck re-assembled at the same rate keeps every overlay fresh. An `order` edge
+  adds nothing here.
 
 | Stage | Knobs |
 | --- | --- |
@@ -776,7 +799,7 @@ Lane L6 runs `compose`, `deliver_check` and `handoff`
 | --- | --- | --- | --- |
 | `compose` | `base`, `place`, `mix`, every selected `avatar` and `avatar_check`, slide pictures by digest | `video.mp4`, `video.upload.mp4`, `captions.srt`, `captions.vtt`, `description.txt`, `chapters.json`, `compose.json` | `captions_burn_unsupported`, `captions_missing`, `slides_exceed_program`, `overlay_exceeds_base`, `frames_mismatch`, `metadata_present`, `label_chain_broken` |
 | `deliver_check` | `compose`, the voice and avatar manifests, the bed record | `deliver_check.json`: gate states and `delivery_gate` | the edition codes at DeliverCheck, `label_chain_broken`. A failed gate is a state |
-| `handoff` | `base`, `place`, `mix`, `avatar`, `compose` | `layers/` and `edit.json` | `metadata_present`, `label_chain_broken` |
+| `handoff` | `base`, `place`, `mix`, `avatar`, `compose`. It waits on `deliver_check` and reads nothing from it | `layers/` and `edit.json` | `metadata_present`, `label_chain_broken` |
 
 Profiles. The deck project's own profiles port in phase 2. These are this
 lane's, each H.264 High in yuv420p with AAC-LC at 48 kHz:
@@ -899,7 +922,7 @@ uploading, sending and Content ID stay operator actions.
 
 ### Handoff
 
-`handoff` runs when `delivery.handoff` is set. `layers/` holds `base.mp4` (the
+`handoff` runs when `delivery.handoff` is set, after `deliver_check`. `layers/` holds `base.mp4` (the
 base at the profile, no overlay, slide, caption or sound),
 `avatar-<segment>.mov` (each overlay as its external, kitpip or vrm, wrote it),
 `avatar-<segment>.manifest.json` (that overlay's manifest),
