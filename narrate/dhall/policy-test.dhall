@@ -129,7 +129,27 @@ let rentedBackendBehindMacProfileIsOffsite =
               )
         ===  True
 
-let audioCppBatchRentedConsistent =
+let rentedAudioCppBatchConsistent =
+        assert
+      :     Engine.consistent
+              (     base
+                //  { profile = Engine.Profile.RentedOpen
+                    , backend = Engine.Backend.RentedAudioCppBatch
+                    }
+              )
+        ===  True
+
+let rentedAudioCppBatchIsOffsite =
+        assert
+      :     Engine.isOffsite
+              (     base
+                //  { profile = Engine.Profile.RentedOpen
+                    , backend = Engine.Backend.RentedAudioCppBatch
+                    }
+              )
+        ===  True
+
+let localBatchBackendBehindRentedProfileIsInconsistent =
         assert
       :     Engine.consistent
               (     base
@@ -137,14 +157,24 @@ let audioCppBatchRentedConsistent =
                     , backend = Engine.Backend.AudioCppBatch
                     }
               )
-        ===  True
+        ===  False
 
-let audioCppBatchRentedIsOffsite =
+let rentedBatchBackendBehindDirectProfileIsInconsistent =
+        assert
+      :     Engine.consistent
+              (     base
+                //  { profile = Engine.Profile.GpuDirect
+                    , backend = Engine.Backend.RentedAudioCppBatch
+                    }
+              )
+        ===  False
+
+let rentedBatchBackendBehindDirectProfileIsOffsite =
         assert
       :     Engine.isOffsite
               (     base
-                //  { profile = Engine.Profile.RentedOpen
-                    , backend = Engine.Backend.AudioCppBatch
+                //  { profile = Engine.Profile.GpuDirect
+                    , backend = Engine.Backend.RentedAudioCppBatch
                     }
               )
         ===  True

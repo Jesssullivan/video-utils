@@ -19,7 +19,7 @@ PROFILE_BACKENDS = {
     "GpuSwitch": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts"},
     "GpuDirect": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts", "AudioCppBatch"},
     "MacMlx": {"MlxAudio"},
-    "RentedOpen": {"RentedOpen", "AudioCppBatch"},
+    "RentedOpen": {"RentedOpen", "RentedAudioCppBatch"},
     "Hosted": {"Hosted"},
     "Fake": {"Fake"},
 }
@@ -39,7 +39,7 @@ def is_hosted(engine):
 
 
 def is_rented(engine):
-    return engine["profile"] == "RentedOpen" or engine["backend"] == "RentedOpen"
+    return engine["profile"] == "RentedOpen" or engine["backend"] in ("RentedOpen", "RentedAudioCppBatch")
 
 
 def is_offsite(engine):
@@ -144,7 +144,7 @@ def check_voice(job, voice_id, engine, registry, index):
     voice, consent = check_consent(voice_id, registry, index, job["scope"])
     if engine["id"] not in voice["allowedEngines"]:
         raise Refused("engine_not_allowed", f"engine {engine['id']} is not in voice {voice_id}'s allowedEngines")
-    if is_offsite(engine) and not consent["hostedAllowed"]:
+    if is_offsite(engine) and consent["hostedAllowed"] is not True:
         raise Refused("hosted_not_allowed", f"consent {consent['id']} does not allow hosted or rented engines")
     if voice["refClipSha256"] not in index:
         raise Refused("ref_clip_missing", f"voice {voice_id}: no stored clip has sha256 {voice['refClipSha256'][:12]}")

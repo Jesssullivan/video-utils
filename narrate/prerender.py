@@ -46,6 +46,9 @@ from pathlib import Path
 from .ir import canonical, sha256_bytes
 
 BACKEND = "AudioCppBatch"
+# The same batch on a rented or offsite GPU (profile RentedOpen). A run reads neither the profile nor the backend, so
+# the two values differ only to keep the consent check honest (Engine.dhall).
+BACKENDS = (BACKEND, "RentedAudioCppBatch")
 PLAN_SCHEMA = "narrate-prerender-plan/1"
 RECEIPT_SCHEMA = "narrate-audiocpp-batch-receipt/1"
 CLONES = ("ultimate", "reference")
@@ -69,7 +72,7 @@ class PrerenderError(RuntimeError):
 
 
 def is_batch(engine):
-    return engine.get("backend") == BACKEND
+    return engine.get("backend") in BACKENDS
 
 
 def family(engine):

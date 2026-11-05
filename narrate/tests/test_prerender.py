@@ -20,7 +20,7 @@ import wave
 import pytest
 from conftest import PACKAGE, SLIDE
 
-from narrate import engine, prerender, qa, render, verify
+from narrate import engine, policy, prerender, qa, render, verify
 from narrate.__main__ import main
 from narrate.config import Config
 from narrate.ir import sha256_file
@@ -350,8 +350,11 @@ def test_an_unpinned_or_misnamed_batch_engine_is_refused(workspace, kit, tmp_pat
     assert error.value.code == "engine_endpoint_invalid"
 
 
-def test_the_engine_client_never_runs_a_batch_engine(kit):
-    eng = batch_engine(kit)
+@pytest.mark.parametrize(
+    "fields", [{}, {"profile": "RentedOpen", "backend": "RentedAudioCppBatch"}], ids=["direct", "rented"]
+)
+def test_the_engine_client_never_runs_a_batch_engine(kit, fields):
+    eng = batch_engine(kit, **fields)
     with pytest.raises(engine.EngineError) as error:
         engine.synthesize(eng, "Hello.", {"id": "v"}, {}, 0, 1.0, {})
     assert error.value.code == "engine_out_of_process"
@@ -525,12 +528,25 @@ def test_the_cli_plans_and_renders(workspace, kit, tmp_path, capsys):
 
 
 def test_policy_admits_a_batch_engine_only_under_gpu_direct(kit):
-    from narrate import policy
-
     eng = batch_engine(kit)
     assert policy.consistent(eng) and policy.may_run_confidential(eng)
     assert not policy.consistent({**eng, "profile": "GpuSwitch"})
     assert not policy.consistent({**eng, "profile": "MacMlx"})
+
+
+def test_a_rented_batch_needs_the_consent_and_then_runs_like_a_direct_one(workspace, kit, tmp_path):
+    use_batch(workspace, kit, profile="RentedOpen", backend="RentedAudioCppBatch")
+    cfg = Config(workspace.write(SLIDE))
+    with pytest.raises(policy.Refused) as refused:
+        render.plan(cfg, tmp_path / "refused", takes=1)
+    assert refused.value.code == "hosted_not_allowed"
+    workspace.consents[0]["hostedAllowed"] = True
+    cfg = Config(workspace.write(SLIDE))
+    path, _ = render.plan(cfg, tmp_path / "plan", takes=1)
+    assert run_batch(kit, path.parent) == [0]
+    final, manifest = render.render(cfg, prerendered=path.parent)
+    assert verify.verify(final)["ok"]
+    assert manifest["engine"]["synthesis"]["mode"] == "out_of_process_batch"
 
 
 def test_best_of_reraises_when_no_take_exists():

@@ -487,6 +487,12 @@ def test_a_rented_engine_needs_the_consent_records_hosted_allowed(ws, tmp_path):
     intake(ws, tmp_path / "b")
 
 
+def test_a_string_hosted_allowed_grants_nothing_at_intake(ws, tmp_path):
+    set_engine(ws, profile="RentedOpen", backend="RentedOpen", endpoint="https://gpu.example.invalid")
+    set_consent(ws, hostedAllowed="false")
+    refused("hosted_not_allowed", intake, ws, tmp_path / "a")
+
+
 def test_a_hosted_engine_needs_the_template_and_the_consent(ws, tmp_path):
     set_engine(ws, profile="Hosted", backend="Hosted", hosted=True, endpoint="https://speech.example.invalid")
     set_template(ws, allowHosted=False)

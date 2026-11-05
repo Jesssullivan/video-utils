@@ -235,7 +235,7 @@ class Renderer:
                 raise RenderError(
                     "engine_not_batch",
                     f"engine {self.engine['id']} is {self.engine['backend']}; plan and --prerendered are for "
-                    f"{prerender.BACKEND} engines",
+                    f"{' and '.join(prerender.BACKENDS)} engines",
                 )
             return
         try:

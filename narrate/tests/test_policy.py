@@ -10,7 +10,17 @@ from narrate.config import Config
 from narrate.policy import Refused
 
 PROFILES = ["GpuSwitch", "GpuDirect", "MacMlx", "RentedOpen", "Hosted", "Fake"]
-BACKENDS = ["VulkanAudioCpp", "AudioCppBatch", "QwenTtsCpp", "LlamaTts", "MlxAudio", "RentedOpen", "Hosted", "Fake"]
+BACKENDS = [
+    "VulkanAudioCpp",
+    "AudioCppBatch",
+    "RentedAudioCppBatch",
+    "QwenTtsCpp",
+    "LlamaTts",
+    "MlxAudio",
+    "RentedOpen",
+    "Hosted",
+    "Fake",
+]
 
 
 def test_engine_predicates_match_the_dhall_port_on_the_whole_truth_table():
@@ -147,7 +157,7 @@ def probe(workspace, **fields):
     workspace.job["engine"] = "probe"
 
 
-@pytest.mark.parametrize("backend", ["RentedOpen", "AudioCppBatch"])
+@pytest.mark.parametrize("backend", ["RentedOpen", "RentedAudioCppBatch"])
 @pytest.mark.parametrize("estate", [False, True])
 @pytest.mark.parametrize("confidential", [False, True])
 def test_a_rented_engine_must_pass_the_consent_check(workspace, backend, estate, confidential):
@@ -178,6 +188,13 @@ def test_every_named_voice_passes_the_rented_consent_check(workspace):
     assert "consent-without-hosted" in error.detail
 
 
+@pytest.mark.parametrize("value", ["false", "true", 1, None])
+def test_only_the_boolean_true_grants_hosted_allowed(workspace, value):
+    probe(workspace, profile="RentedOpen", backend="RentedOpen")
+    workspace.consents[0]["hostedAllowed"] = value
+    refused(workspace, "hosted_not_allowed")
+
+
 def test_the_rented_consent_check_holds_when_the_cli_names_the_engine(workspace):
     probe(workspace, profile="RentedOpen", backend="RentedOpen")
     workspace.job["engine"] = "fake-sine"
@@ -206,11 +223,15 @@ def test_an_inconsistent_engine_stays_refused_on_every_job(workspace):
     refused(workspace, "engine_inconsistent")
 
 
-def test_a_rented_batch_engine_is_rented_and_a_batch_is_not_rented_behind_the_switch():
-    rented = {"profile": "RentedOpen", "backend": "AudioCppBatch", "hosted": False}
+def test_one_wrong_field_never_makes_a_rented_batch_look_local():
+    rented = {"profile": "RentedOpen", "backend": "RentedAudioCppBatch", "hosted": False}
     assert policy.consistent(rented) and policy.is_rented(rented) and policy.is_offsite(rented)
     direct = {"profile": "GpuDirect", "backend": "AudioCppBatch", "hosted": False}
     assert policy.consistent(direct) and not policy.is_offsite(direct)
+    wrong_profile = {**rented, "profile": "GpuDirect"}
+    assert not policy.consistent(wrong_profile) and policy.is_offsite(wrong_profile)
+    wrong_backend = {**rented, "backend": "AudioCppBatch"}
+    assert not policy.consistent(wrong_backend) and policy.is_offsite(wrong_backend)
     assert not policy.consistent({"profile": "GpuSwitch", "backend": "AudioCppBatch", "hosted": False})
 
 

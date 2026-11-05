@@ -597,7 +597,7 @@ def narrate_jobs(b, records, job_id, template, voice, engine):
     if voice_record.get("scope") != base["scope"]:
         raise BundleError("consent_scope", f"voice {voice}'s scope is not template {template}'s scope")
     consent = records["consents"].get(voice_record.get("consentId"))
-    if check.is_offsite(engine_record) and not (consent and consent.get("hostedAllowed")):
+    if check.is_offsite(engine_record) and (consent is None or consent.get("hostedAllowed") is not True):
         raise BundleError("hosted_not_allowed", f"voice {voice}'s consent does not allow hosted or rented engines")
     out = {}
     for beat in b["beats"]:

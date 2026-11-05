@@ -194,7 +194,8 @@ fail `Engine.consistent`.
 
 VoxCPM2 runs through audio.cpp's `audiocpp_cli` (pin `47c2756e`), which has no server, so its record uses
 `backend = AudioCppBatch`, `profile = GpuDirect` and `endpoint = "audiocpp://voxcpm2"`, and its `files` pin the
-binary and the weights by sha256. A render runs in three phases (`../docs/spec/NARRATE.md`, "Out-of-process batch
+binary and the weights by sha256. On a rented card it uses `backend = RentedAudioCppBatch` and
+`profile = RentedOpen`, and the consent record must set `hostedAllowed`. A render runs in three phases (`../docs/spec/NARRATE.md`, "Out-of-process batch
 engines"):
 
 ```sh

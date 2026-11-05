@@ -6,7 +6,8 @@
 -- pinned commit): `narrate plan` writes the requests, the GPU window runs them, and `narrate render
 -- --prerendered` reads the takes by request id (narrate/prerender.py). Its endpoint is audiocpp://<family>,
 -- and its files pin the binary and the weights by sha256. GpuDirect admits it for an attended window on the local
--- card, and RentedOpen admits it for a rented or offsite GPU, so no rented run is labelled GpuDirect.
+-- card. RentedAudioCppBatch is the same batch on a rented or offsite GPU, under the RentedOpen profile. A separate
+-- backend keeps the location in two fields, so changing the profile or the backend alone fails `consistent`.
 --
 -- isOffsite is a hosted or rented engine, and the voice's consent record must allow it (hostedAllowed, TIN-7125
 -- af4ceb3b). mayRunConfidential is a report-only label (TIN-7125 f98fd1ac): no refusal reads it, and it and the fields
@@ -14,6 +15,7 @@
 let Backend =
       < VulkanAudioCpp
       | AudioCppBatch
+      | RentedAudioCppBatch
       | QwenTtsCpp
       | LlamaTts
       | MlxAudio
@@ -61,6 +63,7 @@ let backendIsRented =
         merge
           { VulkanAudioCpp = False
           , AudioCppBatch = False
+          , RentedAudioCppBatch = True
           , QwenTtsCpp = False
           , LlamaTts = False
           , MlxAudio = False
@@ -87,6 +90,7 @@ let backendIsHosted =
         merge
           { VulkanAudioCpp = False
           , AudioCppBatch = False
+          , RentedAudioCppBatch = False
           , QwenTtsCpp = False
           , LlamaTts = False
           , MlxAudio = False
@@ -106,6 +110,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = True
                 , AudioCppBatch = False
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = True
                 , LlamaTts = True
                 , MlxAudio = False
@@ -119,6 +124,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = False
                 , AudioCppBatch = False
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = True
@@ -132,6 +138,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = False
                 , AudioCppBatch = False
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = False
@@ -145,6 +152,7 @@ let backendFitsProfile =
               merge
                 { VulkanAudioCpp = False
                 , AudioCppBatch = True
+                , RentedAudioCppBatch = False
                 , QwenTtsCpp = False
                 , LlamaTts = False
                 , MlxAudio = False
@@ -158,7 +166,7 @@ let backendFitsProfile =
               { GpuSwitch = local
               , GpuDirect = local || batch
               , MacMlx = mlx
-              , RentedOpen = backendIsRented e || batch
+              , RentedOpen = backendIsRented e
               , Hosted = backendIsHosted e
               , Fake = fake
               }

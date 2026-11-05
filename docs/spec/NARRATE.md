@@ -182,7 +182,7 @@ engine only.
 | `gpu-switch` | `VulkanAudioCpp`, `QwenTtsCpp`, `LlamaTts` | the GPU host through the model coordinator | N1. Switch to the TTS entry, synthesise, release to the prior model. Needs a TTS entry kind, an audio canary and the speech route in the coordinator (TIN-7096) |
 | `gpu-direct` | same, and `AudioCppBatch` | the GPU host in an attended window | N0 interim. The server holds the GPU lease for the window (30 min or less) and scales to zero after; the window leaves a receipt. `AudioCppBatch` is a request batch run in the window, not a server (see "Out-of-process batch engines") |
 | `mac-mlx` | `MlxAudio` | the Mac host | Development and fallback. No GPU lease involved |
-| `rented-open` | `RentedOpen`, `AudioCppBatch` | a rented or offsite GPU running open weights, Modal among them | Needs the consent record's `hostedAllowed`. `AudioCppBatch` here is a request batch on the rented card, so no rented run is labelled `GpuDirect`. Its effect on Modal is an inference until a run proves it |
+| `rented-open` | `RentedOpen`, `RentedAudioCppBatch` | a rented or offsite GPU running open weights, Modal among them | Needs the consent record's `hostedAllowed`. `RentedAudioCppBatch` is the `AudioCppBatch` request batch on a rented card, so no rented run is labelled `GpuDirect`. Its effect on Modal is an inference until a run proves it |
 | `hosted` | `Hosted` | a third-party API | Explicit flag per job, plus the consent record's `hostedAllowed` |
 | `fake` | `Fake` | in process | Deterministic tone per chunk for tests. No GPU, no weights, no network |
 
@@ -310,7 +310,7 @@ The operator picked VoxCPM2 as the N0 engine after the blind A/B of
 `47c2756e`, which has no server: one process loads the model (about 30 s),
 renders every request of a `--request-sequence` file and writes one WAV per
 request id (48 kHz). A render cannot call it chunk by chunk. The backend
-`AudioCppBatch` (profile `GpuDirect`, or `RentedOpen` on a rented card) renders in three phases, so one
+`AudioCppBatch` (profile `GpuDirect`), or `RentedAudioCppBatch` (profile `RentedOpen`) on a rented card, renders in three phases, so one
 GPU window renders a whole job, every chunk and every retake, with one model
 load per voice:
 
@@ -516,14 +516,18 @@ lease helper, to exit.
   `profile` or `backend`, whether or not the host is estate-controlled. Every
   engine whose `profile` and `backend` disagree is refused (`Engine.consistent`,
   the "Engine profiles" table), so a single wrong field never makes an engine
-  look local. The rule is defined once in `narrate/dhall/Engine.dhall` and its
+  look local. A rented batch has its own backend for this reason: the batch run
+  reads neither field, so the record is the only place that states the location.
+  The rule is defined once in `narrate/dhall/Engine.dhall` and its
   truth table is asserted in `narrate/dhall/policy-test.dhall`.
   `narrate/dhall/check.py` ports it to Python and applies it to the rendered
   examples; the W5 client implements the same rule and tests it against the
   rendered JSON.
 - **The `confidential` label refuses no engine** (TIN-7125 `f98fd1ac` and
   `af4ceb3b`). Client jobs may render on rented hosts and be hosted, with the
-  consent above. The job label, the report-only `may_run_confidential` field and
+  consent above. SP-4 health rows stay kept: that ruling does not admit them to
+  a client render on a rented or hosted engine. No narrate code checks this, so
+  the job's author holds that limit. The job label, the report-only `may_run_confidential` field and
   the engine fields `confidentialAllowed` and `estateControlled` stay until the
   TIN-7994 audit decides which guards come back.
 - **Clips never enter git.** Reference clips, transcripts, consent evidence,
