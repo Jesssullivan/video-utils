@@ -95,11 +95,21 @@ nv-stage-voice-from-run job run_dir *args:
 nv-render-stage-check request *args:
     python3 -m narrate video render-stage check --request {{quote(request)}} {{args}}
 
+# Run the frame gates on the job an intake wrote, before any voice spend. Refuses the first finding with its own code
+# and writes JOB/intake/preflight.json, which result requires. ARGS: --records DIR, --store DIR, --root DIR.
+nv-render-stage-preflight job request *args:
+    python3 -m narrate video render-stage preflight {{quote(job)}} --request {{quote(request)}} {{args}}
+
 # Report a job that ran to deliver_check, every output by digest, for the request that started it. Refuses unless
 # VIDEO_UTILS_COMMIT is the request's commit and JOB/intake read the request's inputs. ARGS: --export DIR copies the
 # video, the report and the result there by sha256, --root DIR.
 nv-render-stage-result job request *args:
     python3 -m narrate video render-stage result {{quote(job)}} --request {{quote(request)}} {{args}}
+
+# Read the pictures a job will show against the avatar box and its slides, before any voice spend: a planted fault
+# exits 1 here (docs/spec/NARRATED_VIDEO.md, "Frame gates"). Writes nothing. ARGS: --records DIR, --store DIR, --root DIR.
+nv-preflight job *args:
+    python3 -m narrate video preflight {{quote(job)}} {{args}}
 
 # A simple job in one step: init from the defaults, then run. ARGS go to init (--card, --still SHA, --bed ID,
 # --edition E, --persona P or --no-avatar); the store, records and lexical release come from the environment.

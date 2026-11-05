@@ -10,10 +10,15 @@ GPU window runs outside this process (docs/spec/RENDER_STAGE.md, "Lease protocol
                                    the worker) also check the worker's commit and re-hash every input under
                                    DIR/<sha256>. --gpu-draft plans a gpu_window request, which v1 otherwise refuses;
                                    it never goes with --inputs. Writes nothing.
+    preflight JOB --request REQUEST
+                                   the frame gates a job can fail before any voice spend (narrate/video/frames.py),
+                                   after binding the request to the job's intake. Writes JOB/intake/preflight.json and
+                                   refuses the first finding with its code.
     result JOB --request REQUEST [--export DIR]
                                    the result of a job that ran to deliver_check: every output by digest and the
                                    deliver_check gates, after binding the request's inputs to the job's intake
-                                   (JOB/intake/intake.json). With --export, copy the composed video and the
+                                   (JOB/intake/intake.json) and to a passed preflight of this same job. With --export,
+                                   copy the composed video and the
                                    deliver_check report into DIR under their sha256 names, then the result itself.
 
 A request or a result holds no path, host, address or prose: every string is a single token, a digest or a fixed
@@ -28,9 +33,9 @@ import shutil
 from pathlib import Path
 
 from ..ir import sha256_file
-from . import accept, keys
+from . import accept, frames, keys
 from .job import ID, SHA256, JobError, check_shape
-from .store import StoreError, verify_stage_dir
+from .store import StoreError, verify_stage_dir, write_atomic
 from .store import tree_sha256 as store_tree_sha256
 
 REQUEST_KIND = "narrate_render_stage_request"
@@ -83,6 +88,7 @@ LEASE_VERIFIED_BY_VOICE_GPU = ("notice_comment_on_ticket_names_holder", "helper_
 # The intake phase writes its --out here, under the job's store directory, and init --from reads it.
 INTAKE_DIR = "intake"
 INTAKE_KIND = "nv_bundle_intake"
+PREFLIGHT_FILE = "preflight.json"  # beside intake.json: result refuses a job with none, or a failed one
 # How each input reaches the job after verify_inputs re-hashed its mount. intake: intake.json records the digest it
 # read. records_pin: the bound records pin the release file by file, and the script stage re-hashes those files.
 # mount_only: only verify_inputs checked it; no later phase records reading it.
@@ -262,7 +268,9 @@ def phases(request):
     gpu = request["voice"]["mode"] == "gpu_window"
     rows = [
         {"id": "verify_inputs", "gpu": False, "runs": "render-stage check --inputs"},
+        {"id": "claims_gate", "gpu": False, "runs": "narrate video claims"},
         {"id": "intake", "gpu": False, "runs": "narrate video intake --out JOB/intake, then init --from"},
+        {"id": "preflight", "gpu": False, "runs": "render-stage preflight"},
     ]
     if gpu:
         lease = request["lease"]
@@ -390,6 +398,47 @@ def voice_runs(store, job):
     return out
 
 
+def bound_job(request, store, env=None):
+    """(job, sha256 of intake.json): the store's job after the worker's commit and the intake binding. A gpu_window
+    request passes check_request here: v1 refuses its window, and its gates run before that window would."""
+    check_request(request, gpu_draft=True)
+    check_commit(request, env)
+    if store.job_id != request["job_id"]:
+        _refuse("job_mismatch", "the store holds another job than the request names")
+    job = store.read_job()
+    if job.get("edition") != request["edition"]:
+        _refuse("edition_mismatch", "the job's edition is not the request's")
+    return job, intake_binding(request, store, job)
+
+
+def preflight(request, store, media, env=None):
+    """The preflight phase: run the frame gates on the job the intake wrote and record the report in JOB/intake. A
+    finding refuses with its own code, so a planted fault stops here, before voice_plan and any GPU window. media is
+    the common.Env that reads the private store."""
+    job, _ = bound_job(request, store, env)
+    intake = _intake_json(store.dir / INTAKE_DIR / "intake.json")
+    report = frames.preflight(job, media, intake)
+    target = store.dir / INTAKE_DIR / PREFLIGHT_FILE
+    write_atomic(target, report)
+    if not report["ok"]:
+        first = report["findings"][0]
+        _refuse(first["code"], f"preflight holds {len(report['findings'])} findings; page {first['page']} is the first")
+    return report | {"preflight_sha256": sha256_file(target)}
+
+
+def preflight_binding(store, job):
+    """The sha256 of the job's preflight.json, which must have passed for this same job."""
+    path = _intake_file(store.dir / INTAKE_DIR, PREFLIGHT_FILE)
+    report = _intake_json(path)
+    if not isinstance(report, dict) or report.get("kind") != frames.KIND:
+        _refuse("intake_invalid", f"{PREFLIGHT_FILE} is not {frames.KIND}")
+    if report.get("job_sha256") != keys.digest(job):
+        _refuse("preflight_stale", "the preflight read another job than the store holds; run it again")
+    if report.get("ok") is not True:
+        _refuse("preflight_failed", "the job's preflight holds findings")
+    return sha256_file(path)
+
+
 def result(request, store, env=None):
     """The render stage's result for a job that ran to deliver_check. Refuses a stale or partial render."""
     check_request(request)
@@ -401,6 +450,7 @@ def result(request, store, env=None):
         _refuse("edition_mismatch", "the job's edition is not the request's")
     render, gates = accept.render_of(store, job)
     intake_sha256 = intake_binding(request, store, job)
+    preflight_sha256 = preflight_binding(store, job)
     manifest = store.manifest("deliver_check")
     report = (manifest.get("outputs") or {}).get("deliver_check.json")
     if not _sha(report):
@@ -427,6 +477,7 @@ def result(request, store, env=None):
         "worker_image": request["worker_image"],
         "job_sha256": keys.digest(job),
         "intake_sha256": intake_sha256,
+        "preflight_sha256": preflight_sha256,
         "inputs_bound_by": {name: BOUND_BY[name] for name in INPUTS if request["inputs"].get(name) is not None},
         "voice": {"mode": request["voice"]["mode"], "runs": runs},
         # v1 results are from_run only (check_request), so no Lease attests this voice. A gpu_window result would

@@ -17,7 +17,7 @@ Gates:
 
 - listening and lip_sync close by acceptance, each where the current deliver_check reports it pending_operator;
 - vrm_badge_decision refuses vrm_badge_undecided until a ruling settles the badge (SPR-128, narrate/video/vrm.py);
-- the machine gates (profile, loudness, flash, captions) never close here: gate_automated;
+- the machine gates (profile, loudness, flash, captions, avatar_box, slide_match) never close here: gate_automated;
 - bed_licence_pdf and bed_content_id close only through the private MusicBed record: gate_record_bound;
 - visible_text closes only through a re-intake whose private-terms guard reads every shown asset's text:
   gate_intake_bound. admit's visible_text_unread is no acceptance gate, so an acceptance never drops it from
@@ -72,7 +72,7 @@ DECISION = re.compile(r"sp:dec:[0-7][0-9A-HJKMNP-TV-Z]{25}")
 DECISION_PREFIX = "sp:dec:"
 ACCEPTABLE = ("listening", "lip_sync")
 UNRULED = {"vrm_badge_decision": "whether offline VRM video carries a burned-in badge is not ruled (SPR-128)"}
-AUTOMATED = ("profile", "loudness", "flash", "captions")
+AUTOMATED = ("profile", "loudness", "flash", "captions", "avatar_box", "slide_match")
 RECORD_BOUND = ("bed_licence_pdf", "bed_content_id")
 # deliver_check's visible_text gate (narrate/video/deliver.py, TIN-7788) reads the guarded intake's summary. Only a
 # re-intake that reads every shown asset's text moves it to passed; no decision does.

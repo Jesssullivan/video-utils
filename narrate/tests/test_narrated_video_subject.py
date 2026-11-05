@@ -352,7 +352,14 @@ def test_a_subject_text_counts_utf16_units_as_the_guard_does(ws, monkeypatch):
     assert exc.value.code == "subject_too_large"
 
 
-MACHINE_PASSED = {"profile": "passed", "loudness": "passed", "flash": "not_applicable", "captions": "passed"}
+MACHINE_PASSED = {
+    "profile": "passed",
+    "loudness": "passed",
+    "flash": "not_applicable",
+    "captions": "passed",
+    "avatar_box": "not_applicable",
+    "slide_match": "not_applicable",
+}
 
 
 def test_the_cut_names_the_current_video_and_the_open_operator_gates(avatar_job):  # noqa: F811
@@ -382,7 +389,7 @@ def swap_manifest(monkeypatch, s, manifest):
     monkeypatch.setattr(s, "manifest", lambda node: manifest if node == "deliver_check" else real(node))
 
 
-@pytest.mark.parametrize("gate", ["flash", "loudness", "profile", "captions"])
+@pytest.mark.parametrize("gate", ["flash", "loudness", "profile", "captions", "avatar_box", "slide_match"])
 def test_a_cut_whose_machine_gate_failed_refuses_and_names_the_gate(tmp_path, monkeypatch, gate):
     job, s = failed_job(tmp_path, monkeypatch, gate)
     delivery = s.manifest("deliver_check")["measurements"]["delivery_gate"]

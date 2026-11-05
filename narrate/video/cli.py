@@ -1,5 +1,5 @@
 """python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,
-render-stage,subject,cut}.
+render-stage,preflight,subject,cut}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -61,7 +61,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import accept, bundle, fixture, graph, kitpip, private_terms, render_stage, speech, store, subject, vrm
+from . import accept, bundle, fixture, frames, graph, kitpip, private_terms, render_stage, speech, store, subject, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -422,20 +422,37 @@ def cmd_render_stage(a):
         return refusal("usage", "check takes no job")
     if a.action == "check" and a.gpu_draft and a.inputs:
         return refusal("usage", "--gpu-draft plans a GPU window only; verify_inputs (--inputs) never admits one")
-    if a.action == "result" and (a.inputs or a.gpu_draft):
+    if a.action != "check" and (a.inputs or a.gpu_draft):
         return refusal("usage", "--inputs and --gpu-draft go with check")
-    if a.action == "result" and not a.job:
-        return refusal("usage", "result names the job")
+    if a.action in ("result", "preflight") and not a.job:
+        return refusal("usage", f"{a.action} names the job")
     request = read_request(a.request)
     if a.action == "check":
         out = render_stage.check_worker(request, a.inputs) if a.inputs else render_stage.plan(request, a.gpu_draft)
         emit(out)
+        return 0
+    if a.action == "preflight":
+        s = job_store(a, a.job)
+        records = records_for(a, s.read_job())
+        emit(render_stage.preflight(request, s, run_env(a, records)))
         return 0
     value = render_stage.result(request, job_store(a, a.job))
     if a.export:
         value = value | {"exported": render_stage.export(job_store(a, a.job), value, a.export)}
     emit(value)
     return 0
+
+
+def cmd_preflight(a):
+    s = job_store(a, a.job)
+    job = s.read_job()
+    records = records_for(a, job)
+    report = frames.preflight(job, run_env(a, records))
+    emit(report)
+    if report["ok"]:
+        return 0
+    first = report["findings"][0]
+    return refusal(first["code"], f"preflight holds {len(report['findings'])} findings; see the report")
 
 
 def cmd_subject(a):
@@ -610,9 +627,16 @@ def main(argv=None):
     )
     acc.add_argument("--json", action="store_true", help="print JSON (accept always does)")
 
+    pf = sub.add_parser("preflight", help="the frame gates a job can fail before any voice spend; writes nothing")
+    common(pf)
+
     rs = sub.add_parser("render-stage", help="the Cade render stage's task body: check a request, or report a result")
-    rs.add_argument("action", choices=("check", "result"), help="check: validate and plan; result: report by digest")
-    rs.add_argument("job", nargs="?", help="result: the job id")
+    rs.add_argument(
+        "action",
+        choices=("check", "preflight", "result"),
+        help="check: validate and plan; preflight: the frame gates before any voice spend; result: report by digest",
+    )
+    rs.add_argument("job", nargs="?", help="preflight and result: the job id")
     rs.add_argument("--request", required=True, help="the request JSON (narrate_render_stage_request/1)")
     rs.add_argument(
         "--inputs",
@@ -624,6 +648,9 @@ def main(argv=None):
     )
     rs.add_argument("--export", help="result: copy the video, the report and the result here by sha256")
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    rs.add_argument("--records", help="preflight: the records directory, instead of NARRATED_VIDEO_RECORDS")
+    rs.add_argument("--store", help="preflight: the private store, instead of NARRATE_STORE")
+    rs.add_argument("--lexical", help="preflight: the pinned xoxd-lexical release, instead of NARRATE_LEXICAL_DIR")
 
     sj = sub.add_parser(
         "subject",
@@ -660,6 +687,7 @@ def main(argv=None):
             "claims": cmd_claims,
             "accept": cmd_accept,
             "render-stage": cmd_render_stage,
+            "preflight": cmd_preflight,
             "subject": cmd_subject,
             "cut": cmd_cut,
         }
