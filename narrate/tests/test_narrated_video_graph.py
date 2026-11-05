@@ -729,9 +729,10 @@ def test_a_refused_deliver_check_blocks_handoff(settled_handoff):
     assert (row["state"], row["reason"]) == ("blocked", "upstream_blocked") and g["runnable"] == []
 
 
-# The handoff key of nv-fixture-card before the order edge existed, computed at e3761ee6. Update it only when an impl
-# or the fixture moves on purpose: the edge alone must leave it, so stores on disk keep their layers.
-HANDOFF_DIGEST = "019ae486d8c8b8aefd888f86d9adcaad3d45d87af1fb56584d239ef24e607b65"
+# The handoff key of nv-fixture-card, recomputed for the xoxd-lexical 0.8.0 pin, which moves the script key. The value
+# before that pin was computed before the order edge existed. Update it only when an impl or the fixture moves on
+# purpose: the edge alone must leave it, so stores on disk keep their layers.
+HANDOFF_DIGEST = "dccf3da9bf8afcd11b81f8e456bba4af3a34a029e5291698fc9eefa519802b3b"
 
 
 def test_the_handoff_key_is_the_one_recorded_before_the_edge(settled_handoff):
