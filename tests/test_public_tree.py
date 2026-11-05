@@ -211,6 +211,33 @@ class PublicTree(unittest.TestCase):
             findings, _ = scan(root, names, self.rules)
             self.assertEqual([finding.split(":", 2)[:2] for finding in findings], [["planted.md", "2"]])
 
+    def test_narrated_video_files_hold_no_media_and_no_kitpip_repository(self):
+        """docs/spec/NARRATED_VIDEO.md, Safety (NV-1): kitpip may be named, but no kitpip repository URL or remote,
+        and no audio, video, picture or licence PDF, enters the narration or narrated-video trees. No VRM model or
+        glTF enters the repository at all."""
+        trees = ("narrate/", "program/", ".agents/skills/narrated-video/", ".agents/skills/narrated-video-place/",
+                 ".agents/skills/narrated-video-mix/", ".agents/skills/music-bed/", ".agents/skills/kitpip-overlay/",
+                 ".agents/skills/kitpip-verify/", ".agents/skills/vrm-overlay/",
+                 ".agents/skills/avatar-overlay/", ".agents/skills/avatar-verify/",
+                 ".agents/skills/narrated-video-compose/",
+                 ".agents/skills/narrated-video-verify/", "docs/spec/NARRATED_VIDEO.md")
+        media = re.compile(r"\.(wav|flac|mp3|m4a|aac|ogg|mov|mp4|mkv|webm|png|jpe?g|gif|pdf)$", re.I)
+        self.assertEqual([n for n in self.names if n.startswith(trees) and media.search(n)], [])
+        # SPR-128: no VRM model or glTF enters the repository; the VRM tests draw a synthetic GLB at run time.
+        models = re.compile(r"\.(vrm|vrma|glb|gltf)$", re.I)
+        self.assertEqual([n for n in self.names if models.search(n)], [])
+        # Built from fragments so this file is not itself a finding.
+        repository = re.compile("(" + "|".join(("https?://", "git@", "ssh://", "git" + "hub:")) + r")[^\s\"'<>)]*"
+                                + "kit" + "pip", re.I)
+        self.assertEqual([n for n in self.names for text in [read_text(ROOT / n)]
+                          if text is not None and repository.search(text)], [])
+        self.assertIsNotNone(repository.search("see " + "https://" + "example.org/someone/" + "kit" + "pip"))
+        # NV-1: program/externals.json registers kitpip publicly, but the pin (commit, digests, rig) is private.
+        registered = json.loads((ROOT / "program" / "externals.json").read_text(encoding="utf-8"))
+        entry = registered["externals"]["kit" + "pip"]
+        self.assertEqual(entry["pin"], "private_record")
+        self.assertEqual(sorted(set(entry) & {"source_commit", "binaries", "default_rig", "version"}), [])
+
     def test_untracked_private_terms(self):
         patterns = private_terms()
         if not patterns:

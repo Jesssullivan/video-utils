@@ -39,7 +39,9 @@ UNSPECIFIED_ARTICULATION_KINDS = ("articulation",)
 NOT_SCORED_KINDS = {"meter_mismatch": "meter_context_not_a_performance_axis",
                     "tone": "tone_capture_context_not_a_performance_axis",
                     "noise": "capture_noise_context_not_a_performance_axis",
-                    "other": "unclassified_kind_not_scored"}
+                    "other": "unclassified_kind_not_scored",
+                    "onset": "onset_timing_label_scored_by_onset_benchmark",
+                    "onset_segment": "onset_labelling_extent_declaration_not_a_performance_axis"}
 PRECISION_REASON = "false_positive_requires_reviewed_absence_label"
 ALIGNED = "same_source_original_clock_declared"
 assert set(annotation_v2.KINDS) == ({kind for kinds in ERROR_AXES.values() for kind in kinds}

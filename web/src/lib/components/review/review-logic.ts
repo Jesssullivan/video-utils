@@ -70,7 +70,8 @@ export const ANNOTATION_KINDS = [
 	'meter_mismatch',
 	'tone',
 	'noise',
-	'other'
+	'other',
+	'onset'
 ] as const;
 export type AnnotationKind = (typeof ANNOTATION_KINDS)[number];
 

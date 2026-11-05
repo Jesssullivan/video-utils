@@ -6,7 +6,9 @@
 #
 # Every recipe goes through tools/bazel/run.py, which picks bazelisk or bazel,
 # bounds the run (VIDEO_UTILS_BAZEL_TIMEOUT_S, default 1800 s), refuses remote
-# cache/executor flags and shuts the Bazel server down afterwards.
+# cache/executor and local-fallback flags and shuts the Bazel server down
+# afterwards. These runs are local, non-qualifying: no enrolled GloriousFlywheel
+# lane exists, so they are not flywheel evidence (TIN-5770 R471).
 
 # Build targets through Bazel (default: everything).
 bazel-build *TARGETS="//...":

@@ -1,9 +1,10 @@
 import json
+import re
 from types import SimpleNamespace
 
 import pytest
 
-from condense import audio, edl
+from condense import audio, captions, edl
 from condense.config import Config
 from condense.edl import Timeline
 
@@ -118,3 +119,218 @@ def test_speech_speeds_up_to_the_cap_when_the_clip_runs_over(talk):
 def test_whisper_tags_are_no_proof_of_speech_and_a_hum_is():
     c = SimpleNamespace(asr={"1.000-2.000": "[BLANK_AUDIO]", "3.000-4.000": "Mmm.", "5.000-6.000": " um (coughs)"})
     assert [edl.heard(c, a, a + 1) for a in (1.0, 3.0, 5.0)] == [False, True, False]
+
+
+def test_a_drop_joins_the_cut_it_starts_in_and_trims_the_speech_it_ends_in():
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+
+    def seg(inp, out, speed, kind, **extra):
+        return dict(src="x", inp=inp, out=out, speed=speed, kind=kind, **extra)
+
+    segs = [
+        seg(0.0, 2.0, 2.0, "speech"),
+        seg(2.0, 4.0, 1.0, "cut", keep=[[2.0, 2.166667], [3.866667, 4.0]]),
+        seg(4.0, 6.0, 2.0, "speech"),
+        seg(6.0, 6.5, 8.0, "filler"),
+        seg(6.5, 10.0, 2.0, "speech"),
+    ]
+    out = edl.drop(c, segs, [[3.0, 7.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 2.0, "speech"),
+        (2.0, 7.0, "cut"),
+        (7.0, 10.0, "speech"),
+    ]
+    assert out[1]["keep"] == [[2.0, 2.166667], [6.866667, 7.0]]  # the cut's own head stays, 4 frames before 7 s
+    both = edl.drop(c, segs, [[0.5, 1.5], [8.0, 9.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in both] == [
+        (0.0, 0.5, "speech"),
+        (0.5, 1.5, "cut"),
+        (1.5, 2.0, "speech"),
+        *[(s["inp"], s["out"], s["kind"]) for s in segs[1:4]],
+        (6.5, 8.0, "speech"),
+        (8.0, 9.0, "cut"),
+        (9.0, 10.0, "speech"),
+    ]
+    assert edl.drop(c, segs, []) == segs
+
+
+@pytest.fixture(scope="module")
+def dropped(talk):
+    """The synthetic talk with 6.5-14.0 s dropped: the first point, the um and the queue sentence."""
+    text = (
+        (talk.work.parent / "talk.toml").read_text().replace("speed = 2.0\n", "speed = 2.0\ndrop = [[6.5, 14.0]]\n", 1)
+    )
+    (talk.work.parent / "drop.toml").write_text(text)
+    cfg = Config(talk.work.parent / "drop.toml")
+    segs, info = edl.build_clip(cfg, cfg.clips[0])
+    return cfg, dict(fps=30, rules=cfg.rules, clips=[dict(name="talk", shift=info["shift"], segments=segs)])
+
+
+def test_a_drop_span_is_one_cut_and_its_words_leave_the_captions(talk, built, dropped):
+    cfg, plan = dropped
+    segs = plan["clips"][0]["segments"]
+    assert all(a["out"] == b["inp"] for a, b in zip(segs, segs[1:], strict=False))
+    cut = next(s for s in segs if s["inp"] <= 6.5 and s["out"] >= 14.0)
+    assert cut["kind"] == "cut" and cut["frames"] == 9
+    (a0, a1), (b0, b1) = cut["keep"]
+    assert (a0, b1) == (cut["inp"], cut["out"]) and round((a1 - a0) * 30) == 5 and round((b1 - b0) * 30) == 4
+    tl = Timeline(plan)
+    assert all(tl.to_out("talk", t) is None for t in (7.0, 10.0, 12.5))
+    full = sum(s["frames"] for s in built["clips"][0]["segments"])
+    assert sum(s["frames"] for s in segs) < full - 3 * 30  # 7.5 s of source, about 4 s of output, is gone
+    said = [w for _, _, w in captions.output_words(cfg, tl)]
+    assert "Hello" in said and "watching" in said and not {"first", "queue", "um"} & set(said)
+
+
+def test_a_drop_past_the_end_of_the_clip_is_refused(talk):
+    text = (
+        (talk.work.parent / "talk.toml").read_text().replace("speed = 2.0\n", "speed = 2.0\ndrop = [[20.0, 30.0]]\n", 1)
+    )
+    (talk.work.parent / "late.toml").write_text(text)
+    cfg = Config(talk.work.parent / "late.toml")
+    with pytest.raises(ValueError, match="ends after the clip's 24.000 s"):
+        edl.build_clip(cfg, cfg.clips[0])
+
+
+def test_a_drop_that_ends_inside_a_pause_cut_ends_where_that_cut_ends():
+    # A drop's end edge at 141.067 s fell inside a pause cut that ran on to 141.233 s: the drop takes the
+    # whole cut and keeps 4 frames before the cut's end, not before 141.067 s.
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+    segs = [
+        dict(src="x", inp=0.0, out=2.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=2.0, out=4.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=4.0, out=6.0, speed=1.0, kind="cut", keep=[[4.0, 4.4], [5.866667, 6.0]]),
+        dict(src="x", inp=6.0, out=8.0, speed=2.0, kind="speech"),
+    ]
+    out = edl.drop(c, segs, [[1.0, 5.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 1.0, "speech"),
+        (1.0, 6.0, "cut"),
+        (6.0, 8.0, "speech"),
+    ]
+    # 5 head frames from the drop's start, 4 tail frames before the pause cut's own end
+    assert out[1]["keep"] == [[1.0, 1.166667], [5.866667, 6.0]]
+
+
+def test_two_drops_that_meet_once_an_edge_moves_become_one_cut():
+    # Each span is valid on its own and they are apart, but the first one's end moves out to 6.0 s, past the
+    # start of the second, so the second starts inside the first's cut and the two become one cut.
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+    segs = [
+        dict(src="x", inp=0.0, out=4.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=4.0, out=6.0, speed=1.0, kind="cut", keep=[[4.0, 4.166667], [5.866667, 6.0]]),
+        dict(src="x", inp=6.0, out=10.0, speed=2.0, kind="speech"),
+    ]
+    out = edl.drop(c, segs, [[1.0, 5.0], [5.5, 8.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 1.0, "speech"),
+        (1.0, 8.0, "cut"),
+        (8.0, 10.0, "speech"),
+    ]
+    assert out[1]["keep"] == [[1.0, 1.166667], [7.866667, 8.0]]
+
+
+def test_a_drop_that_starts_or_ends_on_a_pause_cut_edge_joins_it():
+    # A drop that meets a pause cut exactly at the cut's end (or start) would otherwise leave two cuts back to
+    # back, each keeping its own head and tail frames, so 18 frames instead of 9 played at the seam.
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+    segs = [
+        dict(src="x", inp=0.0, out=2.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=2.0, out=4.0, speed=1.0, kind="cut", keep=[[2.0, 2.166667], [3.866667, 4.0]]),
+        dict(src="x", inp=4.0, out=8.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=8.0, out=9.0, speed=1.0, kind="cut", keep=[[8.0, 8.166667], [8.866667, 9.0]]),
+        dict(src="x", inp=9.0, out=10.0, speed=2.0, kind="speech"),
+    ]
+    out = edl.drop(c, segs, [[4.0, 6.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 2.0, "speech"),
+        (2.0, 6.0, "cut"),
+        (6.0, 8.0, "speech"),
+        *[(s["inp"], s["out"], s["kind"]) for s in segs[3:]],
+    ]
+    out = edl.drop(c, segs, [[6.0, 8.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out][2:4] == [(4.0, 6.0, "speech"), (6.0, 9.0, "cut")]
+    assert out[3]["keep"] == [[6.0, 6.166667], [8.866667, 9.0]]
+
+
+def test_whisper_never_reads_a_pause_span_inside_a_drop(talk, monkeypatch):
+    """evidence = "asr" re-reads a pause span with a sound in it, unless a drop removes the span anyway."""
+    base = talk.work.parent
+    work = base / "asr-work"
+    work.mkdir(exist_ok=True)
+    for ext in ("16k.wav", "words.json", "rms.txt"):
+        (work / f"talk.{ext}").write_bytes(talk.f("talk", ext).read_bytes())
+    ev = json.loads(talk.f("talk", "events.json").read_text())
+    ev["fillers"] = [f for f in ev["fillers"] if not 14.0 <= f[0] < 18.6]  # the burst now sits in a pause
+    ev["pauses"] = [p for p in ev["pauses"] if not 14.0 <= p[0] < 18.6] + [[14.0, 18.6]]
+    (work / "talk.events.json").write_text(json.dumps(ev))
+    calls = []
+    monkeypatch.setattr(edl.transcribe, "read", lambda cfg, wav, a, b: calls.append((a, b)) or "")
+
+    def build(extra):
+        text = (base / "talk.toml").read_text().replace("speed = 2.0\n", f'speed = 2.0\nevidence = "asr"\n{extra}', 1)
+        (base / "asr.toml").write_text(f'work = "asr-work"\n{text}')
+        (work / "talk.pause_asr.json").unlink(missing_ok=True)
+        cfg = Config(base / "asr.toml")
+        return edl.build_clip(cfg, cfg.clips[0])[0]
+
+    build("")
+    assert calls and all(14.0 <= a < b <= 18.6 for a, b in calls)  # the control: the burst's span is read
+    calls.clear()
+    segs = build("drop = [[13.5, 18.6]]\n")
+    assert calls == []
+    assert any(s["kind"] == "cut" and s["inp"] <= 13.5 and s["out"] >= 18.6 for s in segs)
+
+
+def test_the_pause_asr_cache_is_keyed_by_the_speech_to_text(talk, monkeypatch):
+    """Answers whisper-cli gave are never reused by the http backend, and the other way round (TIN-6578)."""
+    base = talk.work.parent
+    work = base / "key-work"
+    work.mkdir(exist_ok=True)
+    for ext in ("16k.wav", "words.json", "rms.txt"):
+        (work / f"talk.{ext}").write_bytes(talk.f("talk", ext).read_bytes())
+    ev = json.loads(talk.f("talk", "events.json").read_text())
+    ev["fillers"] = [f for f in ev["fillers"] if not 14.0 <= f[0] < 18.6]  # the burst now sits in a pause
+    ev["pauses"] = [p for p in ev["pauses"] if not 14.0 <= p[0] < 18.6] + [[14.0, 18.6]]
+    (work / "talk.events.json").write_text(json.dumps(ev))
+    calls = []
+    monkeypatch.setattr(edl.transcribe, "read", lambda cfg, wav, a, b: calls.append((a, b)) or "")
+    cache, key = work / "talk.pause_asr.json", work / "talk.pause_asr.key"
+
+    def build(model="model-a.bin", backend="cli", url=""):
+        monkeypatch.setenv("WHISPER_MODEL", str(base / model))
+        text = (base / "talk.toml").read_text().replace("speed = 2.0\n", 'speed = 2.0\nevidence = "asr"\n', 1)
+        whisper = f'\n[whisper]\nbackend = "{backend}"\nurl = "{url}"\n'
+        (base / "key.toml").write_text(f'work = "key-work"\n{text}{whisper}')
+        cfg = Config(base / "key.toml")
+        calls.clear()
+        edl.build_clip(cfg, cfg.clips[0])
+        return len(calls)
+
+    local = "http://localhost:9/v1/transcribe"
+    assert build() > 0  # the control: a fresh work dir reads its pause spans
+    spans = json.loads(cache.read_text())
+    assert spans and all(re.fullmatch(r"\d+\.\d{3}-\d+\.\d{3}", k) for k in spans)  # the flat shape stays
+    assert json.loads(key.read_text())["stt"] == {"backend": "cli", "model": "model-a.bin"}
+    assert build() == 0  # the same backend and model reuse the answers
+    assert build(backend="http", url=f"{local}?model=small&k=v") > 0  # never the other backend's answers
+    stt = json.loads(key.read_text())["stt"]
+    assert stt["backend"] == "http" and stt["url"] == local and "model=small" not in key.read_text()
+    assert build(backend="http", url=f"{local}?model=small&k=v") == 0
+    assert build(backend="http", url=f"{local}?model=large&k=v") > 0  # another query is another service
+    assert build() > 0  # back to whisper-cli: read again
+    assert build(model="model-b.bin") > 0  # another model: read again
+    assert build(model="model-b.bin") == 0
+    key.unlink()  # a cache without its key (an older run, a hand-copied file) is read again
+    assert build(model="model-b.bin") > 0
+    cache.write_text(cache.read_text().replace("{", '{"0.000-0.100": "",', 1))  # a cache edited under its key
+    assert build(model="model-b.bin") > 0
+    assert build(model="model-b.bin", backend="cli") == 0

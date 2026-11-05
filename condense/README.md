@@ -1,7 +1,7 @@
 # condense
 
 Condense a recorded talk. Long pauses are cut. Short pauses and fillers are sped up. Speech plays faster.
-No word is dropped.
+No word is dropped unless the editor drops a span (`drop`, below).
 
 On one unpublished recording, the first edit made with these rules turned 74 minutes into 21 minutes.
 
@@ -32,10 +32,10 @@ stage before it left in `work/`. Run one stage again after you change a number.
 | `just condense-transcribe` | `transcribe.py` | the recordings | `work/<clip>.16k.wav`, `.pass1.json`, `.dtw.json` |
 | `just condense-events` | `events.py` | the whisper JSON | `work/<clip>.words.json`, `.events.json`, `.rms.txt` |
 | `just condense-edl` | `edl.py` | words, events, RMS | `work/edl.json` |
-| `just condense-render` | `render.py` | `edl.json` | `work/<clip>.mezz.mkv`, parts, `out/talk.mp4` |
+| `just condense-render` | `render.py` | `edl.json` | `work/<clip>.mezz.mkv`, parts, `out/talk.mp4` (and `talk.upload.mp4`) |
 | `just condense-check` | `check.py` | the edit | a report; exit 1 when a gate fails |
 | `just condense-captions` | `captions.py` | words, `edl.json` | `out/talk.srt`, `out/talk.vtt` |
-| `just condense-overlay` | `overlay.py` | `[[correction]]` entries | `out/talk.corrected.mp4` |
+| `just condense-overlay` | `overlay.py` | `[[correction]]` entries | `out/talk.corrected.mp4` (and `.corrected.upload.mp4`) |
 | `just condense-publish` | `publish.py` | the outputs, `edl.json` | `artifacts/condense/<run_id>/` with a manifest |
 
 Recordings, transcripts and the model stay out of git. `.gitignore` lists them.
@@ -104,6 +104,13 @@ Every span of every clip gets a kind and a speed.
 - With `max_s` and `speed_max` set, the speech speed rises by 0.05 until the clip fits or the cap is reached.
 - A clip ends with its shorter stream, so the last frames never freeze.
 - Fillers are sped up and never cut. A wrong guess costs a blip, not a word.
+- `drop = [[start, end], ...]` removes an editor's choice of source seconds from a clip, talk and all: a
+  set-up stretch, say. Each span becomes one cut with the usual 5 head and 4 tail frames. An edge inside a
+  pause cut moves out to that cut's edge, so the pause joins the drop. A cut keeps 9 frames (0.3 s), so a
+  span must be at least 10 frames long. Spans must be in order and apart, and a card clip takes none: the
+  config checks these when it loads. That a span ends inside the clip is checked at the `edl` stage, which
+  knows the clip's length. The drop counts before `max_s` raises the speed. Pause spans inside a drop are
+  never sent to whisper. This is the one rule that drops words: the captions leave them out too.
 
 Pause carving protects words that whisper missed or mis-timed. Inside a pause span, every run of 2 or more
 RMS frames above `voiced_db` is a sound. A sound with evidence stays speech. A sound without evidence plays
@@ -113,7 +120,8 @@ as a filler. Only true silence is cut. `evidence` picks the proof:
 - `word`: a transcribed word overlaps the sound. Only the filler lexicon is no proof, so a drawn-out "mmm"
   stays at speech speed.
 - `asr`: that, or whisper re-run on the pause span alone hears a word. For noisy rooms. The answers are
-  cached in `work/<clip>.pause_asr.json`.
+  cached in `work/<clip>.pause_asr.json`, keyed in `work/<clip>.pause_asr.key` by the speech-to-text backend and
+  model; a cache another backend or model wrote is read again.
 
 `edl.py` also holds the time map. `Timeline.to_out(clip, source_s)` gives an output time, and
 `Timeline.to_src(output_s)` goes back. Captions, overlays and checks all use it.
@@ -134,6 +142,15 @@ as a filler. Only true silence is cut. `evidence` picks the proof:
 5. The encode is HEVC CRF 35 with the `hvc1` tag, so QuickTime, Safari and iOS play it. A light `hqdn3d`
    denoise runs first, because camera grain is most of the bitrate. Audio is AAC at 64 kb/s with
    `-aac_pns 0`: the encoder's noise substitution turned one transient into a +4.0 dBTP spike.
+   `[encode] preset` is the x265 preset, `slow` by default.
+6. `[encode] upload = "h264"` also writes `out/talk.upload.mp4` for a video site: the same frames as H.264
+   CRF 18 (`upload_crf`, 0 to 51) with no B-frames and a keyframe every 2 s, and the edit's audio stream copied. Its
+   video packets' presentation and decode times are equal and start at 0, so the video has no negative CTS
+   offset and no edit list to honour; the copied AAC audio keeps the encoder's 1024-sample priming (first packet
+   pts -1024 at 1/48000 s) behind its own edit list. The render refuses a copy whose moov box does not precede
+   its mdat box (`+faststart`). One video site scrambled the first keyframe interval of the HEVC file, whose
+   `negative_cts_offsets` stand in for an edit list. The overlay pass then writes
+   `talk.corrected.upload.mp4` the same way. The HEVC files stay the archive copies.
 
 #### Sync
 
@@ -175,10 +192,30 @@ frame size or rate.
   - real: at 1x speech in the delivered file, each picture is matched against 25 mezzanine frames near the
     EDL's answer, and 0.4 s of sound is cross-correlated 0.25 s to each side. The median per clip must be
     within 20 ms. This part sees the source's own clocks, `atempo`, the encode and the mp4 timestamps.
+  - joined: 8 spots spread over each third of the edit, at any speed, are matched the same way against the
+    lossless parts the render joined. Each third's median must be within 20 ms.
+
+  A spot is clear when its sound correlates at 0.75 or more inside the search window and its picture match
+  is clear. A median needs 4 clear spots. A clip or third that tried 4 or more and found fewer fails when its
+  sound was unclear at so many spots that fewer than 4 could have been clear, so a sound moved far beyond
+  the window fails rather than passing on chance matches. When the sound matched but the picture alone was
+  unclear (a slide, a screen recording, a still speaker), it is `not_measured`: no evidence either way. A
+  clip or third with fewer than 4 spots to try is `too_few_spots` and does not count. A measure with nothing
+  to try (no 1x speech anywhere, or the parts gone from `work/`) is `not_measured`, and the gate does not
+  pass. `check.json` records every tried spot: offset, correlation, sharpness and why it is not clear.
 - `bounds`: whisper re-reads 6 s of the edit around two cuts per clip and around every clip join. It also
   reads the same span of the source. Both print side by side. A person reads them: a cut must not eat a word.
 
-`just condense-check talk.toml silence loud` runs only the named checks.
+- `captions`: a measurement, not a gate. At up to 24 cues that follow 0.3 s with no cue, the cue start is
+  compared with the nearest sound onset (a 10 dB rise after 50 ms below it) within 0.3 s in the delivered
+  file. Positive means the caption appears after the speech starts.
+
+`just condense-check talk.toml silence loud` runs only the named checks. A run of all four gates writes
+`work/check.json`; a run of fewer writes `work/check.partial.json` and leaves `check.json` alone. Each holds
+every gate's limits, measured values and verdict, and a `status`: `passed`, `partial` (what ran passed, not
+every gate ran), `not_measured` or `failed`. It is bound to the sha256 of the edit and of `edl.json` only: the
+captions and overlay stages write `talk.srt`, `talk.vtt` and `talk.corrected.mp4` after it, and check measures
+none of them. The upload copies are not measured either; publish carries them. It holds names, times and numbers only; the bounds text stays in the printed report.
 
 ### captions
 
@@ -186,6 +223,40 @@ Each word's source times go through the time map, so the captions sit on the out
 speed. A word is dropped when it is a filler, when it sits in a span that plays as a filler, or when the edit
 plays none of it at speech speed. A caption holds at most 2 lines of 42 characters. It ends at a sentence
 end, at a gap of 1 s, or when it is full.
+
+That is the default style. A `[captions]` section changes it; every key is checked when the config loads,
+and an unknown key is refused. Left out, the captions are byte-for-byte what they were before the section
+existed.
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `words` | `"spoken"` | `spoken`: the rule above. `start`: a word is captioned when its start plays in a speech or pause segment; it ends where its end less 0.02 s plays, or 0.25 s after its start |
+| `fillers` | `false` | `true` captions a filler word said at speech speed; a span that plays as a filler stays uncaptioned |
+| `fill` | `"wrap"` | `wrap`: a cue is full when its words need more than `caption_lines` lines of `caption_chars`. `chars`: when they pass `caption_lines` x `caption_chars` characters (needs `split = "balanced"`) |
+| `split` | `"greedy"` | `greedy`: fill each line in turn. `balanced`: one line up to `caption_chars`, else two, broken at the last space before the middle plus 8 characters; a line can then run past `caption_chars` (needs `caption_lines = 2`) |
+| `gap_s` | `1.0` | a longer silence between two words starts a new cue |
+| `max_s` | `0` | a cue ends before a word that would end more than this after the cue's start; 0: no limit |
+| `sentence_chars` | half of `caption_chars` | a sentence end closes a cue that holds at least this many characters; 0: every sentence end |
+| `min_s` | `1.0` | a cue shows at least this long |
+| `clear_s` | `0` | a cue cut short by the next one ends this long before it (needs a larger `squeeze_s`) |
+| `squeeze_s` | `0` | a cue that the next would cut to this or less is not cut: it holds `min_s`, and the next waits for it. 0: always cut |
+| `cards` | `{}` | card clip name to caption lines, shown over that card |
+| `card_inset_s` | `0.5` | a card caption starts this long after its card and ends this long before the card ends |
+
+```toml
+[captions]  # the style of a published hand-cut walkthrough: one line of up to 84 characters, split in two
+words = "start"
+fillers = true
+fill = "chars"
+split = "balanced"
+gap_s = 1.2
+max_s = 6
+sentence_chars = 0
+min_s = 0.6
+clear_s = 0.02
+squeeze_s = 0.3
+cards = { lost = ["[This part of the talk", "was lost]"] }
+```
 
 ### overlay
 
@@ -201,7 +272,7 @@ text = "*the queue holds 64 items, not 32"
 The time map moves each note to the output clock. It shows for 3 s in the top right corner. A note that
 lands in a cut moves to the join. Two notes never overlap.
 
-The overlay is its own pass, so the main render is not repeated. The video is encoded once more, from the
+`[rules] overlay_s` sets how long a note shows. The overlay is its own pass, so the main render is not repeated. The video is encoded once more, from the
 parts in `work/` when they are still there. The audio stream is copied.
 
 ## Recover a truncated .mov
@@ -231,12 +302,21 @@ just/condense.just one recipe per stage
 
 ## Publish
 
-`just condense-publish` copies the edit, `edl.json` and whichever captions and corrected copy exist into a
-fresh `artifacts/condense/<run_id>/`. Its `manifest.json` hashes every file and every recording, and its
+`just condense-publish` copies the edit, `edl.json` and whichever captions, corrected copy and upload copies
+exist into a fresh `artifacts/condense/<run_id>/`. An upload copy must hold the edit's frames and its audio
+packets unchanged, its moov box before its mdat box and its first video packet at pts and dts 0; the manifest's
+`uploads` records that, the box offsets verify-run reads again, and the audio's first packet pts (-1024 at
+1/48000 s: AAC priming, which the mp4 edit list hides). Its `manifest.json` hashes every file and every recording, and its
 timeline mapping is `edl_v1`: output time maps to source time through `edl.json`
 (`../docs/spec/TIMELINE_CONTRACT.md`). The stage then runs `video-utils verify-run --timeline edl_v1` on the
-run. A run that fails the check is renamed to `.failed-<run_id>` and the stage exits 1. Guitar tools never
-list or accept these runs. `just condense-all` ends in this stage. To check a published run again:
+run. A run that verify-run refuses is renamed to `.failed-<run_id>` and the stage exits 1. No binary stops the
+stage before anything is staged; a verify-run that cannot start, crashes or runs over the limit refuses
+nothing, so the run keeps its name, a file `.unverified-<run_id>` beside it says why, and the stage exits 1.
+When `work/check.json` measured this very edit, the run carries it as `check.json` and the manifest's `check`
+records its sha256, its status, the gates and their summary numbers; a `check.json` of another edit, or one
+that is not a check report, is refused, and without one `check` says `not_run`. A partial check is never
+published, and a newer `work/check.partial.json` of the same edit that says `failed` or `not_measured`
+refuses the publish. Guitar tools never list or accept these runs. `just condense-all` ends in this stage. To check a published run again:
 
 ```sh
 just verify-run artifacts/condense/<run_id> edl_v1

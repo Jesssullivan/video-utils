@@ -4,17 +4,31 @@ Reference for consumers of `review-annotations-v2.json` (schema owner:
 `scripts/annotation_v2.py`; storage semantics: `docs/spec/sprints/ANNOTATIONS_S1.md`).
 This page restates the closed vocabulary and records how S2 read-only projections
 (`scripts/annotation_markers.py`, `scripts/corpus_eval_s2.py`) treat each value.
-It defines no new kind, basis, state or label; the validator is authoritative.
+It defines no kind, basis, state or label of its own; the validator is authoritative.
 
 ## Size of the vocabulary
 
-11 kinds × 4 bases × 3 states = **132 schema-legal combinations**. The validator
-does not restrict which kind may pair with which basis or state; it restricts
-authorship, quote, certainty and reference hash by basis (table below). Every
-saved record also carries `claim_label` (= the basis label) and the fixed
+11 issue kinds × 4 bases × 3 states = **132 schema-legal combinations**. For these
+kinds the validator does not restrict which kind may pair with which basis or state;
+it restricts authorship, quote, certainty and reference hash by basis (table below).
+Every saved record also carries `claim_label` (= the basis label) and the fixed
 `musical_verdict: "not_established"`.
 
-## Kinds (11) and S2 evaluator axis
+S4 (2026-10-15, TIN-5491) adds two **onset label kinds**, `onset` and
+`onset_segment`, which are the only kinds with a basis and extent rule: they
+require an operator basis (`operator_assertion` or `operator_context`), so a
+detector can never author one. That adds 2 kinds × 2 bases × 3 states = 12
+combinations, for **144** validator-legal combinations across 13 kinds.
+
+| Onset kind | Extent rule | Meaning | Consumer |
+| --- | --- | --- | --- |
+| `onset` | point only (`extent_known: false`) | one attack the operator heard at this source time | `scripts/onset_benchmark.py` |
+| `onset_segment` | known span only (`end > start`) | every audible onset inside this span is labelled | same; enables precision |
+
+Detector onset candidates stay in `analysis.json`; they are never written into
+the store. See [ONSET_LABELS.md](ONSET_LABELS.md) for the scorer and the operator guide.
+
+## Kinds (13) and S2 evaluator axis
 
 | Kind | Evaluator field | Axis | Notes |
 | --- | --- | --- | --- |
@@ -29,6 +43,8 @@ saved record also carries `claim_label` (= the basis label) and the fixed
 | `tone` | `not_scored_kinds` | — | tone/capture context |
 | `noise` | `not_scored_kinds` | — | capture-noise context (the S1 real record is `noise` / `operator_context`) |
 | `other` | `not_scored_kinds` | — | unclassified |
+| `onset` | `not_scored_kinds` | — | onset timing label; scored only by the onset-label benchmark |
+| `onset_segment` | `not_scored_kinds` | — | labelling-extent declaration, not a performance axis |
 
 Articulation axes `palm_mute`, `legato`, `tapping`, `sweep`, `chord` have no v2
 kind; they are reported as `status: "unknown"`, `reason: "no_subtype_in_v2_schema"`,

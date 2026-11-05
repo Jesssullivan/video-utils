@@ -37,14 +37,14 @@ REQUIRED_FILES = (
     ".bazelversion", ".bazelrc", ".bazelignore", "MODULE.bazel", "BUILD.bazel",
     "src/BUILD.bazel", "scripts/BUILD.bazel", "tests/BUILD.bazel", "web/BUILD.bazel",
     "native/au-spike/BUILD.bazel", "just/bazel.just", "site/BUILD.bazel", "bazel/BUILD.bazel",
-    "condense/BUILD.bazel", "livecode/BUILD.bazel",
+    "condense/BUILD.bazel", "narrate/BUILD.bazel", "livecode/BUILD.bazel",
 )
 LANE_FILES = (
     "bazel/test_classification_s3_full.json", "bazel/known_host_failures.json", "bazel/ci-bazel-full.draft.yml",
     "bazel/site_build.mjs", "bazel/host_gate.py", "bazel/full_run_report.py",
 )
 OWNED_PACKAGES = ("", "src", "scripts", "tests", "web", "site", "native/au-spike", "tools/bazel", "bazel",
-                  "condense", "livecode")
+                  "condense", "narrate", "livecode")
 HELPER_FILES = (
     "tools/bazel/BUILD.bazel", "tools/bazel/python.bzl", "tools/bazel/rust.bzl",
     "tools/bazel/unittest_main.py", "tools/bazel/run.py", "tools/bazel/web/sveltekit.mjs",
@@ -371,7 +371,7 @@ def bazel_texts(root: Path) -> dict[str, str]:
     """Every Bazel-owned text file: MODULE.bazel, each BUILD.bazel and tools/bazel/*.bzl."""
     paths = [root / "MODULE.bazel", root / "BUILD.bazel"]
     paths += [root / package / "BUILD.bazel" for package in ("src", "scripts", "tests", "web", "native/au-spike",
-                                                               "tools/bazel", "bazel", "condense", "livecode")]
+                                                               "tools/bazel", "bazel", "condense", "narrate", "livecode")]
     paths += sorted((root / "tools/bazel").glob("*.bzl")) if (root / "tools/bazel").is_dir() else []
     return {str(path.relative_to(root)): path.read_text() for path in paths if path.is_file()}
 
@@ -928,7 +928,7 @@ class GraphFilesTest(unittest.TestCase):
     def test_required_graph_files_exist(self):
         missing = [name for name in REQUIRED_FILES + HELPER_FILES + LANE_FILES if not (ROOT / name).is_file()]
         self.assertEqual(missing, [])
-        self.assertEqual(len(REQUIRED_FILES), 15)
+        self.assertEqual(len(REQUIRED_FILES), 16)
 
     def test_bazelversion_is_one_exact_version(self):
         text = (ROOT / ".bazelversion").read_text()
@@ -970,6 +970,20 @@ class GraphFilesTest(unittest.TestCase):
         self.assertTrue(house, "the lock records no lookup against the Tinyland registry")
         self.assertEqual([key for key in house if f"/tinyland-inc/bazel-registry/{pinned}/" not in key], [],
                          "MODULE.bazel.lock was generated against a different registry pin than .bazelrc")
+
+
+class AgentSkillsFilegroupTest(unittest.TestCase):
+    """//:agent_skills exposes every skill to a consuming module by label (TIN-7844)."""
+
+    def test_agent_skills_filegroup_holds_every_skill(self):
+        groups = [call for call in read_build(ROOT, "").named("filegroup")
+                  if call.kwargs.get("name") == "agent_skills"]
+        self.assertEqual(len(groups), 1)
+        srcs = set(groups[0].kwargs["srcs"])
+        skills = sorted(path.parent.name for path in (ROOT / ".agents/skills").glob("*/SKILL.md"))
+        self.assertTrue(skills, "no .agents/skills/<name>/SKILL.md in the tree")
+        self.assertEqual([name for name in skills if f".agents/skills/{name}/SKILL.md" not in srcs], [])
+        self.assertEqual([path for path in srcs if not path.startswith(".agents/skills/")], [])
 
 
 class RegistryOrderTest(unittest.TestCase):
@@ -1061,12 +1075,18 @@ class RecipesTest(unittest.TestCase):
         self.assertEqual(launcher.refused_flags(["test", "--remote_executor=grpc://x", "--bes_backend=y"]),
                          ["--remote_executor=grpc://x", "--bes_backend=y"])
         self.assertEqual(launcher.refused_flags(["build", "//src:all", "--remote_cache="]), [])
+        self.assertEqual(launcher.refused_flags(["build", "--remote_local_fallback", "--remote_local_fallback=true"]),
+                         ["--remote_local_fallback", "--remote_local_fallback=true"])
+        self.assertEqual(launcher.refused_flags(["build", "--remote_local_fallback=false",
+                                                 "--remote_local_fallback_strategy=x"]), [])
         self.assertEqual(launcher.parse(["--timeout", "30", "mod", "graph"]), (30, False, ["mod", "graph"]))
         self.assertEqual(launcher.DEFAULT_TIMEOUT_S, 1800)
         for bad in ([], ["--timeout", "0", "build"], ["--timeout"]):
             with self.assertRaises(ValueError):
                 launcher.parse(bad)
         self.assertEqual(launcher.main(["build", "--remote_cache=grpc://cache"]), launcher.EXIT_USAGE)
+        self.assertEqual(launcher.main(["test", "--remote_local_fallback"]), launcher.EXIT_USAGE)
+        self.assertIn("local, non-qualifying", launcher.LOCAL_LABEL)
 
 
 class ShimSelfTest(unittest.TestCase):

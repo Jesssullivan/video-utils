@@ -13,10 +13,23 @@
     # program from <NAME>_UNDER_TEST. tests/test_bazel_graph_s3.py holds this
     # list equal to the directories, their Bazel packages and CHANGELOG rows.
     shards = [ "livecode" ];
+    # audio.cpp 47c2756e audiocpp_cli with the Vulkan backend (narrate/bench/image/audiocpp.nix): the source of
+    # the binary sha256 an AudioCppBatch engine record pins (narrate/serve/audiocpp_batch.py --binary-sha256).
+    # x86_64-linux only: the GPU host is x86_64. Built on demand, never by `just check`.
+    x86Packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (system: {
+      narrate-bench-audiocpp = nixpkgs.legacyPackages.${system}.callPackage ./narrate/bench/image/audiocpp.nix {};
+      # The Cade render worker's CPU image (deploy/cade-render-worker/image.nix, docs/spec/RENDER_STAGE.md): no
+      # private input, no GPU binary. Its tools come from the condense pin; its commit is this flake's revision.
+      cade-render-worker-image = nixpkgs-condense.legacyPackages.${system}.callPackage ./deploy/cade-render-worker/image.nix {
+        src = ./.;
+        commit = self.rev or null;
+      };
+    });
   in {
-    packages = forAllSystems (system: let
+    # Each shard on every system, joined with the x86_64-linux narrate and render packages.
+    packages = lib.recursiveUpdate (forAllSystems (system: let
       pkgs = import nixpkgs { inherit system; };
-    in lib.genAttrs shards (name: pkgs.callPackage (./. + "/${name}/package.nix") { }));
+    in lib.genAttrs shards (name: pkgs.callPackage (./. + "/${name}/package.nix") { }))) x86Packages;
 
     # The shard's own test file against the built package; no FFmpeg, camera or macOS.
     checks = forAllSystems (system: let
@@ -52,7 +65,8 @@
         install -m 0755 "$t" "$out/bin/pandoc"
       '';
     in {
-      default = pkgs.mkShell { packages = core; CARGO_BUILD_JOBS = "1"; };
+      # dhall and dhall-json render the narrate types (narrate/dhall, `just narrate-dhall-check`).
+      default = pkgs.mkShell { packages = core ++ [ pkgs.dhall pkgs.dhall-json ]; CARGO_BUILD_JOBS = "1"; };
       analysis = pkgs.mkShell {
         packages = builtins.filter (p: p != pkgs.python3) core ++ [ analysisPython ];
         OMP_NUM_THREADS = "2";
@@ -68,6 +82,10 @@
       in cpkgs.mkShell {
         packages = with cpkgs; [
           ffmpeg-headless whisper-cpp just ruff git gitleaks rustc cargo
+          # dhall and dhall-json: `just narrate-dhall-check` runs in the shell the narrate recipes use.
+          dhall dhall-json
+          # shellcheck: `just narrate-lint` checks the narrate shell scripts in the same shell.
+          shellcheck
           (python3.withPackages (ps: with ps; [ numpy pytest ]))
         ] ++ cpkgs.lib.optional (cpkgs ? untrunc-anthwlock
           && cpkgs.lib.meta.availableOn cpkgs.stdenv.hostPlatform cpkgs.untrunc-anthwlock) cpkgs.untrunc-anthwlock;
@@ -82,7 +100,7 @@
       # Heavy optional dependencies are excluded from ordinary development.
       ml = pkgs.mkShell {
         packages = builtins.filter (p: p != pkgs.python3) core ++ [
-          (pkgs.python3.withPackages (ps: with ps; [ numpy scipy librosa soundfile torch torchaudio ]))
+          (pkgs.python3.withPackages (ps: with ps; [ numpy scipy librosa soundfile torch torchaudio speechbrain ]))
         ];
         OMP_NUM_THREADS = "2";
         OPENBLAS_NUM_THREADS = "2";

@@ -1,0 +1,17 @@
+{
+ "clock": "base",
+ "fps": {
+  "den": 1,
+  "num": 30
+ },
+ "mapping": "narrated_video_v1",
+ "no_time_stretch": false,
+ "output_axis": "base frame index / fps, and sample index / sample_rate on the same base clock",
+ "placements": {
+  "file": "placements.json",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+ },
+ "sample_rate": 48000,
+ "source_axis": "none: narration, overlays and the bed are new tracks laid on the base clock; no source media is time-stretched",
+ "stretch_applied": false
+}

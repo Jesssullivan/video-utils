@@ -7,7 +7,7 @@ description: Burn correction notes into a copy.
 
 **Hook:** MCP tool `condense_overlay` (admitted as tool 55, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense overlay`; the talk.toml path rules in docs/spec/CONDENSE_TOOL_CONTRACT.md are checked before it starts.
 
-**Capability:** Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 beneath the config's work/out paths.
+**Capability:** Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 and, with [encode] upload = "h264", out/<name>.corrected.upload.mp4 (H.264, +faststart, as condense_render's upload copy) beneath the config's work/out paths.
 
 ## Use and controls
 
@@ -24,4 +24,4 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 
 ## Agent iteration
 
-Read the stage's printed summary and the files it wrote (out/<name>.corrected.mp4). Change one talk.toml number, rerun this stage and the ones after it, and compare. A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report. Never download a model or upload media implicitly.
+Read the stage's printed summary and the files it wrote (out/<name>.corrected.mp4 and the optional out/<name>.corrected.upload.mp4). Change one talk.toml number, rerun this stage and the ones after it, and compare. A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report. Never download a model or upload media implicitly.

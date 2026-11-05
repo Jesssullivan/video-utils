@@ -1,0 +1,369 @@
+"""Speaker similarity (SIM) for `narrate evaluate` (docs/spec/NARRATE.md, "Per-chunk QA" and "Evaluation").
+
+The scorer is speechbrain/spkrec-ecapa-voxceleb's ECAPA-TDNN embedding (Apache-2.0), registered in
+program/models.json as SIM_MODEL_ID and bound by the sha256 of embedding_model.ckpt. It runs on the CPU in a
+separate interpreter that has torch and speechbrain (`nix develop .#ml`), because the condense shell the narrate
+recipes use has neither: narrate.sim_worker reads one JSON request and prints one reply.
+
+Settings, first found wins: `[sim] model` / NARRATE_SIM_MODEL (the embedding_model.ckpt path), `[sim] python` /
+NARRATE_SIM_PYTHON (the worker interpreter), `[sim] threads` (1 to 8; default 4). With no model named,
+models/<SIM_MODEL_ID>.bin is used when `just narrate-sim-model` has fetched it. The interpreter has no default:
+torch inference starts only when someone names it. On the shared CPU host a scorer runs one at a time inside a
+6G memory scope (systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0, nice 19, ionice -c3); no TTS
+model runs there. scorer_lock() is the host's one-scorer lock: `narrate evaluate` holds it while whisper or the
+SIM worker runs, and so does the bench scorer; the MCP tool also starts `narrate evaluate` inside that scope on
+Linux. Every embedded file is at most MAX_SECONDS long, because the worker's memory grows with the length it
+embeds (a probe that embedded two 222 s and 266 s tracks peaked at 4.7 GB resident): a longer chunk is skipped
+and marked too_long, never sent. Without a model file, with a file whose sha256 is not the registered one, without
+an interpreter, or when the worker cannot run or answers out of protocol, SIM is not_measured with the reason,
+never a number. A run with no chunk short enough to score is not_measured too, and a run with a skipped chunk has
+no passed verdict (None).
+
+Consent: an ECAPA embedding is a voiceprint. Every reference voice (the speaking voices the manifest names, or
+--reference-voice) passes policy.check_consent against the current registry before any clip is read: a revoked,
+unregistered, evidence-less or out-of-scope consent gives not_measured with the typed refusal code.
+
+The worker's front end is hardcoded to the hyperparams.yaml of the pinned revision; program/models.json records
+that file's sha256, but only embedding_model.ckpt is fetched and checked. The real model path runs only in the
+opt-in test (NARRATE_SIM_TEST_MODEL, NARRATE_SIM_TEST_PYTHON); CI covers the import smoke and the fake worker.
+
+What a number means: cosine similarity of two utterance embeddings, -1 to 1. It measures how alike two recordings
+sound to a speaker-verification model trained on VoxCeleb celebrity interviews; the channel (microphone, room,
+codec) moves it as well as the voice does. It is evidence for a gate the bench calibrates against a decoy, not a
+judgement that a listener hears the same person. Listening acceptance is a separate state.
+"""
+
+import contextlib
+import fcntl
+import json
+import math
+import os
+import statistics
+import subprocess
+import tempfile
+from pathlib import Path
+
+from . import audio, policy, qa
+from .config import FF, ROOT, SIM_MAX_THREADS, run
+
+SIM_MODEL_ID = "speechbrain-spkrec-ecapa-voxceleb-embedding"
+WORKER = Path(__file__).resolve().parent / "sim_worker.py"
+MAX_THREADS = SIM_MAX_THREADS
+WORKER_TIMEOUT_S = float(os.environ.get("NARRATE_SIM_TIMEOUT_S", 600))
+WINDOW_S, HOP_S = 10.0, 5.0  # wSIM over the delivered track (bench plan): the minimum shows drift on long text
+SHORT_S = 1.0  # a chunk shorter than this still scores, and is marked short: its embedding is noisy
+MAX_SECONDS = 60.0  # the longest file the worker embeds (sim_worker.MAX_SECONDS); wSIM windows keep tracks short
+DEFAULT_MODEL = ROOT / "models" / f"{SIM_MODEL_ID}.bin"  # where `just narrate-sim-model` puts it
+# A wSIM window scores only when it holds MIN_VOICED_S of frames above VOICED_DBFS: padding to cue times can leave
+# windows of silence, whose embedding measures nothing about voice drift.
+FRAME_S, VOICED_DBFS, MIN_VOICED_S = 0.02, -45.0, 3.0
+# The host's one-scorer lock file: $XDG_RUNTIME_DIR (else the temporary directory)/SCORER_LOCK_NAME, or the path
+# NARRATE_SCORER_LOCK names (tests).
+SCORER_LOCK_NAME, SCORER_LOCK_ENV = "video-utils-narrate-scorer.lock", "NARRATE_SCORER_LOCK"
+SCORER_BUSY = "another narrate scorer holds the host's one-scorer lock; scorers run one at a time"
+
+
+def scorer_lock_path():
+    if os.environ.get(SCORER_LOCK_ENV):
+        return Path(os.environ[SCORER_LOCK_ENV])
+    return Path(os.environ.get("XDG_RUNTIME_DIR") or tempfile.gettempdir()) / SCORER_LOCK_NAME
+
+
+@contextlib.contextmanager
+def scorer_lock():
+    """Hold the one-scorer lock while whisper or the SIM worker runs. Yields True when held, False when another
+    scorer holds it (never waits). The lock is an flock on an open file, so a killed holder releases it."""
+    fd = os.open(scorer_lock_path(), os.O_RDWR | os.O_CREAT, 0o600)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            yield False
+            return
+        yield True
+    finally:
+        os.close(fd)
+
+
+class Scorer:
+    def __init__(self, cfg=None):
+        sim = cfg.sim if cfg is not None else {}
+        model = sim.get("model") or os.environ.get("NARRATE_SIM_MODEL", "")
+        base = cfg.base if cfg is not None else Path.cwd()
+        self.model = (Path(model) if Path(model).is_absolute() else base / model) if model else None
+        if self.model is None and DEFAULT_MODEL.is_file():
+            self.model = DEFAULT_MODEL
+        self.python = sim.get("python") or os.environ.get("NARRATE_SIM_PYTHON") or None
+        self.threads = check_threads(sim.get("threads", 4))
+        self.model_sha256, self.model_id, self.runtime = None, None, {}
+
+    def available(self):
+        if self.python is None:
+            return False, (
+                "no SIM interpreter ([sim] python or NARRATE_SIM_PYTHON): torch starts only when one is named "
+                "(on the shared CPU host, inside a 6G memory scope)"
+            )
+        if self.model is None:
+            return False, "no speaker-verification model ([sim] model or NARRATE_SIM_MODEL)"
+        if not self.model.is_file():
+            return False, "the [sim] model file is absent (just narrate-sim-model)"
+        digest = qa.model_digest(self.model)
+        model_id = qa.registered(digest)
+        if model_id != SIM_MODEL_ID:
+            return False, f"SIM model sha256 {digest[:12]} is not the registered {SIM_MODEL_ID}"
+        self.model_sha256, self.model_id = digest, model_id
+        return True, f"{SIM_MODEL_ID} on the CPU"
+
+    def identity(self):
+        return {
+            "model_id": self.model_id,
+            "model_sha256": self.model_sha256,
+            "embedding": "ECAPA-TDNN 192-d, Fbank 80 at 16 kHz, sentence mean norm",
+            "score": "cosine similarity, -1 to 1",
+            "threads": self.threads,
+            **self.runtime,
+        }
+
+    def score(self, pairs, timeout=WORKER_TIMEOUT_S):
+        """{id: row} for [(id, wav a, wav b)] (16-bit mono WAV paths). Raises RuntimeError with the reason.
+
+        Only a worker that exits 0 with ok true, one score per requested id, finite cosines in [-1, 1], positive
+        finite durations, nonempty torch and speechbrain versions and the requested thread count is a measurement;
+        anything else raises, so evaluate reports not_measured without a summary or a passing gate."""
+        self.runtime = {}
+        expected = [i for i, _, _ in pairs]
+        if not expected or any(type(i) is not str or not i for i in expected) or len(set(expected)) != len(expected):
+            raise RuntimeError("the SIM request needs unique nonempty string IDs")
+        request = {
+            "model": str(self.model),
+            "threads": self.threads,
+            "pairs": [{"id": i, "a": str(a), "b": str(b)} for i, a, b in pairs],
+        }
+        env = dict(os.environ, OMP_NUM_THREADS=str(self.threads), MKL_NUM_THREADS=str(self.threads))
+        try:
+            p = subprocess.run(
+                [self.python, "-I", str(WORKER)],
+                input=json.dumps(request),
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                env=env,
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"the SIM worker ran over {timeout:g} s") from None
+        except OSError as error:
+            raise RuntimeError(f"the SIM worker could not start: {error}") from None
+        if p.returncode != 0:
+            raise RuntimeError(f"the SIM worker failed (exit {p.returncode}): {worker_reason(p)}")
+        try:
+            reply = json.loads(p.stdout)
+            if type(reply) is not dict or type(reply.get("ok")) is not bool:
+                raise ValueError("expected an object with boolean ok")
+            if reply["ok"] is not True:
+                raise ValueError(f"worker refused: {str(reply.get('reason'))[:300]}")
+            scores = reply["scores"]
+            if type(scores) is not list or len(scores) != len(expected):
+                raise ValueError("scores must match every requested ID exactly once")
+            rows = {}
+            for row in scores:
+                if type(row) is not dict or type(row.get("id")) is not str:
+                    raise ValueError("each score needs a string ID")
+                ident = row["id"]
+                if ident not in expected or ident in rows:
+                    raise ValueError("unexpected or duplicate score ID")
+                for key in ("sim", "a_seconds", "b_seconds"):
+                    value = row[key]
+                    if type(value) not in (int, float) or not math.isfinite(value):
+                        raise ValueError(f"{key} must be a finite number")
+                    if key == "sim" and not -1 <= value <= 1:
+                        raise ValueError("cosine must lie in [-1, 1]")
+                    if key != "sim" and value <= 0:
+                        raise ValueError("scored audio duration must be positive")
+                rows[ident] = row
+            for key in ("torch", "speechbrain"):
+                if type(reply[key]) is not str or not reply[key]:
+                    raise ValueError(f"{key} version must be a nonempty string")
+            if "threads" in reply and (type(reply["threads"]) is not int or reply["threads"] != self.threads):
+                raise ValueError("worker threads differ from the request")
+        except (ValueError, KeyError, TypeError, OverflowError) as error:
+            raise RuntimeError(f"invalid SIM worker response: {error}") from None
+        self.runtime = {"torch": reply["torch"], "speechbrain": reply["speechbrain"]}
+        return rows
+
+
+def worker_reason(p):
+    """The refusal reason of a failed worker's JSON reply, else the last stderr line (truncated)."""
+    try:
+        reply = json.loads(p.stdout)
+        if type(reply) is dict and type(reply.get("reason")) is str:
+            return reply["reason"][:300]
+    except ValueError:
+        pass
+    tail = (p.stderr or "").strip().splitlines()[-1:] or ["no output"]
+    return tail[0][:300]
+
+
+def check_threads(value):
+    """[sim] threads: an integer from 1 to MAX_THREADS (narrate.config refuses anything else before a run)."""
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= MAX_THREADS:
+        raise ValueError(f"sim.threads = {value!r}: an integer from 1 to {MAX_THREADS}")
+    return value
+
+
+def voiced_seconds(pcm, start_s, end_s):
+    """Seconds of FRAME_S frames in pcm[start_s:end_s] whose RMS is above VOICED_DBFS (full scale 32768)."""
+    frame = max(1, round(FRAME_S * pcm.rate))
+    a, b = round(start_s * pcm.rate), min(len(pcm.samples), round(end_s * pcm.rate))
+    floor = frame * (32768.0 * 10 ** (VOICED_DBFS / 20)) ** 2
+    voiced = 0
+    for k in range(a, b - frame + 1, frame):
+        piece = pcm.samples[k : k + frame]
+        if math.sumprod(piece, piece) > floor:
+            voiced += 1
+    return voiced * frame / pcm.rate
+
+
+def window_starts(total_s):
+    """wSIM window starts over a total_s track: every HOP_S, plus one that ends with the track."""
+    if total_s <= WINDOW_S:
+        return [0.0]
+    starts = [k * HOP_S for k in range(int((total_s - WINDOW_S) // HOP_S) + 1)]
+    if starts[-1] < total_s - WINDOW_S - 0.5:
+        starts.append(round(total_s - WINDOW_S, 3))  # the last window ends with the track
+    return starts
+
+
+def wsim_voiced(pcm, start_s):
+    """True when the window at start_s holds enough voiced frames to score (MIN_VOICED_S, or half a short track)."""
+    return voiced_seconds(pcm, start_s, start_s + WINDOW_S) >= min(MIN_VOICED_S, pcm.seconds / 2)
+
+
+def to16k(src, dst):
+    """A 16 kHz mono 16-bit copy of any audio file FFmpeg reads (the store may hold a 24-bit or 44.1 kHz clip)."""
+    run(*FF, "-loglevel", "error", "-i", src, "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", dst)
+    return dst
+
+
+def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
+    """The sim metric of `narrate evaluate`: each chunk of narration.wav (out_start_s..out_end_s) against the
+    reference clip of the voice that spoke it, or of reference_voice for every chunk; plus wSIM, the minimum over
+    10 s windows with a 5 s hop, when one reference serves the whole track."""
+    if cfg is None:
+        return qa.not_measured("no narrate.toml given (--config): the reference clip is found through its store")
+    registry = cfg.registry()
+    by_speaker = {str(v["speaker"]): v for v in manifest["voices"]}
+    edl = json.loads((Path(run_dir) / manifest["timeline"]["edl"]["file"]).read_text(encoding="utf-8"))
+    chunk_voice = {c["id"]: s["voice"] for s in edl["segments"] for c in s["chunks"]}
+    voice_ref = {v["voice"]: v["ref_clip_sha256"] for v in by_speaker.values()}
+    if reference_voice is not None:
+        record = registry["voices"].get(reference_voice)
+        if record is None:
+            return qa.not_measured(f"reference voice {reference_voice!r} is not in the voice registry")
+        refs = {c["id"]: (reference_voice, record["refClipSha256"]) for c in manifest["chunks"]}
+    else:
+        refs = {c["id"]: (chunk_voice[c["id"]], voice_ref[chunk_voice[c["id"]]]) for c in manifest["chunks"]}
+    # Consent is read now, not from the manifest: a historical render is not current permission to use its
+    # reference, including a decoy override. Registry metadata is checked before the store is hashed, and the
+    # stored evidence before any audio is decoded or embedded.
+    scope, voice_id = manifest["job"]["scope"], None
+    try:
+        wanted = sorted(set(refs.values()))
+        for voice_id, digest in wanted:
+            policy.check_consent(voice_id, registry, None, scope)
+            if registry["voices"][voice_id]["refClipSha256"] != digest:
+                raise policy.Refused("ref_clip_changed", "the reference clip differs from the current voice record")
+        index = policy.store_index(cfg.store)
+        for voice_id, _ in wanted:
+            policy.check_consent(voice_id, registry, index, scope)
+    except policy.Refused as refusal:
+        reason = f"reference consent refused: voice {voice_id}: {refusal.detail}"
+        return {**qa.not_measured(reason), "refused": refusal.code}
+    except (KeyError, TypeError, ValueError) as error:
+        reason = f"reference consent refused: voice {voice_id}: invalid record ({type(error).__name__})"
+        return {**qa.not_measured(reason), "refused": "consent_invalid"}
+    scorer = scorer or Scorer(cfg)
+    ready = scorer.available()
+    if not ready[0]:
+        return qa.not_measured(ready[1])
+    missing = sorted({digest for _, digest in refs.values() if digest not in index})
+    if missing:
+        return qa.not_measured(f"reference clip {missing[0][:12]} is not in the private store")
+    if not manifest["chunks"]:
+        return qa.not_measured("the run has no chunk to score")
+    delivered = audio.read(Path(run_dir) / "narration.wav")
+    with tempfile.TemporaryDirectory() as work:
+        work = Path(work)
+        ref_paths = {d: to16k(index[d], work / f"ref-{d[:16]}.wav") for d in {d for _, d in refs.values()}}
+        pairs, seconds, skipped = [], {}, []
+        for chunk in manifest["chunks"]:
+            a, b = round(chunk["out_start_s"] * delivered.rate), round(chunk["out_end_s"] * delivered.rate)
+            piece = audio.Pcm(delivered.rate, delivered.samples[a:b])
+            seconds[chunk["id"]] = round(piece.seconds, 3)
+            if piece.seconds > MAX_SECONDS:
+                skipped.append(chunk["id"])  # the worker would refuse the whole request: only this chunk goes
+                continue
+            path = to16k(piece.write(work / f"chunk-{chunk['id']}.raw.wav"), work / f"chunk-{chunk['id']}.wav")
+            pairs.append((chunk["id"], path, ref_paths[refs[chunk["id"]][1]]))
+        single = len(set(ref_paths)) == 1
+        windows, silent = [], 0
+        if single:
+            whole = to16k(Path(run_dir) / "narration.wav", work / "track.wav")
+            total = delivered.seconds
+            for k, start in enumerate(window_starts(total)):
+                if not wsim_voiced(delivered, start):
+                    silent += 1
+                    continue
+                wid = f"window-{k}"
+                path = work / f"{wid}.wav"
+                run(*FF, "-loglevel", "error", "-i", whole, "-ss", f"{start:.3f}", "-t", f"{WINDOW_S:.3f}", path)
+                windows.append((wid, path, next(iter(ref_paths.values())), start))
+        if not pairs and not windows:
+            return qa.not_measured(f"no chunk is at most {MAX_SECONDS:.0f} s long and no wSIM window has voice")
+        try:
+            rows = scorer.score(pairs + [(w, p, r) for w, p, r, _ in windows])
+        except RuntimeError as error:
+            return qa.not_measured(str(error))
+    chunks = [
+        {
+            "chunk": cid,
+            "voice": refs[cid][0],
+            "sim": rows[cid]["sim"] if cid in rows else None,
+            "seconds": seconds[cid],
+            **({"short": True} if seconds[cid] < SHORT_S else {}),
+            **({"skipped": "too_long"} if cid in skipped else {}),
+        }
+        for cid in (c["id"] for c in manifest["chunks"])
+    ]
+    values = [c["sim"] for c in chunks if c["sim"] is not None]
+    gates = manifest["job"]["gates"]
+    out = {
+        "status": "measured",
+        **scorer.identity(),
+        "scored": "narration.wav, cut per chunk at out_start_s..out_end_s, against the voice's reference clip",
+        "reference": {
+            "override": reference_voice,
+            "ref_clip_sha256": sorted({d for _, d in refs.values()}),
+        },
+        "chunks": chunks,
+        "median": round(statistics.median(values), 4) if values else None,
+        "min": min(values) if values else None,
+        "min_sim": gates["minSim"],
+        "calibrated": gates["calibrated"],
+        # an unscored chunk is no evidence for the gate: passed is None, never True, while one is skipped
+        "passed": None if skipped or not values else all(v >= gates["minSim"] for v in values),
+    }
+    if skipped:
+        out["skipped_too_long"] = len(skipped)
+    if single:
+        wsim = [rows[w]["sim"] for w, _, _, _ in windows]
+        out["wsim"] = {
+            "window_s": WINDOW_S,
+            "hop_s": HOP_S,
+            "windows": len(wsim),
+            "skipped_silent": silent,
+            "min_voiced_s": MIN_VOICED_S,
+            "min": min(wsim) if wsim else None,
+        }
+    if not gates["calibrated"]:
+        out["note"] = "minSim is uncalibrated: the bench sets it against a decoy; passed is not acceptance"
+    return out

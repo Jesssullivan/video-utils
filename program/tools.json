@@ -3915,7 +3915,7 @@
     {
       "name": "condense_render",
       "title": "Render the condensed talk",
-      "description": "Build mezzanines, render parts in parallel ([encode] jobs, default 2), join them, apply two-pass loudness to -16 LUFS / -1.5 dBTP and encode HEVC with AAC. Reads edl.json and the recordings; writes work/<clip>.mezz.mkv, the parts and the output mp4 beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Build mezzanines, render parts in parallel ([encode] jobs, default 2), join them, apply two-pass loudness to -16 LUFS / -1.5 dBTP and encode HEVC with AAC. With [encode] upload = \"h264\" it also writes <name>.upload.mp4: the same frames as H.264 with no B-frames and a keyframe every 2 s, the edit's audio copied, refused unless its moov box precedes its mdat box (+faststart) and its video starts at pts and dts 0. Reads edl.json and the recordings; writes work/<clip>.mezz.mkv, the parts, the output mp4 and the optional upload copy beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense render stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -3960,7 +3960,7 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the stage's printed summary and the files it wrote (work/<clip>.mezz.mkv, the parts and the output mp4).",
+        "identify": "Read the stage's printed summary and the files it wrote (work/<clip>.mezz.mkv, the parts, the output mp4 and, with [encode] upload, out/<name>.upload.mp4 with its printed moov offset and audio first pts).",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
         "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
@@ -3970,7 +3970,7 @@
     {
       "name": "condense_check",
       "title": "Gate a rendered edit",
-      "description": "Run the named checks (default all): silence (no 1.0 s gap at -35 dB), loud (within 1 LU, true peak under 0 dBTP), sync (probe and real, within 20 ms) and bounds (whisper re-reads at cuts for a person). Reads the output and edl.json; writes a printed report only beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Run the named checks (default all): silence (no 1.0 s gap at -35 dB), loud (within 1 LU, true peak under 0 dBTP), sync (probe, real and joined medians within 20 ms; a median needs 4 clear spots, else not_measured) and bounds (whisper re-reads at cuts for a person). Reads the output and edl.json; writes work/check.json when all four gates ran, else work/check.partial.json, beneath the config's work path: status passed, partial, not_measured or failed, each gate's limits, measures and verdict, every tried sync spot, and a summary, bound to the sha256 of the output and edl.json only. It does not measure the captions, the corrected copy or the upload copies. Exit 1 when a gate fails or is not measured. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense check stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -4014,7 +4014,8 @@
       "evidence_kind": "measured_gates_and_human_review_text",
       "limitations": [
         "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
-        "bounds prints text for a person to read; it does not pass or fail on its own."
+        "bounds prints text for a person to read; it does not pass or fail on its own.",
+        "A run of fewer than four gates never replaces work/check.json; condense_publish refuses a newer check.partial.json of the same edit that says failed or not_measured."
       ],
       "annotations": {
         "readOnlyHint": false,
@@ -4030,7 +4031,7 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the stage's printed summary and the files it wrote (a printed report only).",
+        "identify": "Read the printed report and work/check.json (or work/check.partial.json): its status, each gate's verdict, and for sync every tried spot with why it was not clear (sound or picture) and any too_few_spots clip or third.",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
         "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
@@ -4095,7 +4096,7 @@
     {
       "name": "condense_overlay",
       "title": "Burn correction notes into a copy",
-      "description": "Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 and, with [encode] upload = \"h264\", out/<name>.corrected.upload.mp4 (H.264, +faststart, as condense_render's upload copy) beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense overlay stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -4140,7 +4141,7 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the stage's printed summary and the files it wrote (out/<name>.corrected.mp4).",
+        "identify": "Read the stage's printed summary and the files it wrote (out/<name>.corrected.mp4 and the optional out/<name>.corrected.upload.mp4).",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
         "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
@@ -4217,7 +4218,7 @@
     {
       "name": "condense_publish",
       "title": "Publish a hash-bound condense run",
-      "description": "Copy the delivered edit, edl.json and whichever captions and corrected copy exist into a fresh artifacts/condense/<run_id>/ with a manifest whose timeline mapping is edl_v1, then verify it with `video-utils verify-run --timeline edl_v1`; a run that fails the check is kept as .failed-<run_id> and the call fails. Reads the config's out and work paths; the output root is fixed (repository artifacts/condense) and there is no output field. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Copy the delivered edit, edl.json and whichever captions, corrected copy, upload copies (talk.upload.mp4, talk.corrected.upload.mp4) and work/check.json of this very edit exist into a fresh artifacts/condense/<run_id>/ with a manifest whose timeline mapping is edl_v1, then verify it with `video-utils verify-run --timeline edl_v1`; a run that fails the check is kept as .failed-<run_id> and the call fails. The manifest's check records the report's sha256, status, gates and summary, or not_run; its uploads records each copy's frames, moov and mdat offsets (verify-run reads the box order again) and the audio's first packet pts (-1024 at 1/48000 s, AAC priming). Refused before anything is staged: a check.json of another edit, a newer failed or not_measured check.partial.json of the same edit, and an upload copy without the edit's frames or audio packets, not +faststart, or whose video does not start at pts 0. Reads the config's out and work paths; the output root is fixed (repository artifacts/condense) and there is no output field. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense publish stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -4246,7 +4247,8 @@
       "evidence_kind": "hash_bound_condense_manifest",
       "limitations": [
         "The manifest binds hashes and the EDL timeline; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
-        "Each call writes a new run; earlier runs are never changed or removed."
+        "Each call writes a new run; earlier runs are never changed or removed.",
+        "The manifest's check describes talk.mp4 only: check measures neither the captions nor the corrected or upload copies."
       ],
       "annotations": {
         "readOnlyHint": false,
@@ -4262,11 +4264,367 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the printed run directory, file count and frame total; the manifest and verify-run receipt sit in it.",
+        "identify": "Read the printed run directory, file count, frame total, upload copy count and check status; the manifest (check, uploads) and verify-run receipt sit in it.",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Publish again after a new render; compare runs by their manifests.",
         "acceptance": "A verified run proves the hashes and the timeline mapping, not that the edit is accepted.",
         "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "narrate_render",
+      "title": "Render a narration in a consented voice",
+      "description": "Run `python -m narrate render --json` on one narrate.toml job: input adapter, lexical pass, chunker, pronunciation, engine (best of maxTakes per chunk), per-chunk WER through whisper when present, timing fit, two-pass loudnorm, captions, narration EDL and manifest, then verify. Every consent, scope, revocation, hosted and confidential refusal happens before any audio exists and returns its typed code. Returns the run directory, the manifest path and a summary (chunks, seconds, loudness, QA counts, overruns, overrides, flags). Reads the narrate.toml, its records, the private store and the script (a file, or inline text written to a private temporary file); writes one fresh run under the narrate.toml out directory (default artifacts/narrate/<run_id>/), never under artifacts/runs/. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent voice a short script in a consented voice with bounded time, typed refusals and a manifest it can inspect and score.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB). It names the rendered job, engine, voice, consent and pronunciation records and the private store; paths in it are relative to it."
+          },
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A script file instead of narrate.toml's input (a regular file, not a symlink, at most 16 MiB); read as the job's input kind."
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Inline script text, at most 4000 characters, instead of a file. It is written to a private temporary file and read as input_kind (or the job's kind); a job that pins inputSha256 refuses text that differs. Longer scripts go through the CLI."
+          },
+          "input_kind": {
+            "type": "string",
+            "enum": [
+              "PlainText",
+              "Markdown",
+              "Srt",
+              "Vtt",
+              "CondenseWords",
+              "Dialog"
+            ],
+            "description": "Overrides the job's input kind. Inline text cannot be CondenseWords."
+          },
+          "voice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Overrides the job's voice id. The voice passes the same consent, scope, revocation and allowed-engine checks."
+          },
+          "engine": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "An engine id instead of the job's. Hosted and rented engines still need the job and consent flags; a confidential job still refuses every engine that may not run it."
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "description": "The base seed; take k uses seed + k - 1."
+          },
+          "confidential": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "true marks the job confidential (refused on any engine that may not run it). It never clears a job's flag."
+          },
+          "allow_hosted": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "description": "false withdraws the job's allowHosted. MCP never grants hosted use; that takes the job file and the consent record."
+          },
+          "max_chunk_wer": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "gates.maxChunkWer: a measured take over it is synthesised again with the next seed."
+          },
+          "min_sim": {
+            "type": "number",
+            "minimum": -1,
+            "maximum": 1,
+            "description": "gates.minSim, recorded with the job. Render does not score SIM in v0; narrate_evaluate does."
+          },
+          "max_takes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3,
+            "description": "gates.maxTakes: takes per chunk, best kept."
+          },
+          "chunk_max_codepoints": {
+            "type": "integer",
+            "minimum": 40,
+            "maximum": 1000,
+            "description": "chunkMaxCodepoints: the spoken length limit of one engine call."
+          },
+          "loudness_lufs": {
+            "type": "number",
+            "minimum": -30,
+            "maximum": -10,
+            "description": "post.loudnessLufs: the integrated loudness target of the two-pass loudnorm."
+          },
+          "fit_max_stretch": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 0.08,
+            "description": "post.fitMaxStretch: the atempo limit after the engine speed knob; what still overruns is flagged, never truncated."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Outer deadline for the whole call in seconds (at most 900). The engine calls, whisper and FFmpeg run inside it; a longer script goes through just narrate-render."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-render/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "synthetic_narration_rendered_unreviewed",
+      "limitations": [
+        "Synthetic-fixture tests and the fake engine cover the path; a real engine render, its WER and SIM gates and listening acceptance are separate states recorded per run.",
+        "Gate values are placeholders until the bench calibrates them (job gates.calibrated false); a run with no flag meets only the source gate, not listening acceptance.",
+        "Render does not score SIM per take in v0, so every run carries sim_not_measured; narrate_evaluate scores the delivered chunks.",
+        "The job's audio format, captions and narration EDL choice come from the job file; MCP overrides cover the voice, engine, seed, gates, chunking, loudness target and fit limit only."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "narrate_voices",
+          "narrate_engines"
+        ],
+        "enforced": false,
+        "note": "List voices and engines first; consent and engine eligibility are enforced by the render itself."
+      },
+      "agent_workflow": {
+        "identify": "Read run_dir, manifest, chunks, seconds, loudness, qa, overruns, overrides and flags; the manifest records every chunk's takes, seeds, WER and the engine, voice and consent ids.",
+        "research": "docs/spec/NARRATE.md gives the dataflow, consent policy and outputs; narrate/README.md gives every rule and default.",
+        "iterate": "Change one knob (seed, max_takes, chunk_max_codepoints, fit_max_stretch or the engine), render again and compare with narrate_evaluate on both runs.",
+        "acceptance": "A rendered run is not an accepted narration: narrate_evaluate scores it and the operator's blind listening receipt accepts it.",
+        "max_comparison_candidates_default": 2
+      }
+    },
+    {
+      "name": "narrate_voices",
+      "title": "List consented narration voices",
+      "description": "Run `python -m narrate voices` on one narrate.toml: each voice id with its consent id and state (active, revoked, missing or evidence_absent), scopes, allowed engines, whether hosted use is allowed, whether it is a fixture, and whether its reference clip and transcript are in the private store. Never a path, a clip, a transcript or a digest. Reads the registry records and hashes the private store; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent pick a voice it may use before a render, from consent state rather than from files.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB). It names the rendered job, engine, voice, consent and pronunciation records and the private store; paths in it are relative to it."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "default": 60,
+            "description": "Outer deadline for the whole call in seconds (at most 300). Hashing a large private store takes most of it."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-voices/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "consent_registry_listing",
+      "limitations": [
+        "The listing reflects the private registry and store as they are; consent evidence itself is checked by digest only, never read or judged here."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "The registry records are dhall-to-json renders the operator keeps outside git."
+      },
+      "agent_workflow": {
+        "identify": "Read id, consent_state, scope, consent_scopes, allowed_engines, hosted_allowed, fixture, ref_clip_stored and ref_text_stored per voice.",
+        "research": "docs/spec/NARRATE.md \"Consent and confidentiality policy\".",
+        "iterate": "There are no knobs; a voice that is not active needs the operator, never a workaround.",
+        "acceptance": "Only an active voice whose clip and transcript are stored can render; v0 clones only the operator's own voice.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "narrate_engines",
+      "title": "List narration engines and their reachability",
+      "description": "Run `python -m narrate engines` on one narrate.toml: each engine id with its profile, backend, model, licence and licence notice, whether it is hosted, whether its profile and backend agree, whether it may run a confidential job, and its availability; with probe_reachability, a 2 s TCP connect to each http engine (no request, no token, no synthesis). Never an endpoint. Reads the registry records; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent see which engines a job may use and which answer, before it spends a render on one.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB). It names the rendered job, engine, voice, consent and pronunciation records and the private store; paths in it are relative to it."
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "GpuSwitch",
+              "GpuDirect",
+              "MacMlx",
+              "RentedOpen",
+              "Hosted",
+              "Fake"
+            ],
+            "description": "Only engines of this profile."
+          },
+          "probe_reachability": {
+            "type": "boolean",
+            "default": false,
+            "description": "Also try a TCP connect (2 s each) to every http engine; the reply says reachable and how, never the endpoint."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "default": 60,
+            "description": "Outer deadline for the whole call in seconds (at most 120). Each reachability probe is bounded at 2 s inside it."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-engines/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "engine_registry_listing_with_tcp_reachability",
+      "limitations": [
+        "A reachable port is not a working engine: only a render proves the speech route, the model and the reference-clip handling.",
+        "GPU lease and model-switch state are not read here; the attended-window receipt holds them."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "Engine instances with private endpoints live in the operator's registry outside git."
+      },
+      "agent_workflow": {
+        "identify": "Read id, profile, backend, hosted, consistent, may_run_confidential, licence_notice, available and reach per engine.",
+        "research": "docs/spec/NARRATE.md \"Engine profiles\" gives the preference order and who may run confidential work.",
+        "iterate": "Probe again after an engine starts; never start, stop or switch a server from here.",
+        "acceptance": "An engine is usable for a job only when the render admits it; this listing is advice.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "narrate_evaluate",
+      "title": "Score a narration run",
+      "description": "Run `python -m narrate evaluate` on one run directory after re-verifying it: loudness (EBU R128 against the job target), overruns (from the EDL), WER (each chunk cut from narration.wav and read back by the registered whisper model) and SIM (each chunk against the speaking voice's reference clip with the registered ECAPA speaker-verification model on the CPU, plus wSIM, the minimum over 10 s windows). A metric whose model or runtime is missing is not_measured with its reason, never a number. reference_voice scores every chunk against another voice's clip (a decoy check). Reads the run, the narrate.toml and the private store; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Give agents measured, typed evidence on a narration run (and its decoy) before anyone listens.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A narration run directory with its manifest.json (no symlink components). A run that does not verify is refused (run_unverified)."
+          },
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB): the whisper and [sim] settings and the private store that holds the reference clips. Without it WER and SIM are not_measured."
+          },
+          "metrics": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "enum": [
+                "loudness",
+                "overruns",
+                "wer",
+                "sim"
+              ]
+            },
+            "description": "Which metrics, each at most once (default all four)."
+          },
+          "reference_voice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "sim: score every chunk against this registered voice's reference clip instead of the voice that spoke it."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Outer deadline for the whole call in seconds (at most 900). Whisper and the SIM worker (at most 8 CPU threads) run inside it."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-evaluate/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "measured_narration_scores_uncalibrated",
+      "limitations": [
+        "SIM is the cosine of ECAPA embeddings trained on VoxCeleb; the microphone and room move it as well as the voice, so a cross-channel reference scores lower. Its gate is uncalibrated until the bench sets it against a decoy.",
+        "SIM needs the registered model (just narrate-sim-model) and an interpreter with torch and speechbrain named explicitly ([sim] python or NARRATE_SIM_PYTHON; there is no default); otherwise it is not_measured. On the shared CPU host it runs one scorer at a time inside a 6G memory scope; no TTS model runs there.",
+        "WER is a regression gate, not a ranking; rare words are adjudicated by a person. UTMOS is not scored yet.",
+        "Metrics never stand in for the operator's blind listening receipt."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "narrate_render"
+        ],
+        "enforced": false,
+        "note": "The run comes from narrate_render or just narrate-render."
+      },
+      "agent_workflow": {
+        "identify": "Read each metric's status; for sim read median, min, wsim.min, the per-chunk rows (short marks a chunk under 1 s), min_sim and calibrated; for wer the per-chunk rows and passed.",
+        "research": "docs/agent-notes/2026-10-22-narrate-bench-plan.md defines the SIM bar against a preset-voice decoy and wSIM; narrate/sim.py says what a SIM number means.",
+        "iterate": "Score the same run with reference_voice set to a decoy voice and compare medians; score two renders of one script to compare engines or seeds.",
+        "acceptance": "Measured scores are evidence for a gate, not acceptance; the operator's blind A/B listening receipt is a separate state.",
+        "max_comparison_candidates_default": 2
       }
     }
   ]

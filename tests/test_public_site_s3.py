@@ -413,6 +413,14 @@ def main_checkout() -> Path | None:
     return Path(match.group(1)) if match else None
 
 
+def runs_roots_present() -> list[Path]:
+    """The artifacts/runs directories that exist: this tree's and, in a linked worktree, the main checkout's."""
+    candidates = [REPO / "artifacts" / "runs"]
+    if main_checkout() is not None:
+        candidates.append(main_checkout() / "artifacts" / "runs")
+    return [root for root in candidates if root.is_dir()]
+
+
 def real_take_identifiers() -> dict:
     """Exact identifiers that must never occur under site/ (read at test time, never hardcoded)."""
     identifiers: dict[str, str] = {}
@@ -1730,8 +1738,7 @@ def private_run_digests(runs_roots: list[Path] | None = None, full: bool = False
     if key in _DIGEST_CACHE:
         return _DIGEST_CACHE[key]
     if runs_roots is None:
-        runs_roots = [r for r in ([REPO / "artifacts" / "runs"]
-                                  + ([main_checkout() / "artifacts" / "runs"] if main_checkout() else [])) if r.is_dir()]
+        runs_roots = runs_roots_present()
     started = time.monotonic()
     hexes: set[str] = set()
     b64: set[str] = set()
@@ -2150,9 +2157,17 @@ class SiteVerifyBuildTests(unittest.TestCase):
         self.assertLess(elapsed, FULL_DIGEST_TIMEOUT_S if full else SCANNER_TIMEOUT_S + digests["duration_s"])
         self.assertGreater(result["text_files"], 10)
         self.assertEqual(result["hits_per_family"], {family: 0 for family in PRIVACY_FAMILIES})
-        if main_checkout() is not None or (REPO / "artifacts" / "runs").is_dir():
+        # A run directory anywhere (this tree or, from a linked worktree, the main checkout) must be scanned. A
+        # tree with no artifacts/runs at all (a plain clone or a worktree of a run-free checkout) has nothing to
+        # hash, so only then is the digest family allowed to be unchecked.
+        roots = runs_roots_present()
+        if roots:
             self.assertTrue(digests["checked"])
-            self.assertGreater(digests["files_hashed"], 0)
+            self.assertEqual(digests["roots"], len(roots))
+            if any(path.is_file() and not path.is_symlink() for root in roots for path in root.rglob("*")):
+                self.assertGreater(digests["files_hashed"], 0)
+        else:
+            self.assertFalse(digests["checked"])
         if full:
             self.assertEqual(digests["not_hashed"], 0)
 

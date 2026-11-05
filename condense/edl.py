@@ -8,6 +8,7 @@ Pacing rules (numbers are the defaults in config.RULES):
   filler       plays at 8x. Fillers are never cut, so a wrong guess costs a blip and not a word.
 Anything at 4x or faster is turned down to 0.4 gain.
 A clip with `card` lines is one segment: the whole recording in `card_s` seconds, blurred, under the text.
+A clip's `drop` spans of source are cut like long pauses, talk and all, after the pacing rules (drop()).
 
 Events closer than 0.3 s merge into one span. A span is a pause when pauses cover half of it, else a filler.
 Each span gives 0.15 s back to speech on both sides, and spans under 0.2 s stay speech.
@@ -17,7 +18,8 @@ pause span is searched for sound: runs of 2+ RMS frames (100 ms each) over the c
 evidence stays speech, a run without evidence plays as a filler, and only true silence is cut. Evidence:
   energy  any run counts. For gated audio, where silence is digital silence.
   word    a transcribed word overlaps the run. Only the filler lexicon is no proof: a drawn-out "mmm" is a sound.
-  asr     that, or whisper re-run on the pause span alone hears a word. For noisy rooms. Cached per clip.
+  asr     that, or whisper re-run on the pause span alone hears a word. For noisy rooms. Cached per clip and
+          keyed by the speech-to-text that answered (pause_asr_key()).
 
 Sync: every segment is a whole number of output frames ("frames"). quantise() rounds the running total, so
 the rounding error never passes half a frame and never builds up. The render makes each segment's video and
@@ -29,8 +31,10 @@ analysis time + shift of the source.
 """
 
 import bisect
+import hashlib
 import json
 import re
+from pathlib import Path
 from types import SimpleNamespace
 
 from . import audio, timeline, transcribe
@@ -184,6 +188,43 @@ def event_segments(c, lo, hi, events, zones):
     return segs
 
 
+def drop(c, segs, spans):
+    """Cut each [start, end] of source out of segs as one cut that keeps its head and tail frames at 1x.
+
+    A drop is an editor's decision, such as a set-up stretch with talk in it: `[[clip]] drop` in talk.toml.
+    The edges snap to the frame grid. An edge that lands inside a cut, or on its far edge, moves out to that
+    cut's edge, so the pause joins the drop and no seam keeps two sets of frames; a later span that then
+    starts inside or at the end of this drop's cut joins it too. The new cut keeps
+    keep_head_frames after its start and keep_tail_frames before its end, so a pause cut whose kept edge was
+    longer (a sound's margin pulled it out) loses those extra kept frames. Segments inside a span go, and a
+    segment across an edge is trimmed to it. Runs before the max_s check, so a drop counts before the speed
+    rises.
+    """
+    head, tail = c.r["keep_head_frames"] / c.fps, c.r["keep_tail_frames"] / c.fps
+    for d0, d1 in spans:
+        d0, d1 = c.snap(d0), c.snap(d1)
+        for s in segs:
+            if s["kind"] == "cut" and s["inp"] < d0 <= s["out"] + 1e-6:
+                d0 = s["inp"]
+            if s["kind"] == "cut" and s["inp"] - 1e-6 <= d1 < s["out"]:
+                d1 = s["out"]
+        out = []
+        for s in segs:
+            if s["out"] <= d0 + 1e-6 or s["inp"] >= d1 - 1e-6:
+                out.append(s)
+                continue
+            if s["inp"] < d0 - 1e-6:
+                out.append(dict(s, out=d0))
+            if s["out"] > d1 + 1e-6:
+                out.append(dict(s, inp=d1))
+        cut = dict(
+            src=c.name, inp=d0, out=d1, speed=1.0, kind="cut", keep=[[d0, c.snap(d0 + head)], [c.snap(d1 - tail), d1]]
+        )
+        at = next((i for i, s in enumerate(out) if s["inp"] >= d1 - 1e-6), len(out))
+        segs = [*out[:at], cut, *out[at:]]
+    return segs
+
+
 def coalesce(segs):
     """Drop empty segments and join neighbours of one kind and speed."""
     out = []
@@ -269,6 +310,49 @@ def zones_for(clip, total, speed, filler_speed, welcome):
     return out
 
 
+def pause_asr_key(cfg):
+    """What decides transcribe.read()'s answers: the backend and its model (cli), or its endpoint, full URL and
+    language (http). The full URL enters only as a sha256, so the key never stores a query."""
+    if transcribe.backend(cfg) == "http":
+        url = transcribe.stt_url(cfg)
+        return {
+            "backend": "http",
+            "url": transcribe.endpoint(url),
+            "url_sha256": hashlib.sha256(url.encode()).hexdigest(),
+            "language": cfg.whisper["language"],
+        }
+    return {"backend": "cli", "model": Path(cfg.model).name}
+
+
+def load_pause_asr(cfg, clip):
+    """The clip's cached pause-span answers when the speech-to-text configured now wrote them, else {}.
+
+    work/<clip>.pause_asr.json keeps the flat {"a-b": text} shape the retired tool wrote, so the parity check
+    still compares it by sha256. work/<clip>.pause_asr.key names the STT that wrote it and the cache's sha256.
+    A cache without a matching key (another backend or model, an older run, a hand-copied file) is read again."""
+    cache, stamp = cfg.f(clip, "pause_asr.json"), cfg.f(clip, "pause_asr.key")
+    if not cache.exists():
+        return {}
+    data = cache.read_bytes()
+    try:
+        found = json.loads(stamp.read_text()) if stamp.exists() else None
+    except ValueError:
+        found = None
+    want = {"stt": pause_asr_key(cfg), "pause_asr_sha256": hashlib.sha256(data).hexdigest()}
+    if found != want:
+        print(f"{clip['name']}: the pause_asr cache is not keyed to this speech-to-text; its spans are read again")
+        return {}
+    return json.loads(data)
+
+
+def save_pause_asr(cfg, clip, asr):
+    """Write the cache, then its key. A key left from an earlier cache never matches the new cache's sha256."""
+    cache = cfg.f(clip, "pause_asr.json")
+    cache.write_text(json.dumps(asr, indent=0, sort_keys=True))
+    key = {"stt": pause_asr_key(cfg), "pause_asr_sha256": hashlib.sha256(cache.read_bytes()).hexdigest()}
+    cfg.f(clip, "pause_asr.key").write_text(json.dumps(key, indent=1, sort_keys=True))
+
+
 def build_clip(cfg, clip):
     """Segments for one clip. Raises the speech speed by 0.05 up to speed_max while the clip runs over max_s."""
     fps, r = cfg.fps, cfg.rules
@@ -284,7 +368,9 @@ def build_clip(cfg, clip):
     words = json.loads(cfg.f(clip, "words.json").read_text())
     events = [(a, b, "filler") for a, b, _ in ev["fillers"]] + [(a, b, "pause") for a, b in ev["pauses"]]
     welcome = snap_welcome(clip.get("welcome"), ev["pauses"])
-    cache = cfg.f(clip, "pause_asr.json")
+    for span in clip["drop"]:
+        if span[1] > total + 1e-6:
+            raise ValueError(f"clip {clip['name']}: drop {span!r} ends after the clip's {total:.3f} s")
     c = SimpleNamespace(
         name=clip["name"],
         fps=fps,
@@ -294,18 +380,20 @@ def build_clip(cfg, clip):
         lex=[(w["start"], w["end"]) for w in words if norm(w["word"]) not in FILL],
         voiced_db=clip["voiced_db"],
         mode=clip["evidence"],
-        asr=json.loads(cache.read_text()) if cache.exists() else {},
+        asr=load_pause_asr(cfg, clip) if clip["evidence"] == "asr" else {},
         missing=set(),
     )
     speed, top = clip["speed"], clip.get("speed_max", clip["speed"])
     while True:
         zones = zones_for(clip, total, speed, r["filler_speed"], welcome)
-        segs = coalesce(event_segments(c, 0.0, total, events, zones))
+        segs = coalesce(drop(c, event_segments(c, 0.0, total, events, zones), clip["drop"]))
+        # a pause span inside a drop span goes whatever whisper hears in it, so it is never read
+        c.missing -= {(a, b) for a, b in c.missing if any(c.snap(x) <= a and b <= c.snap(y) for x, y in clip["drop"])}
         if c.missing:  # whisper each pause span alone, then build again with the answers
             print(f"{c.name}: whisper on {len(c.missing)} pause spans")
             for a, b in sorted(c.missing):
                 c.asr[f"{a:.3f}-{b:.3f}"] = transcribe.read(cfg, cfg.f(clip, "16k.wav"), a, b)
-            cache.write_text(json.dumps(c.asr, indent=0, sort_keys=True))
+            save_pause_asr(cfg, clip, c.asr)
             c.missing.clear()
             continue
         if "max_s" not in clip or sum(map(seg_dur, segs)) <= clip["max_s"] or speed >= top - 1e-9:

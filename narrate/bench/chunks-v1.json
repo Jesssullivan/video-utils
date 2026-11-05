@@ -1,0 +1,147 @@
+{
+ "schema": "narrate-bench-chunks/1",
+ "text": "narrate/bench/text-v1.md",
+ "text_sha256": "f7ff6923899b72ade8da6f84678ca9bff81bc3d8ee61b70bda908b95951a704d",
+ "limit_codepoints": 300,
+ "expected_wpm": 150,
+ "chunker": "narrate/chunker.py chunk_segment, one segment per ## section with its paragraphs joined",
+ "chunks_sha256": "f6b109c78ffdf3e311dcd95b2b12c623c41a9ea99c170a0f58802ec20398c31e",
+ "chunks": [
+  {
+   "id": "s1.c01",
+   "section": "s1",
+   "text": "On the north side of the valley, a small weather station has been running since the spring of 1987. It sits on a concrete pad behind the old grain elevator, two hundred and forty metres above the river, and for most of its life nobody paid it much attention.",
+   "codepoints": 258,
+   "words": 49,
+   "expected_s": 19.6
+  },
+  {
+   "id": "s1.c02",
+   "section": "s1",
+   "text": "It counted rain, it measured wind, and every night at 11:58 p.m. it sent a short report to a computer that most people in town had forgotten existed. This is the story of how that station was rebuilt over one cold winter, and what the people who rebuilt it learned about listening carefully.",
+   "codepoints": 291,
+   "words": 53,
+   "expected_s": 21.2
+  },
+  {
+   "id": "s2.c01",
+   "section": "s2",
+   "text": "The trouble started in late November. The anemometer, the spinning cup assembly that measures wind speed, began to report gusts of 140 kilometres per hour on calm afternoons. At first the volunteers assumed a loose bearing. They replaced it, and the readings got worse.",
+   "codepoints": 269,
+   "words": 44,
+   "expected_s": 17.6
+  },
+  {
+   "id": "s2.c02",
+   "section": "s2",
+   "text": "By the first week of December the station claimed a hurricane every Tuesday at roughly 3:15 in the afternoon. Marguerite Okonkwo, a retired electrical engineer who had looked after the station for nine years, finally connected an oscilloscope to the signal line.",
+   "codepoints": 262,
+   "words": 42,
+   "expected_s": 16.8
+  },
+  {
+   "id": "s2.c03",
+   "section": "s2",
+   "text": "The pulses from the anemometer were clean. Riding on top of them, though, was a burst of noise at about 48 kilohertz, appearing and disappearing on a regular schedule. Something nearby was switching on, flooding the cable with interference, and switching off again.",
+   "codepoints": 265,
+   "words": 43,
+   "expected_s": 17.2
+  },
+  {
+   "id": "s3.c01",
+   "section": "s3",
+   "text": "She called her neighbour, Tobias Lindqvist, who ran the hardware shop on Mill Street. \"Tobias, does anything around the elevator turn on at a quarter past three on Tuesdays?\" He thought about it for a moment. \"The feed mill runs its big dryer on Tuesdays. Why?\"",
+   "codepoints": 261,
+   "words": 46,
+   "expected_s": 18.4
+  },
+  {
+   "id": "s3.c02",
+   "section": "s3",
+   "text": "\"Because I think your dryer is pretending to be a hurricane.\" \"That would explain the forecasts,\" he said. \"My wife cancelled two picnics.\" \"Tell her I'm sorry. Can you find out what drives the motor?\" \"I can do better than that. I'll bring the manual and a thermos of coffee.\"",
+   "codepoints": 277,
+   "words": 50,
+   "expected_s": 20.0
+  },
+  {
+   "id": "s4.c01",
+   "section": "s4",
+   "text": "The manual showed a variable frequency drive, a box of power electronics that lets a large motor change speed smoothly. Drives like that are efficient, but a poorly grounded one can push high frequency noise into every unshielded wire within a few dozen metres.",
+   "codepoints": 261,
+   "words": 44,
+   "expected_s": 17.6
+  },
+  {
+   "id": "s4.c02",
+   "section": "s4",
+   "text": "The station's sensor cable, installed in 1987, had no shielding at all. The volunteers made a plan with three parts. First, they would replace the twenty-two metres of sensor cable with shielded, twisted pair wire, grounded at one end only.",
+   "codepoints": 240,
+   "words": 40,
+   "expected_s": 16.0
+  },
+  {
+   "id": "s4.c03",
+   "section": "s4",
+   "text": "Second, they would move the data logger into a sealed metal enclosure. Third, they would add a simple software check: any gust more than 2.5 times the average of the surrounding minute would be flagged for a human to review, rather than silently recorded.",
+   "codepoints": 255,
+   "words": 44,
+   "expected_s": 17.6
+  },
+  {
+   "id": "s4.c04",
+   "section": "s4",
+   "text": "The materials cost $1,284.60, which the town council approved on a vote of six to one. The single objection came from a councillor who wanted to know whether the station could also forecast the price of diesel. It could not. Installation took four Saturdays in January.",
+   "codepoints": 269,
+   "words": 46,
+   "expected_s": 18.4
+  },
+  {
+   "id": "s4.c05",
+   "section": "s4",
+   "text": "The ground was frozen solid, so the trench for the new conduit was cut with a rented saw and a great deal of patience. On the third Saturday the temperature fell to minus 19 degrees Celsius, and the epoxy for the cable glands refused to cure until somebody brought a hair dryer from home.",
+   "codepoints": 288,
+   "words": 54,
+   "expected_s": 21.6
+  },
+  {
+   "id": "s5.c01",
+   "section": "s5",
+   "text": "When the station came back online on the 28th of January, the phantom gusts were gone. Over the following eight weeks the volunteers compared its readings against a calibrated portable unit borrowed from the regional college.",
+   "codepoints": 225,
+   "words": 36,
+   "expected_s": 14.4
+  },
+  {
+   "id": "s5.c02",
+   "section": "s5",
+   "text": "Wind speed agreed to within 0.4 metres per second on 96 percent of samples. Rainfall totals matched to the nearest millimetre on every day but one, and on that day a curious crow had been sitting in the portable gauge. The software check turned out to be the most useful part of the project.",
+   "codepoints": 291,
+   "words": 54,
+   "expected_s": 21.6
+  },
+  {
+   "id": "s5.c03",
+   "section": "s5",
+   "text": "In March it flagged a genuine gust of 87 kilometres per hour during a thunderstorm, and the flag sat beside the reading in the archive with a short note from the person who reviewed it. Nobody had to wonder, years later, whether the number was real.",
+   "codepoints": 249,
+   "words": 46,
+   "expected_s": 18.4
+  },
+  {
+   "id": "s6.c01",
+   "section": "s6",
+   "text": "Marguerite likes to say that the station never lied. It reported exactly what reached it, and what reached it was the sound of a dryer two buildings away. The lesson she draws from the winter is a modest one. Before you trust a measurement, find out what else your instrument can hear.",
+   "codepoints": 285,
+   "words": 52,
+   "expected_s": 20.8
+  },
+  {
+   "id": "s6.c02",
+   "section": "s6",
+   "text": "And when a number looks impossible, write down why you believed it, or why you did not, so that the next person does not have to start from the beginning. The station is still running. Every night at 11:58 p.m. it sends its short report, and now, at least, somebody reads it.",
+   "codepoints": 275,
+   "words": 52,
+   "expected_s": 20.8
+  }
+ ]
+}

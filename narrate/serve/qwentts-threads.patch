@@ -1,0 +1,19 @@
+diff --git a/src/backend.h b/src/backend.h
+index d73e8d8..1895a73 100644
+--- a/src/backend.h
++++ b/src/backend.h
+@@ -28,6 +28,14 @@ struct BackendPair {
+ // Used for GGML CPU thread count: GEMM shares SIMD units across hyperthreads,
+ // so one thread per physical core is optimal.
+ static int backend_cpu_n_threads(void) {
++    // narrate: QWENTTS_CPU_THREADS bounds the GGML CPU thread count on a shared host.
++    const char * env = std::getenv("QWENTTS_CPU_THREADS");
++    if (env && *env) {
++        int v = std::atoi(env);
++        if (v > 0) {
++            return v;
++        }
++    }
+     int n = (int) std::thread::hardware_concurrency() / 2;
+     return n > 0 ? n : 1;
+ }

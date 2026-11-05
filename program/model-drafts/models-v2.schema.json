@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "program/model-drafts/models-v2.schema.json",
+  "title": "models.json v2 (draft)",
+  "description": "Draft successor to program/models.json schema_version 1 for multi-file model snapshots with resources. Not yet read by scripts/model_prefetch.py; program/models.json is unchanged. A file's sha256 is 'pending' until a verified download binds it (the narrate bench lane); an entry may move to gate_state 'registered' only when every file is bound. backend values are the narrate/dhall/Engine.dhall Backend union. narrate/dhall/check.py enforces this schema (a standard-library subset validator) and cross-checks every file list and byte count against narrate/bench/sources.json at the same repository and revision.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "models"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "recorded": {
+      "type": "string"
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "const": "pending"
+        }
+      ]
+    },
+    "backend": {
+      "enum": [
+        "VulkanAudioCpp",
+        "AudioCppBatch",
+        "QwenTtsCpp",
+        "LlamaTts",
+        "MlxAudio",
+        "RentedOpen",
+        "Hosted",
+        "Fake"
+      ]
+    },
+    "file": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "path inside the pinned snapshot"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "entry": {
+      "type": "object",
+      "required": [
+        "kind",
+        "backend",
+        "runtime",
+        "hf_repo",
+        "hf_revision",
+        "files",
+        "vram_gib",
+        "licence",
+        "links",
+        "gate_state"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "tts",
+            "asr",
+            "speaker_verification",
+            "quality",
+            "stems",
+            "pitch"
+          ]
+        },
+        "backend": {
+          "$ref": "#/$defs/backend"
+        },
+        "runtime": {
+          "$ref": "#/$defs/runtime"
+        },
+        "hf_repo": {
+          "$ref": "#/$defs/hf_repo"
+        },
+        "hf_revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "upstream": {
+          "$ref": "#/$defs/upstream"
+        },
+        "files": {
+          "$ref": "#/$defs/files"
+        },
+        "vram_gib": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "peak measured on the target card; null until measured"
+        },
+        "sample_rate_hz": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "licence": {
+          "type": "string"
+        },
+        "licence_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hosted": {
+          "type": "boolean"
+        },
+        "confidential_allowed": {
+          "type": "boolean"
+        },
+        "links": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^https://"
+          }
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/variant"
+          }
+        },
+        "gate_state": {
+          "enum": [
+            "draft_pending_fetch",
+            "registered",
+            "rejected"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "runtime": {
+      "type": "object",
+      "required": [
+        "url",
+        "commit"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "commit": {
+          "$ref": "#/$defs/revision"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "upstream": {
+      "type": "object",
+      "description": "the weights a conversion was made from: revision when the conversion states it, revision_at_lookup for the upstream head when it does not",
+      "required": [
+        "hf_repo"
+      ],
+      "properties": {
+        "hf_repo": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "revision_at_lookup": {
+          "$ref": "#/$defs/revision"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hf_repo": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/file"
+      }
+    },
+    "variant": {
+      "type": "object",
+      "description": "the same model on another serving path; validated like an entry's serving fields",
+      "required": [
+        "hf_repo",
+        "hf_revision",
+        "backend",
+        "runtime",
+        "files"
+      ],
+      "properties": {
+        "hf_repo": {
+          "$ref": "#/$defs/hf_repo"
+        },
+        "hf_revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "backend": {
+          "$ref": "#/$defs/backend"
+        },
+        "runtime": {
+          "$ref": "#/$defs/runtime"
+        },
+        "upstream": {
+          "$ref": "#/$defs/upstream"
+        },
+        "files": {
+          "$ref": "#/$defs/files"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

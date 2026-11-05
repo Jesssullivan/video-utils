@@ -1,0 +1,36 @@
+{
+  "assetsRoot": null,
+  "clientConfig": {
+    "path": "video.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "edition": "internal-cade-pip",
+  "expectedPages": 1,
+  "pages": [
+    {
+      "approvedScript": null,
+      "avatar": null,
+      "captures": [],
+      "id": "open",
+      "narration": null,
+      "script": {
+        "path": "manuscript/01-open.md",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "targetSeconds": 55
+    }
+  ],
+  "projectId": "fixture-private",
+  "projectRoot": "/fixture/project",
+  "schemaVersion": 1,
+  "source": {
+    "commit": "0000000000000000000000000000000000000000",
+    "repository": "example/private"
+  },
+  "sourceFiles": [
+    {
+      "path": "video.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

@@ -1243,6 +1243,202 @@ fn verify_run_edl_v1_refuses_tamper_with_typed_reasons() {
     }
 }
 
+/// One top-level ISO BMFF box: a 32-bit size, a type and `payload` zero bytes.
+fn mp4_box(kind: &[u8; 4], payload: usize) -> Vec<u8> {
+    let mut out = ((8 + payload) as u32).to_be_bytes().to_vec();
+    out.extend_from_slice(kind);
+    out.resize(8 + payload, 0);
+    out
+}
+
+/// ftyp (24 bytes), moov (40 bytes) and mdat: moov at byte 24, mdat at byte 64.
+fn faststart_mp4() -> Vec<u8> {
+    [
+        mp4_box(b"ftyp", 16),
+        mp4_box(b"moov", 32),
+        mp4_box(b"mdat", 64),
+    ]
+    .concat()
+}
+
+impl CondenseFixture {
+    /// Write talk.upload.mp4 and describe it in the manifest as `entry` (a JSON object).
+    fn with_upload(&self, bytes: &[u8], entry: &str) {
+        fs::write(self.run_dir.join("talk.upload.mp4"), bytes).unwrap();
+        let srt = format!("\"talk.srt\": \"{}\"", self.digest_of("talk.srt"));
+        let listed = format!(
+            "{srt},\n    \"talk.upload.mp4\": \"{}\"",
+            self.digest_of("talk.upload.mp4")
+        );
+        let manifest = self.manifest().replace(&srt, &listed);
+        let manifest = manifest
+            .trim_end()
+            .strip_suffix('}')
+            .unwrap()
+            .trim_end()
+            .to_owned();
+        fs::write(
+            self.run_dir.join("manifest.json"),
+            format!("{manifest},\n  \"uploads\": [{entry}]\n}}\n"),
+        )
+        .unwrap();
+    }
+}
+
+const UPLOAD_ENTRY: &str = "{\"file\": \"talk.upload.mp4\", \"of\": \"talk.mp4\", \"video_frames\": 49, \"faststart\": true, \"moov_offset\": 24, \"mdat_offset\": 64, \"audio_first_pts\": -1024, \"audio_time_base\": \"1/48000\"}";
+
+#[cfg(unix)]
+#[test]
+fn verify_run_edl_v1_reads_the_upload_copy_box_order() {
+    let fixture = Fixture::new();
+    let run = CondenseFixture::new(&fixture, "upload");
+    run.with_upload(&faststart_mp4(), UPLOAD_ENTRY);
+    let before = run.snapshot();
+    let (code, receipt, stderr) = verify(&fixture, &["--timeline", "edl_v1"], &run.run_dir);
+    assert_eq!(code, Some(0), "{stderr}");
+    assert_eq!(as_u64(field(&receipt, &["outputs", "verified"])), 4);
+    let Value::Array(uploads) = field(&receipt, &["uploads"]) else {
+        panic!("uploads is not an array: {receipt:?}");
+    };
+    assert_eq!(uploads.len(), 1);
+    assert_eq!(
+        field(&uploads[0], &["file"]).as_str(),
+        Some("talk.upload.mp4")
+    );
+    assert_eq!(field(&uploads[0], &["of"]).as_str(), Some("talk.mp4"));
+    assert_eq!(field(&uploads[0], &["status"]).as_str(), Some("verified"));
+    assert_eq!(as_u64(field(&uploads[0], &["moov_offset"])), 24);
+    assert_eq!(as_u64(field(&uploads[0], &["mdat_offset"])), 64);
+    assert_eq!(run.snapshot(), before, "verify-run modified the run");
+
+    // A run without upload copies lists none.
+    let plain = CondenseFixture::new(&fixture, "no upload");
+    let (code, receipt, _) = verify(&fixture, &["--timeline", "edl_v1"], &plain.run_dir);
+    assert_eq!(code, Some(0));
+    assert_eq!(field(&receipt, &["uploads"]), &Value::Array(Vec::new()));
+
+    // A 64-bit mdat size and an mdat that runs to the end of the file (size 0) are read too.
+    let mut large = [mp4_box(b"ftyp", 16), mp4_box(b"moov", 32)].concat();
+    large.extend_from_slice(&1u32.to_be_bytes());
+    large.extend_from_slice(b"mdat");
+    large.extend_from_slice(&24u64.to_be_bytes());
+    large.resize(large.len() + 8, 0);
+    let to_end = [
+        mp4_box(b"ftyp", 16),
+        mp4_box(b"moov", 32),
+        0u32.to_be_bytes().to_vec(),
+        b"mdat".to_vec(),
+        vec![0; 9],
+    ]
+    .concat();
+    for (label, bytes) in [("largesize", large), ("to end", to_end)] {
+        let run = CondenseFixture::new(&fixture, label);
+        run.with_upload(&bytes, UPLOAD_ENTRY);
+        let (code, _, stderr) = verify(&fixture, &["--timeline", "edl_v1"], &run.run_dir);
+        assert_eq!(code, Some(0), "{label}: {stderr}");
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn verify_run_edl_v1_refuses_an_upload_copy_that_is_not_faststart() {
+    let moov_last = [
+        mp4_box(b"ftyp", 16),
+        mp4_box(b"mdat", 64),
+        mp4_box(b"moov", 32),
+    ]
+    .concat();
+    let mut truncated = faststart_mp4();
+    truncated[64..68].copy_from_slice(&200u32.to_be_bytes());
+    let no_moov = [mp4_box(b"ftyp", 16), mp4_box(b"mdat", 64)].concat();
+    let cases: [(&str, Vec<u8>, String, &str); 9] = [
+        (
+            "moov after mdat",
+            moov_last,
+            UPLOAD_ENTRY.replace("\"mdat_offset\": 64", "\"mdat_offset\": 99"),
+            "upload_not_faststart",
+        ),
+        (
+            "a box larger than the file",
+            truncated,
+            UPLOAD_ENTRY.into(),
+            "upload_invalid",
+        ),
+        (
+            "no moov box",
+            no_moov,
+            UPLOAD_ENTRY.into(),
+            "upload_invalid",
+        ),
+        (
+            "offsets differ from the file",
+            faststart_mp4(),
+            UPLOAD_ENTRY.replace("\"mdat_offset\": 64", "\"mdat_offset\": 65"),
+            "upload_invalid",
+        ),
+        (
+            "declared not faststart",
+            faststart_mp4(),
+            UPLOAD_ENTRY.replace("\"faststart\": true", "\"faststart\": false"),
+            "upload_not_faststart",
+        ),
+        (
+            "declared mdat first",
+            faststart_mp4(),
+            UPLOAD_ENTRY.replace("\"moov_offset\": 24", "\"moov_offset\": 70"),
+            "upload_not_faststart",
+        ),
+        (
+            "frames differ",
+            faststart_mp4(),
+            UPLOAD_ENTRY.replace("\"video_frames\": 49", "\"video_frames\": 48"),
+            "upload_invalid",
+        ),
+        (
+            "of is not listed",
+            faststart_mp4(),
+            UPLOAD_ENTRY.replace("\"of\": \"talk.mp4\"", "\"of\": \"talk.corrected.mp4\""),
+            "manifest_field_invalid",
+        ),
+        (
+            "listed but not described",
+            faststart_mp4(),
+            String::new(),
+            "manifest_field_invalid",
+        ),
+    ];
+    let fixture = Fixture::new();
+    for (index, (label, bytes, entry, reason)) in cases.iter().enumerate() {
+        let run = CondenseFixture::new(&fixture, &format!("upload tamper {index}"));
+        run.with_upload(bytes, entry);
+        let before = run.snapshot();
+        let (code, receipt, stderr) = verify(&fixture, &["--timeline", "edl_v1"], &run.run_dir);
+        assert_eq!(code, Some(1), "{label}: {stderr}");
+        assert_eq!(
+            field(&receipt, &["reason"]).as_str(),
+            Some(*reason),
+            "{label}: {stderr}"
+        );
+        assert_eq!(
+            run.snapshot(),
+            before,
+            "{label}: verify-run modified the run"
+        );
+    }
+    // A changed upload byte fails on its hash first.
+    let run = CondenseFixture::new(&fixture, "upload byte");
+    run.with_upload(&faststart_mp4(), UPLOAD_ENTRY);
+    let mut changed = faststart_mp4();
+    changed[80] = 1;
+    fs::write(run.run_dir.join("talk.upload.mp4"), changed).unwrap();
+    let (code, receipt, _) = verify(&fixture, &["--timeline", "edl_v1"], &run.run_dir);
+    assert_eq!(code, Some(1));
+    assert_eq!(
+        field(&receipt, &["reason"]).as_str(),
+        Some("output_hash_mismatch")
+    );
+}
+
 #[cfg(unix)]
 #[test]
 fn each_verifier_refuses_the_other_mapping() {
@@ -1308,4 +1504,96 @@ fn each_verifier_refuses_the_other_mapping() {
         stderr.contains("--timeline takes identity or edl_v1"),
         "{stderr}"
     );
+}
+
+// Narrated-video stages (docs/spec/NARRATED_VIDEO.md, TIMELINE_CONTRACT.md narrated-video amendment): every
+// stage manifest carrying narration, an overlay or a bed writes `no_time_stretch: false` and one of three
+// non-identity mappings. Both verifiers refuse each of them.
+#[cfg(unix)]
+#[test]
+fn verify_run_refuses_each_narrated_video_mapping() {
+    let fixture = Fixture::new();
+    let timelines = [
+        (
+            "narrated_video_v1",
+            include_str!("../narrate/tests/fixtures/narrated-video/narrated_video_v1.json"),
+        ),
+        (
+            "avatar_overlay_v1",
+            include_str!("../narrate/tests/fixtures/narrated-video/avatar_overlay_v1.json"),
+        ),
+        (
+            "music_bed_v1",
+            include_str!("../narrate/tests/fixtures/narrated-video/music_bed_v1.json"),
+        ),
+    ];
+    for (mapping, timeline) in timelines {
+        assert!(
+            timeline.contains(&format!("\"mapping\": \"{mapping}\"")),
+            "{mapping}"
+        );
+        assert!(timeline.contains("\"no_time_stretch\": false"), "{mapping}");
+        let run_id = format!("20261027T000000Z-{mapping}");
+        let run_dir = fixture.0.join("narrated").join("nv-fixture").join(&run_id);
+        fs::create_dir_all(&run_dir).unwrap();
+        fs::write(run_dir.join("stage.json"), b"fixture stage bytes").unwrap();
+        let manifest = format!(
+            "{{\n  \"schema_version\": 1,\n  \"kind\": \"nv_stage\",\n  \"status\": \"rendered_unreviewed\",\n  \"synthetic\": true,\n  \"run_id\": {},\n  \"run_dir\": {},\n  \"output_sha256\": {{\"stage.json\": \"{}\"}},\n  \"timeline\": {}\n}}\n",
+            json_string(&run_id),
+            json_string(run_dir.to_str().unwrap()),
+            digest(b"fixture stage bytes").to_hex(),
+            timeline.trim(),
+        );
+        fs::write(run_dir.join("manifest.json"), manifest).unwrap();
+        for (args, reason) in [
+            (&[][..], "time_stretch_not_excluded"),
+            (&["--timeline", "identity"][..], "time_stretch_not_excluded"),
+            (&["--timeline", "edl_v1"][..], "timeline_mapping_invalid"),
+        ] {
+            let (code, receipt, stderr) = verify(&fixture, args, &run_dir);
+            assert_eq!(code, Some(1), "{mapping} {args:?}: {stderr}");
+            assert_eq!(
+                field(&receipt, &["reason"]).as_str(),
+                Some(reason),
+                "{mapping} {args:?}"
+            );
+        }
+    }
+}
+
+// Narration runs (narrate/, docs/spec/TIMELINE_CONTRACT.md narration amendment): a render that applied no stretch
+// at all still writes `no_time_stretch: false` and the `narration_v1` mapping, and both verifiers refuse it.
+#[cfg(unix)]
+#[test]
+fn verify_run_refuses_a_narration_manifest_with_zero_applied_stretch() {
+    let fixture = Fixture::new();
+    let run_dir = fixture.0.join("narrate").join("20261023T000000Z-narration");
+    fs::create_dir_all(&run_dir).unwrap();
+    let edl = b"{\"kind\": \"narration_edl\", \"mapping\": \"narration_v1\", \"segments\": []}\n";
+    fs::write(run_dir.join("narration.edl.json"), edl).unwrap();
+    fs::write(run_dir.join("narration.wav"), b"fixture narration bytes").unwrap();
+    // The timeline is a real zero-stretch render's (narrate/tests/test_contract_shape.py keeps it current).
+    let timeline = include_str!("../narrate/tests/fixtures/narration-timeline.json")
+        .replace(&"0".repeat(64), &digest(edl).to_hex().to_string());
+    let manifest = format!(
+        "{{\n  \"schema_version\": 1,\n  \"kind\": \"narration_render\",\n  \"status\": \"rendered_unreviewed\",\n  \"synthetic\": true,\n  \"run_id\": \"20261023T000000Z-narration\",\n  \"run_dir\": {},\n  \"output_sha256\": {{\"narration.edl.json\": \"{}\", \"narration.wav\": \"{}\"}},\n  \"timeline\": {}\n}}\n",
+        json_string(run_dir.to_str().unwrap()),
+        digest(edl).to_hex(),
+        digest(b"fixture narration bytes").to_hex(),
+        timeline.trim(),
+    );
+    fs::write(run_dir.join("manifest.json"), manifest).unwrap();
+    for (args, reason) in [
+        (&[][..], "time_stretch_not_excluded"),
+        (&["--timeline", "identity"][..], "time_stretch_not_excluded"),
+        (&["--timeline", "edl_v1"][..], "timeline_mapping_invalid"),
+    ] {
+        let (code, receipt, stderr) = verify(&fixture, args, &run_dir);
+        assert_eq!(code, Some(1), "{args:?}: {stderr}");
+        assert_eq!(
+            field(&receipt, &["reason"]).as_str(),
+            Some(reason),
+            "{args:?}"
+        );
+    }
 }

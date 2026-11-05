@@ -1,0 +1,49 @@
+{
+  "dhall": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "schema": "xoxd-lexical/v1",
+  "version": "0.0.0-fixture",
+  "rules": [
+    {
+      "id": "XL-ACC-001",
+      "family": "ACC",
+      "kind": {"type": "RewriteCheck", "with": {"check": "Report any protected span that appears only after a rewrite."}},
+      "registers": ["slides"],
+      "severity": "Error",
+      "deterministic": true
+    },
+    {
+      "id": "XL-ACC-002",
+      "family": "ACC",
+      "kind": {"type": "RewriteCheck", "with": {"check": "Report any protected span that changed in any byte."}},
+      "registers": ["slides"],
+      "severity": "Error",
+      "deterministic": true
+    },
+    {
+      "id": "XL-FIX-001",
+      "family": "TELL",
+      "kind": {"type": "Pattern", "with": {"patterns": ["(?i:\\bdelv(?:e|es|ed|ing)\\b)"]}},
+      "registers": ["slides"],
+      "severity": "Warning",
+      "deterministic": true
+    },
+    {
+      "id": "XL-FIX-002",
+      "family": "TELL",
+      "kind": {"type": "Pattern", "with": {"patterns": ["(?i:\\bkind enough to\\b)"]}},
+      "registers": ["pr"],
+      "severity": "Warning",
+      "deterministic": true
+    },
+    {
+      "id": "XL-FIX-003",
+      "family": "TELL",
+      "kind": {"type": "Pattern", "with": {"patterns": ["(?<x>broken"]}},
+      "registers": ["slides"],
+      "severity": "Warning",
+      "deterministic": true
+    }
+  ],
+  "tables": [],
+  "tombstones": []
+}

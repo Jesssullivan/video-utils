@@ -1,0 +1,3 @@
+# xoxd-lexical fixture. Not a release.
+XL-ACC-001: A rewrite must not add a number.
+XL-ACC-002: Keep numbers byte for byte.

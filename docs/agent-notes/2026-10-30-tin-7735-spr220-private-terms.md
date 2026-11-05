@@ -1,0 +1,138 @@
+# Narrated video: the private-terms guard in the claims gate (2026-10-30)
+
+Authority: Linear TIN-7735 (parent TIN-7084), SPR-220 (an explicit ip_private
+guard), the standing authorization SPR-214 (TIN-7125) for narrate-dispatched
+lanes and repository AGENTS.md. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N11,
+R-N12, R-N13).
+
+`private-terms guard | narrate-dispatched lane | video-utils feat/tin-7735-spr220-private-terms (from main c1a6373c) | guard, CLI flag, recipes, drafts, skill, spec, synthetic tests; checks below | root review and merge`
+
+## What changed
+
+| Area | Files | Change |
+| --- | --- | --- |
+| Guard | `narrate/video/private_terms.py` | the manifest `privacy` declaration, the `nv_denylist` reader and the matcher. It fails closed and its reports carry positions, entry ids and classes only |
+| Bundle | `narrate/video/bundle.py` | `claims` and `intake` run the guard before the number gate: record texts first, then voiced, claim, label and, at intake, spoken texts |
+| CLI | `narrate/video/cli.py` | `--denylist FILE` or `NARRATED_VIDEO_DENYLIST` on `claims` and `intake` |
+| Recipes | `just/narrated-video.just` | `narrated-video-claims` passes arguments; `nv-test` runs the guard tests |
+| Hooks and skill | `program/tool-drafts/narrated_video.json`, `.agents/skills/narrated-video-intake/SKILL.md` | a `denylist` input on both drafted tools, the new codes and a limitation |
+| Spec | `docs/spec/NARRATED_VIDEO.md` | "Private terms" under "Demo bundle intake", four refusal codes and the command rows |
+| Tests | `narrate/tests/test_narrated_video_private_terms.py`, `narrate/tests/stdlib_smoke.py` | 73 synthetic cases; the module joins the smoke list |
+
+The denylist schema is new and lives outside git. It holds a random salt, so the digest that records carry cannot confirm a guessed short list. The bundle manifest gains
+one optional block. No Dhall type or `check.py` rule changed.
+
+## Evidence
+
+Local, non-qualifying: load1 was above 24, so the full `just narrate-test` ran
+only in CI. Each check ran under `nice -n 10` inside `nix develop .#condense`.
+
+| Check | Result |
+| --- | --- |
+| guard, intake and units tests | 587 passed |
+| `test_narrated_video_private_terms.py` | 73 passed |
+| `just narrate-lint` ruff check and ruff format | clean |
+| `test_s5_tool_admission`, `test_s4b_tool_admission` | 24 tests OK |
+| `just capabilities-check` | exit 0 |
+| `python3 -m unittest narrate.tests.stdlib_smoke` | 7 tests OK |
+
+## Unknowns
+
+- A paraphrase, a translation or a number the claims gate does not read passes
+  the guard. The producer still reviews the script.
+- The guard runs on bundle intake and the claims gate. A job written another way
+  never meets it. Cade's BS-21 step (TIN-7788) is the publish-side check.
+
+## Review round 2 (2026-10-30)
+
+Authority: SPR-214 (TIN-7125 comment 0cbbe60a) and the review verdict FIX on
+#74 head 4eb3a2f6. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Change |
+| --- | --- |
+| F3 respellings | literals match squeezed (letters and digits only, anywhere); NFKD with marks stripped; capital and small confusables mapped; a Latin and Cyrillic word refuses as class `script`; regexes also run on the squeezed fold |
+| F7 self opt-in | `--denylist-sha256` or `NARRATED_VIDEO_DENYLIST_SHA256` pins the list outside the bundle and refuses `privacy_undeclared`; a list inside the bundle or a git work tree refuses `denylist_misplaced` |
+| F8 later edits | a guarded intake writes `records/private-terms.json`; every records load refuses `private_terms_stale` when a narrate job or its pronunciation table changed |
+| F9 early refusals | the guard is built before any bundle check, and any other refusal whose detail says a term is withheld; the duplicate-key detail no longer names the key |
+| F10 ids | number entries run against ids too; a refusal detail names the entry by index |
+| F11 numbers | NFKC and ASCII digits before reading; digit runs read whole, as a decimal and by group; vulgar fractions; English spellings; units no longer narrow |
+| F12 parsers | a shared regex subset, a salt of at least 8 distinct hex digits, and `nv-denylist-conformance.json`, which cade keeps byte-identical |
+| F13 unread | the spec lists pixels, frames, burned-in text and container metadata; intake states add `producer_review: pending_operator` |
+
+### F4 proposal, not applied (Jess's act, SPR-138)
+
+1. Add `.github/CODEOWNERS` owning `/narrate/video/private_terms.py`,
+   `/narrate/video/bundle.py`, `/narrate/video/claims.py`,
+   `/narrate/video/cli.py`, `/narrate/video/job.py`, `/narrate/normalise.py`,
+   `/narrate/tests/test_narrated_video_private_terms.py`,
+   `/narrate/tests/fixtures/narrated-video/nv-denylist-conformance.json`,
+   `/just/narrated-video.just`, `/docs/spec/NARRATED_VIDEO.md`, `/.github/`
+   and `/flake.nix` with `@Jesssullivan`.
+2. Add to ruleset 25222169 on `main`: `pull_request`
+   `{required_approving_review_count: 0, require_code_owner_review: true,
+   dismiss_stale_reviews_on_push: true, require_last_push_approval: false}`;
+   `required_status_checks` `{strict_required_status_checks_policy: true,
+   checks: [narrate, offline, bazel]}`; no bypass actors.
+
+### Round 2 evidence
+
+Local, non-qualifying, under `nice -n 10` in `nix develop .#condense`, load1
+about 13.
+
+| Check | Result |
+| --- | --- |
+| private-terms, intake, units, graph, types, simple, adopt and stdlib smoke tests | 877 passed, 47 subtests |
+| `ruff check .` and `ruff format --check .` in `narrate/` | clean |
+
+### Unknowns after round 2
+
+- Hyphen-joined digits ("12-5") are not read as a decimal, because dates would
+  then match every short private number.
+- Leetspeak and abbreviations need their own entries.
+- Deleting `records/private-terms.json` removes the F8 check.
+
+## Review round 3 (2026-10-30)
+
+Authority: SPR-214 (TIN-7125 comment 0cbbe60a) and the round 3 review of #74
+head 216f267d. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+The earlier commits named a private brand code and a ruling code in the spec,
+the skill, a module docstring and two commit messages. The branch history was
+rewritten so neither code reaches `main`: `9e5d1041`, `4eb3a2f6` and
+`216f267d` became `dad6fd2`, `a096209` and `c32ba68`, which change only those
+lines. The old commits stay in GitHub's cached PR refs. Purging them is Jess's
+decision.
+
+| Finding | Change |
+| --- | --- |
+| look-alike letters | a letter that is not ASCII after NFKD, mark stripping and case folding refuses as class `script`, and so does a word of two scripts; literals also match in a loose fold where `i`, `l`, `1`, `\|` and `!` read as `l` and `0` as `o` |
+| number forms | middle dot, Arabic and one-dot-leader separators; a spaced point; fractions `a/b` and `n a/b`; one point read as a grouped integer too; "dot" and "comma" spellings |
+| records marker | schema 2 binds the `narrated-video.json` record and its segment jobs; `init`, `plan`, `run` and `explain` refuse another record; a private lane's records with no marker refuse |
+| entry ids | reports name entries by position only |
+| record numbers | asset `size` and `fps`, beat `target_s` and the start and end the intake writes are record texts |
+| PR body | `Linear: TIN-7735` only |
+
+F4 (CODEOWNERS and ruleset 25222169) stays Jess's act, with the paths and
+settings in the F4 proposal above. Until it is applied, the guard does not
+count as enforced.
+
+## Final review fixes (2026-10-30)
+
+Authority: SPR-214 (TIN-7125 comment 0cbbe60a), SPR-220 (comment 4842e728)
+and the final review of #74 head 304938c6 (TIN-7735 comment d2925e47).
+Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Change |
+| --- | --- |
+| F-A, a refusal echoed a value | the beat id, `target_s`, `asset_id`, asset `kind`, claim `value.unit` and job id refusals name the field only. An unknown key is counted. `redact()` withholds a detail with a backslash escape |
+| F-B, a pinned lane with no denylist | `withheld()` withholds every non-guard detail while a pin is set and no denylist is bound |
+| F-C, number forms | 3-digit groups split by a space, no-break or thin space, apostrophe or underscore. An exponent. Trailing zeros ("point fifty"), pairs, digits one by one, "12 and a half" and "and 1/2" |
+| split term | adjacent voiced texts and adjacent spoken paragraphs are read joined, as group `joined` |
+| marker bypass | the spec records the `intake.json` edit that needs write access to OUT |
+
+The shared conformance fixture is unchanged and stays byte-identical with
+cade. The new number forms are tested in this repository only, until cade
+reads them and both copies add them together.
+
+The cade guard step code, the sprint ruling reference, the ruleset id and the
+hook trailer host field stay for Jess to judge.

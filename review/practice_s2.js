@@ -6,7 +6,7 @@ let s2Bundle = null, s2Ready = false, s2Initialized = false, s2PairBox = null, s
 const s2State = {pair:0, reveal:new Set(), anchor:null, session:false, queue:[], frozen:null, busy:false, uncertain:false, lastFlag:null, wired:false};
 const s2Players = [];
 const S2_PANELS = ["s2-stages", "s2-ab", "s2-coverage", "s2-flags", "s2-timing"];
-const S2_KINDS = ["phrase_duration", "phrase_omission", "rhythm_timing", "rhythm_pattern", "melodic_pitch", "articulation", "rest_execution", "meter_mismatch", "tone", "noise", "other"];
+const S2_KINDS = ["phrase_duration", "phrase_omission", "rhythm_timing", "rhythm_pattern", "melodic_pitch", "articulation", "rest_execution", "meter_mismatch", "tone", "noise", "other", "onset"];
 const S2_BASIS = {
   operator_assertion:{label:"USER REPORTED", shape:"solid"},
   operator_context:{label:"INTENT", shape:"bracket"},

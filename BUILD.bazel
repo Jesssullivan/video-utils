@@ -22,9 +22,8 @@ exports_files([
 
 # Every file of the root package: docs/, program/, profiles/, review/, reports/,
 # deploy/, .agents/, .github/, just/ and the top-level manifests. Sub-packages
-# (src, scripts, tests, web, site, native/au-spike, tools/bazel, bazel, condense,
-# livecode) export their own `all_files`; .bazelignore removes generated and
-# private trees.
+# (src, scripts, tests, condense, narrate, livecode, web, site, native/au-spike, tools/bazel, bazel) export their own
+# `all_files`; .bazelignore removes generated and private trees.
 filegroup(
     name = "repo_data",
     srcs = glob(
@@ -36,6 +35,18 @@ filegroup(
             "**/__pycache__/**",
             "**/.DS_Store",
         ],
+    ),
+)
+
+# Every agent skill under .agents/skills, for a consuming module to reach by
+# label (@video_utils//:agent_skills). The glob reads the tree when Bazel loads
+# this package, so a new or renamed skill joins without an edit here. Harnesses
+# do not load skills from Bazel labels; skill install stays a Home Manager job.
+filegroup(
+    name = "agent_skills",
+    srcs = glob(
+        [".agents/skills/**"],
+        exclude = ["**/.DS_Store"],
     ),
 )
 

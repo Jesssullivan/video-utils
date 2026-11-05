@@ -24,7 +24,12 @@ py_library(
         "*.py",
         "frozen/*.py",
     ]),
-    data = ["//:repo_data"],
+    # tool_api starts `python -m condense <stage>` for the condense tools, so the condense
+    # package is declared data too (cache correctness).
+    data = [
+        "//:repo_data",
+        "//condense:all_files",
+    ],
 )
 
 # `bazel run //scripts:<worker>` for each top-level worker, on the hermetic interpreter.

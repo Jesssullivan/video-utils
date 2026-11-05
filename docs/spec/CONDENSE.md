@@ -4,7 +4,8 @@ Authority: operator decision of 2026-10-15 (Linear initiative I-78, milestone
 "Absorb talk-condense", TIN-6500 to TIN-6513), repository AGENTS.md and R-N13.
 
 `condense/` condenses a recorded talk. Long pauses are cut. Short pauses and
-fillers are sped up. Speech plays faster. No word is dropped. It is a speech
+fillers are sped up. Speech plays faster. No word is dropped unless the editor
+drops a span. It is a speech
 workflow beside the guitar workflow, not a guitar default.
 
 ## Source
@@ -22,14 +23,41 @@ receipt in `docs/agent-notes/` records a per-file comparison.
 | transcribe | `transcribe.py` | the recordings | 16 kHz analysis wav, whisper pass-1 and DTW JSON |
 | events | `events.py` | the whisper JSON | words, events, 100 ms RMS frames |
 | edl | `edl.py` | words, events, RMS | `edl.json` |
-| render | `render.py` | `edl.json` | mezzanines, parts, `talk.mp4` |
-| check | `check.py`, `avsync.py` | the edit | a report; exit 1 when a gate fails |
+| render | `render.py` | `edl.json` | mezzanines, parts, `talk.mp4`, optional `talk.upload.mp4` |
+| check | `check.py`, `avsync.py` | the edit | `check.json`; exit 1 when a gate fails or is not measured |
 | captions | `captions.py` | words, `edl.json` | `talk.srt`, `talk.vtt` |
-| overlay | `overlay.py` | `[[correction]]` entries | `talk.corrected.mp4` |
-| publish | `publish.py` | the outputs and `edl.json` | `artifacts/condense/<run_id>/` with an `edl_v1` manifest |
+| overlay | `overlay.py` | `[[correction]]` entries | `talk.corrected.mp4`, optional `talk.corrected.upload.mp4` |
+| publish | `publish.py` | the outputs, upload copies, `check.json` and `edl.json` | `artifacts/condense/<run_id>/` with an `edl_v1` manifest |
 
 `condense/README.md` gives every rule and default. `condense/config.py` holds
 the defaults and `talk.toml` overrides them.
+
+## Editor decisions in talk.toml
+
+TIN-6544 rebuilt a published hand-cut walkthrough from a private talk.toml. Three
+of its decisions had no key, and each is now typed, validated (when the config
+loads, except where the table says otherwise) and covered by a synthetic test:
+
+| Key | Decision | Checked |
+| --- | --- | --- |
+| `[[clip]] drop = [[start, end], ...]` | Remove source seconds, talk and all, as one cut each, before `max_s` raises the speed | at load: in order, apart, at least one frame longer than a cut's 9 kept frames, no card clip; at the `edl` stage: inside the clip |
+| `[encode] preset` | The x265 preset of the edit (and the x264 preset of the upload copy); `slow` stays the default | one of the x264/x265 preset names |
+| `[encode] upload = "h264"` | Also write `<out>.upload.mp4` (and `.corrected.upload.mp4`): H.264, no B-frames, a keyframe every 2 s, no negative CTS, `+faststart`, the edit's audio copied; `publish` carries them | `""` or `"h264"`; `upload_crf` a whole number 0 to 51; no output path may be a clip file; at render, publish and `verify-run`: moov before mdat |
+
+`drop` is the one rule that removes words, so it is an explicit editor choice
+per clip and never a default. The HEVC `talk.mp4` stays the archive copy. The
+receipt `docs/agent-notes/2026-10-15-condense-v5-rebuild.md` records how close
+the rebuild came and the decisions that remain gaps.
+
+TIN-6573 added a `[captions]` section for the walkthrough's caption style:
+which words are captioned (`words`, `fillers`), when a cue is full or ends
+(`fill`, `gap_s`, `max_s`, `sentence_chars`), how its lines break (`split`),
+how long it holds (`min_s`, `clear_s`, `squeeze_s`) and a caption over a card
+(`cards`, `card_inset_s`). Every key is checked at load, unknown keys are
+refused, and a talk.toml without the section writes the same captions as
+before, byte for byte. `condense/README.md` gives each key and default; the
+receipt `docs/agent-notes/2026-10-16-L11-captions.md` records the comparison
+with the published captions.
 
 ## Ownership in this repository
 
@@ -78,8 +106,13 @@ product; no code moves between the repositories.
 - `events.words_from` reads both backends unchanged. The pass-1 and DTW JSON
   land in `work/` as before, and the stage still fails when no DTW time came
   back. `work/<clip>.stt.json` records the backend that produced them (the
-  model file name, or the service URL), the language, the DTW preset, `pass1`
-  and `chunk_s`; never the token.
+  model file name, or the service's `scheme://host:port/path` without its
+  query), the language, the DTW preset, `pass1` and `chunk_s`; never the token.
+- `edl`'s pause-span answers in `work/<clip>.pause_asr.json` keep their flat
+  shape; `work/<clip>.pause_asr.key` names the backend and model (cli) or the
+  endpoint, a sha256 of the full URL and the language (http) that wrote them,
+  with the cache's sha256. A cache whose key does not match the configured
+  speech-to-text is read again, so switching backends never reuses answers.
 - Fail closed: any HTTP status other than 200, a redirect, an unreachable
   service, a wait over `http_timeout_s` (3600 s), a reply over 64 MiB, invalid
   JSON or any other shape stops the stage. Nothing is retried. For both
@@ -115,3 +148,162 @@ job runs it in the `condense` dev shell. `check` gates a real edit: no silence
 of 1.0 s or more at -35 dB, loudness within 1 LU, a true peak under 0 dBTP, and
 picture and sound within 20 ms. Listening quality and ASR accuracy are not
 claimed by any gate.
+
+### check.json
+
+TIN-6545. A `check` run of all four gates writes `work/check.json` (`kind`
+`condense_check`, schema 1), whether its gates pass or fail; a run of fewer
+writes `work/check.partial.json` and never replaces `check.json`. The report
+lists the checks that ran (`complete` when all four gates did) and records per
+gate its limits, measured values and verdict:
+
+| Gate | Measured | Limit |
+| --- | --- | --- |
+| `silence` | hits at `silence_db` over `silence_s`, with output and source times | 0 hits |
+| `loud` | integrated LUFS, deviation from the target, true peak, loudness range | 1 LU; true peak under 0 dBTP |
+| `sync` probe | every frame of a coded stand-in, per clip: set-aside frames; min, median, max by window and by third | every frame within 20 ms |
+| `sync` real | the delivered file at 1x speech against the mezzanine, per spot and per clip; medians by third of the edit | each measured clip's median within 20 ms |
+| `sync` joined | the delivered file at up to 8 spots per third of the edit, at any speed, against the lossless parts | each third's median within 20 ms |
+| `bounds` | the whisper match ratio at each cut and join; the text stays in the printed report | none; a person reads it |
+| `captions` | cue start minus the nearest sound onset at up to 24 cues after a 0.3 s lead-in | none; measured, not gated |
+
+`start`, `middle` and `end` are the thirds of the output timeline. Offsets are
+in ms; positive means the sound leads the picture, or that the caption appears
+after the speech starts. The file holds names, times and numbers only.
+
+**No evidence, no pass.** A sync spot is clear when its sound correlates at
+0.75 or more at a lag inside the 0.25 s search window and its picture match is
+1.15 times better than the next frame. On the real talk the true matches
+correlate at 0.80 to 0.99 (in sync and with an 87 ms lead); on the synthetic
+talk with its sound moved 0.5 to 8 s early, beyond the window, every peak is
+spurious at 0.57 or less, and on the real talk a 1 s lead leaves 0 of 33 spots
+clear. A spot that is not clear is unclear for its sound (no match near the
+picture, the sign of a gross offset) or, its sound clear, for its picture alone
+(a slide, a screen recording or a still speaker gives no frame to time it by).
+A median needs 4 clear spots. A real clip or joined third that tried 4 or more
+spots and found fewer clear ones fails when its sound was unclear at so many
+spots that fewer than 4 could have been clear; otherwise the picture kept them
+from it, and it is `not_measured`, never `failed`: a talk in sync on a still
+picture lacks evidence, it is not desynchronised. A clip or third with fewer
+than 4 spots to try is `too_few_spots`; a real clip with no 1x speech, and a
+joined third with only cards or parts under 60 frames, have nothing to measure.
+All three are recorded and do not count. Each measure is `passed` only when
+nothing failed or was `not_measured` and something passed; otherwise `failed`
+or `not_measured`. Missing parts in `work/` make the joined measure
+`not_measured`. The `sync` gate passes only when all three measures passed, so
+an unmeasured gate fails the stage. `check.json` records every tried spot with
+its offset, correlation, sharpness and `unclear` (`null`, `sound` or
+`picture`), and per clip and third the tried, clear, sound-unclear and
+picture-unclear counts, so a `failed` or `not_measured` verdict explains itself.
+
+The report's `status` is `failed` when a gate failed, `not_measured` when none
+failed but one lacked evidence, `partial` when every gate that ran passed but
+not all four ran, and `passed` only for a complete run that passed.
+
+**What it binds.** The report binds the sha256 of the delivered `talk.mp4` and
+of `edl.json`, and nothing else. The `captions` measurement recomputes cues
+from the words and times them against `talk.mp4`'s sound; it does not read the
+delivered `talk.srt`. The captions and overlay stages write `talk.srt`,
+`talk.vtt` and `talk.corrected.mp4` after `check`, so a published run's
+captions and corrected copy are not what `check.json` measured. The render
+stage writes `talk.upload.mp4` (`[encode] upload`) before `check`, but `check`
+does not measure it; `publish` carries it (below) without a `check` verdict, and
+its sync and loudness are measured only by calling the same measures with `out`
+set to the upload copy.
+
+`publish` carries a `check.json` that measured this very edit into the run as
+an `output_sha256` file, so `verify-run` hashes it, and the manifest's `check`
+records its sha256, `status` (the report's, so `partial` is never `passed`),
+the gates and a summary. A `check.json` of another edit, or one that is not a
+readable check report, is refused before anything is staged; without one
+`check.status` is `not_run`. A partial report is never published, and a
+`work/check.partial.json` of the same edit that is newer than `check.json` and
+says `failed` or `not_measured` refuses the publish: `check.json` is stale. The
+manifest's `status` stays `rendered_unreviewed`: a machine check is not a
+listening review. `verify-run` reads the `check` object as an open field and
+checks only the file's hash. When `verify-run` gives no verdict (it cannot
+start, crashes or runs over the time limit), the run keeps its name and a file
+`.unverified-<run_id>` beside it records why.
+
+### Upload copies in a run
+
+TIN-6575. `publish` carries `talk.upload.mp4` and, beside `talk.corrected.mp4`,
+`talk.corrected.upload.mp4` when they exist, and requires `talk.upload.mp4` when
+the config sets `[encode] upload`. Each is an `output_sha256` file, so
+`verify-run` hashes it. Before anything is staged, publish refuses an upload copy
+that
+
+- has a different video frame count from the copy whose picture it carries;
+- does not carry the edit's audio packets unchanged (the sha256 of the copied
+  AAC packets, read with `-c copy`, not decoded, must equal `talk.mp4`'s), which
+  refuses an upload copy left over from another edit;
+- has its `moov` box after its `mdat` box (not `+faststart`), read from the
+  top-level ISO BMFF box headers;
+- has a first video packet with pts or dts other than 0, or B-frames;
+- is `talk.corrected.upload.mp4` with no `talk.corrected.mp4` beside it.
+
+The render and overlay stages run the same box, pts and B-frame checks after
+writing a copy. The manifest's `uploads` lists one entry per copy: `file`, `of`
+(the copy whose picture it carries), `video_frames`, `faststart`, `moov_offset`,
+`mdat_offset`, `video_first_pts`, `video_first_dts`, `video_b_frames`,
+`audio_copied_from`, `audio_packets_sha256`, `audio_first_pts`,
+`audio_start_pts` and `audio_time_base`. The audio's first packet pts is
+recorded, not judged: the AAC encoder's 1024-sample priming puts the copied
+edit's first packet at -1024 at 1/48000 s, and the mp4 edit list starts
+playback at 0 (`audio_start_pts` 0). The video has no such offset and no edit
+list.
+
+`verify-run --timeline edl_v1` requires `uploads` to describe every listed
+`*.upload.mp4` file, each `file` and `of` listed in `output_sha256`, its
+`video_frames` equal to `delivery.video_frames` (`upload_invalid`) and
+`faststart` true with `moov_offset` before `mdat_offset`
+(`upload_not_faststart`). After hashing, it reads each copy's top-level box
+headers itself, without decoding or a subprocess: a `moov` after the `mdat` is
+`upload_not_faststart`, offsets other than the manifest's or a box that
+overruns the file is `upload_invalid`. Its receipt lists each upload copy with
+its offsets and status. A run published before this change has no `uploads`
+and no upload copy, and still verifies.
+
+### Thresholds against a real talk
+
+Measured on 2026-10-16 on the tool-tier v5 rebuild (TIN-6544; 37725 frames,
+1257.5 s, three clips) with the review fixes, receipt
+`docs/agent-notes/2026-10-16-condense-check-receipt.md`:
+
+- **Sync, 20 ms: kept.** The coded probe's worst frame is 14.49 ms (sped
+  phone speech; 8.79 ms in the room clip), the 1x real median +0.31 ms over 6
+  of 9 spots, and the joined medians -5.05, -5.17 and -5.22 ms at the start,
+  middle and end (6, 7 and 8 of 8 spots clear). The v2 bug, an 87 ms lead, is
+  over four times the limit: on the real talk it reads +87.31 ms (real) and
+  +81.95, +81.83 and +81.78 ms (joined), and fails; a 1 s lead fails with no
+  clear spot (`condense/tests/test_check.py` repeats both on synthetic media).
+  Single spots read one frame off (+28 to +34 ms, once -38.5 ms): 3 of 27 clear
+  spots in this run, 7 of 54 joined spots over three runs of the measure, and
+  3 of 12 in the worst run. So the limit applies to medians, never to one spot.
+  Inference, not a measurement: if misreads were independent at the pooled
+  rate (6 of 54 a frame late, 1 of 54 early), one third with 6 to 8 clear spots
+  would fail falsely with a probability of 0.07 % to 0.4 %, about 0.7 % per run
+  of three thirds; at the worst run's 3 in 12 it would be 3 % to 7 % per third.
+  Unclear spots are a second source, which that estimate left out while the
+  picture test alone could fail a measure. In the round-3 run every unclear
+  spot near the sound was unclear for the picture only: 16 of 99 on the
+  delivered, upload and 87 ms copies (sharpness 1.031 to 1.137, correlation
+  0.853 to 0.989), none for the sound. Inference, assuming independent spots:
+  at 16 in 99 a third of 8 or the real clip of 9 lacks 4 clear spots with a
+  probability of 0.4 % or 0.1 %, about 1.3 % per run, which is now recorded as
+  `not_measured`, never `failed`; at the 95 % upper bound of 3 in 99
+  sound-unclear spots with the true match inside the window, a false `failed`
+  from them is under 0.001 % per run. A still picture clusters its unclear
+  spots, so a slide talk is `not_measured` far more often than that.
+  Frame-exact reads would remove the misreads; they are a follow-up. The 1x
+  real measure covers only the opening welcome here: the other clips play no
+  speech at 1x.
+- **Loudness, 1 LU: kept.** The delivered and upload copies both measure
+  -16.0 LUFS (deviation 0.0 LU), loudness range 3.5 LU and true peak -1.0 dBTP:
+  0.5 dB over the render's -1.5 dBTP target after AAC, 1.0 dB under the gate.
+  The 11 s synthetic edit lands 0.4 LU off, so 1 LU is not loose for a short
+  edit and two-pass linear loudnorm needs no tighter one for a long one.
+- **Captions: not gated.** 15 of 24 sampled cues had a clear onset: median
+  +135 ms, 90th percentile of |offset| 263 ms, range -215 to +280 ms. An energy
+  onset is not a word onset (a breath or a click counts), so no limit is set
+  until a reviewed set of cue starts exists.

@@ -1,11 +1,22 @@
-"""Every guitar consumer of `timeline.no_time_stretch` refuses a condense run (docs/spec/TIMELINE_CONTRACT.md).
+"""Every guitar consumer of `timeline.no_time_stretch` refuses a condense run and a narration run
+(docs/spec/TIMELINE_CONTRACT.md, with its narration amendment).
 
-Two manifests are fed to each consumer's narrowest entry point:
+Two manifests are fed to each consumer's narrowest entry point, first for condense, then (the Narration* classes)
+for a narration render that applied no stretch at all:
 
 - the condense manifest, shaped exactly as the contract writes it (`kind: condense_edit`, `sources`,
   `timeline.mapping: edl_v1`, `no_time_stretch: false`, no top-level `source` or `pcm`);
 - a hybrid: a guitar take's manifest whose timeline is the condense timeline. Every other field the
   consumer reads first is valid, so the refusal comes from the no-time-stretch check itself.
+
+The narration manifest is built from narrate/tests/fixtures/narration-timeline.json and narration-shape.json,
+which narrate/tests/test_contract_shape.py checks against a real zero-stretch render of narrate/render.py: a
+renamed key or a dropped no_time_stretch there fails that test, and this matrix reads the same fixtures.
+
+The NarratedVideo* classes run the matrix a third time, once per narrated-video mapping (`narrated_video_v1`,
+`avatar_overlay_v1` and `music_bed_v1`, TIMELINE_CONTRACT.md's narrated-video amendment), with an `nv_stage`
+manifest whose timeline is narrate/tests/fixtures/narrated-video/<mapping>.json. The stages that write those
+manifests land in later lanes; the fixtures fix the shape they must write.
 
 Each case asserts a refusal (an exception, a `False` shape test, a rejected lineage or a rejected evidence
 row) and that the run directory holds the same files afterwards. phrase_anchor records the mapping instead
@@ -41,6 +52,12 @@ import rhythm  # noqa: E402
 import tonal  # noqa: E402
 import web_jobs  # noqa: E402
 
+NARRATE_FIXTURES = ROOT / "narrate" / "tests" / "fixtures"
+NARRATION_TIMELINE = json.loads((NARRATE_FIXTURES / "narration-timeline.json").read_text())
+NARRATION_SHAPE = json.loads((NARRATE_FIXTURES / "narration-shape.json").read_text())
+NV_MAPPINGS = ("narrated_video_v1", "avatar_overlay_v1", "music_bed_v1")
+NV_TIMELINES = {m: json.loads((NARRATE_FIXTURES / "narrated-video" / f"{m}.json").read_text()) for m in NV_MAPPINGS}
+NV_STAGES = {"narrated_video_v1": "place", "avatar_overlay_v1": "avatar", "music_bed_v1": "music"}
 PCM = {"sample_rate": 48000, "channels": 1, "sample_count": 48000, "codec": "pcm_s16le"}
 EDL_SHA = "e" * 64
 
@@ -67,12 +84,44 @@ def condense_manifest(run_dir: Path, outputs: dict) -> dict:
             "delivery": {"file": "edl.json", "audio_sample_rate": 48000, "audio_channels": 1, "video_frames": 49}}
 
 
-def hybrid_manifest(run_dir: Path, source_sha: str, outputs: dict, **extra) -> dict:
-    """A guitar take's manifest carrying the condense timeline (with the guitar origin fields kept)."""
+def narration_timeline(**extra):
+    """A real render's timeline (narration-timeline.json) that stretched nothing: still no_time_stretch false."""
+    timeline = json.loads(json.dumps(NARRATION_TIMELINE))
+    timeline["edl"]["sha256"] = EDL_SHA
+    return {**timeline, **extra}
+
+
+def narration_manifest(run_dir: Path, outputs: dict) -> dict:
+    """The narration amendment's manifest (narrate/render.py), with zero applied stretch."""
+    return {"schema_version": 1, "kind": "narration_render", "status": "rendered_unreviewed", "synthetic": True,
+            "run_id": run_dir.name, "run_dir": str(run_dir),
+            "input": {"kind": "Markdown", "sha256": "a" * 64, "ir_file": "ir.json", "ir_sha256": "d" * 64},
+            "output_sha256": {"narration.edl.json": EDL_SHA, **outputs}, "timeline": narration_timeline(),
+            "flags": []}
+
+
+def nv_timeline_for(mapping):
+    """A narrated-video stage timeline (narrate/tests/fixtures/narrated-video/<mapping>.json)."""
+    def timeline(**extra):
+        return {**json.loads(json.dumps(NV_TIMELINES[mapping]).replace("0" * 64, EDL_SHA)), **extra}
+    return timeline
+
+
+def nv_manifest_for(mapping):
+    """The narrated-video amendment's stage manifest: kind nv_stage, synthetic, no top-level source or pcm."""
+    def manifest(run_dir: Path, outputs: dict) -> dict:
+        return {"schema_version": 1, "kind": "nv_stage", "stage": NV_STAGES[mapping], "segment": None,
+                "status": "rendered_unreviewed", "synthetic": True, "run_id": run_dir.name, "run_dir": str(run_dir),
+                "output_sha256": {"stage.json": EDL_SHA, **outputs}, "timeline": nv_timeline_for(mapping)()}
+    return manifest
+
+
+def hybrid_manifest(run_dir: Path, source_sha: str, outputs: dict, timeline=condense_timeline, **extra) -> dict:
+    """A guitar take's manifest carrying a foreign timeline (with the guitar origin fields kept)."""
     return {"schema_version": 1, "status": "rendered_unreviewed", "run_id": run_dir.name, "run_dir": str(run_dir),
             "source": {"path": str(run_dir / "take.mov"), "sha256": source_sha},
             "outputs": {"source": "source.wav"}, "output_sha256": outputs, "pcm": dict(PCM),
-            "timeline": condense_timeline(audio_start_seconds=0.0, format_start_seconds=0.0), **extra}
+            "timeline": timeline(audio_start_seconds=0.0, format_start_seconds=0.0), **extra}
 
 
 def write_json(path: Path, value) -> str:
@@ -85,6 +134,14 @@ def listing(directory: Path) -> dict:
 
 
 class ContractCase(unittest.TestCase):
+    # The foreign mapping every case feeds the guitar consumers: condense here, narration in the Narration*
+    # subclasses below (TIMELINE_CONTRACT.md, narration amendment).
+    foreign_manifest = staticmethod(condense_manifest)
+    foreign_timeline = staticmethod(condense_timeline)
+
+    def hybrid(self, run_dir, source_sha, outputs, **extra):
+        return hybrid_manifest(run_dir, source_sha, outputs, timeline=self.foreign_timeline, **extra)
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name).resolve()
@@ -112,17 +169,17 @@ class ContractCase(unittest.TestCase):
 class RunDirConsumers(ContractCase):
     def test_rhythm_input_timeline(self):
         metadata = {"audio": {"start_time": "0.0", "sample_rate": "48000", "channels": 1}}
-        write_json(self.run / "manifest.json", condense_manifest(self.run, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.foreign_manifest(self.run, {"denoised.wav": self.identity}))
         self.refuses(lambda: rhythm.input_timeline(self.denoised, self.identity, metadata, self.run), ValueError)
-        write_json(self.run / "manifest.json", hybrid_manifest(self.run, self.original, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.hybrid(self.run, self.original, {"denoised.wav": self.identity}))
         self.refuses(lambda: rhythm.input_timeline(self.denoised, self.identity, metadata, self.run), ValueError,
                      regex="does not establish an unchanged time scale")
 
     def test_tonal_build(self):
         write_json(self.run / "analysis.json", {"source": {"sha256": self.identity}})
-        write_json(self.run / "manifest.json", condense_manifest(self.run, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.foreign_manifest(self.run, {"denoised.wav": self.identity}))
         self.refuses(lambda: tonal.build(self.run), ValueError)
-        write_json(self.run / "manifest.json", hybrid_manifest(self.run, self.original, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.hybrid(self.run, self.original, {"denoised.wav": self.identity}))
         self.refuses(lambda: tonal.build(self.run), ValueError, regex="requires manifest no_time_stretch")
 
     def meter_analysis(self, manifest_hash):
@@ -133,18 +190,18 @@ class RunDirConsumers(ContractCase):
                                    "original_audio_start_seconds": 0.0, "sample_mapping": {"no_time_stretch": True}}}
 
     def test_meter_analyze_run(self):
-        digest = write_json(self.run / "manifest.json", condense_manifest(self.run, {}))
+        digest = write_json(self.run / "manifest.json", self.foreign_manifest(self.run, {}))
         write_json(self.run / "analysis.json", self.meter_analysis(digest))
         self.refuses(lambda: meter.analyze_run(self.run), ValueError)
         digest = write_json(self.run / "manifest.json",
-                            hybrid_manifest(self.run, self.original, {"denoised.wav": self.identity}))
+                            self.hybrid(self.run, self.original, {"denoised.wav": self.identity}))
         write_json(self.run / "analysis.json", self.meter_analysis(digest))
         self.refuses(lambda: meter.analyze_run(self.run), ValueError, regex="no-stretch provenance differs")
 
     def test_basic_pitch_compare_build(self):
-        write_json(self.run / "manifest.json", condense_manifest(self.run, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.foreign_manifest(self.run, {"denoised.wav": self.identity}))
         self.refuses(lambda: basic_pitch_compare.build(self.run, {}), ValueError)
-        write_json(self.run / "manifest.json", hybrid_manifest(self.run, self.original, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.hybrid(self.run, self.original, {"denoised.wav": self.identity}))
         self.refuses(lambda: basic_pitch_compare.build(self.run, {}), ValueError,
                      regex="no-time-stretch source mapping")
 
@@ -155,9 +212,9 @@ class RunDirConsumers(ContractCase):
             guitar_features.inherit_manifest_lineage(result, self.run)
             return result["lineage"]
 
-        write_json(self.run / "manifest.json", condense_manifest(self.run, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.foreign_manifest(self.run, {"denoised.wav": self.identity}))
         self.assertEqual(lineage()["manifest_status"], "rejected")
-        write_json(self.run / "manifest.json", hybrid_manifest(self.run, self.original, {"denoised.wav": self.identity}))
+        write_json(self.run / "manifest.json", self.hybrid(self.run, self.original, {"denoised.wav": self.identity}))
         got = lineage()
         self.assertEqual((got["status"], got["manifest_status"], got["manifest_rejection_reason"]),
                          ("input_stream_timeline", "rejected", "canonical_timeline_not_verified"))
@@ -171,8 +228,8 @@ class RunDirConsumers(ContractCase):
                                    "original_source_sha256": self.original, "analyzed_input_sha256": self.identity}})
             return lambda: dag.select_evidence(self.run, manifest, {"clicks": "clicks.json"})
 
-        self.refuses(selected(condense_manifest(self.run, {"denoised.wav": self.identity})), KeyError)
-        hybrid = selected(hybrid_manifest(self.run, self.original, {"denoised.wav": self.identity}))
+        self.refuses(selected(self.foreign_manifest(self.run, {"denoised.wav": self.identity})), KeyError)
+        hybrid = selected(self.hybrid(self.run, self.original, {"denoised.wav": self.identity}))
         before = listing(self.root)
         rows, verified, _, _ = hybrid()
         self.assertEqual(listing(self.root), before)
@@ -200,24 +257,24 @@ class RunDirConsumers(ContractCase):
                             "phrases": {"path": str(self.run / "phrases.json"), "sha256": phrases_hash}}})
             return lambda: arrangement_markers.build(self.run, "assessment.json")
 
-        self.refuses(build_with(condense_manifest(self.run, {"denoised.wav": self.identity})), KeyError, ValueError)
-        self.refuses(build_with(hybrid_manifest(self.run, original, {"denoised.wav": self.identity})), ValueError,
+        self.refuses(build_with(self.foreign_manifest(self.run, {"denoised.wav": self.identity})), KeyError, ValueError)
+        self.refuses(build_with(self.hybrid(self.run, original, {"denoised.wav": self.identity})), ValueError,
                      regex="Unchanged source time scale required")
 
 
 class ManifestConsumers(ContractCase):
     def test_arrangement_reference_observations_from_run(self):
         analysis = {"source": {"sha256": self.identity}}
-        condense = condense_manifest(self.run, {"denoised.wav": self.identity})
+        condense = self.foreign_manifest(self.run, {"denoised.wav": self.identity})
         self.refuses(lambda: arrangement_reference.observations_from_run(condense, analysis, {}, "c" * 64),
                      KeyError, ValueError)
-        hybrid = hybrid_manifest(self.run, self.original, {"denoised.wav": self.identity})
+        hybrid = self.hybrid(self.run, self.original, {"denoised.wav": self.identity})
         self.refuses(lambda: arrangement_reference.observations_from_run(hybrid, analysis, {}, "c" * 64),
                      ValueError, regex="native no-stretch mapping required")
 
     def test_web_jobs_baseline_shape(self):
-        hybrid = hybrid_manifest(self.run, self.original, {"source.wav": self.identity})
-        self.assertFalse(web_jobs.WebJobs._baseline_shape(condense_manifest(self.run, {})))
+        hybrid = self.hybrid(self.run, self.original, {"source.wav": self.identity})
+        self.assertFalse(web_jobs.WebJobs._baseline_shape(self.foreign_manifest(self.run, {})))
         self.assertFalse(web_jobs.WebJobs._baseline_shape(hybrid))
         hybrid["timeline"] = {"no_time_stretch": True, "audio_start_seconds": 0.0}
         self.assertTrue(web_jobs.WebJobs._baseline_shape(hybrid))
@@ -234,8 +291,8 @@ class ManifestConsumers(ContractCase):
                        **{key: True for key in marked_compact.PREVIEW_TRUE}, "physical_audio_video_sync_verified": False,
                        "decoded_video_frame_count": 30, "decoded_video_last_extent_seconds": 1.0,
                        "decoded_video_first_pts_seconds": 0}}
-        hybrid = hybrid_manifest(self.run, source, {})
-        condense = condense_manifest(self.run, {})
+        hybrid = self.hybrid(self.run, source, {})
+        condense = self.foreign_manifest(self.run, {})
         self.refuses(lambda: marked_compact.branch_gate(condense, export, preview, hybrid, "markers.json"),
                      marked_compact.CompactError)
         error = self.refuses(lambda: marked_compact.branch_gate(hybrid, export, preview, hybrid, "markers.json"),
@@ -250,7 +307,8 @@ class ManifestConsumers(ContractCase):
                 "timeline": {"audio_stream_start_seconds": 0.0}, "pcm": {"duration_seconds": 10.0},
                 "source_lineage": {"analyzed_input_sha256": self.identity, "sample_mapping": mapping}})
 
-        self.assertIs(grid({"no_time_stretch": False, "mapping": "edl_v1"})["no_time_stretch_verified"], False)
+        self.assertIs(grid({"no_time_stretch": False, "mapping": self.foreign_timeline()["mapping"]})
+                      ["no_time_stretch_verified"], False)
         self.assertIs(grid({})["no_time_stretch_verified"], False)
         self.assertIs(grid({"no_time_stretch": True})["no_time_stretch_verified"], True)
 
@@ -283,10 +341,10 @@ class CaptureConsumers(ContractCase):
             return capture_profile.author(self.input, self.take, self.review, **settings)
 
         with mock.patch.object(capture_profile, "ROOT", self.workspace):
-            write_json(self.take / "manifest.json", condense_manifest(self.take, {}))
+            write_json(self.take / "manifest.json", self.foreign_manifest(self.take, {}))
             self.refuses(author, capture_profile.CaptureError, regex="provenance object")
             write_json(self.take / "manifest.json",
-                       self.take_manifest(condense_timeline(audio_start_seconds=0.0)))
+                       self.take_manifest(self.foreign_timeline(audio_start_seconds=0.0)))
             self.refuses(author, capture_profile.CaptureError, regex="native source sample mapping is unavailable")
 
     def test_apply_capture_profile_verify_render(self):
@@ -298,14 +356,78 @@ class CaptureConsumers(ContractCase):
             write_json(self.take / "manifest.json", manifest)
             return lambda: apply_capture_profile.verify_render(manifest, state, self.workspace, deadline)
 
-        self.refuses(verify(condense_manifest(self.take, {})), apply_capture_profile.ApplyError)
-        self.refuses(verify(self.take_manifest(condense_timeline(audio_start_seconds=0.0))),
+        self.refuses(verify(self.foreign_manifest(self.take, {})), apply_capture_profile.ApplyError)
+        self.refuses(verify(self.take_manifest(self.foreign_timeline(audio_start_seconds=0.0))),
                      apply_capture_profile.ApplyError, regex="render changed verified native time axis")
 
     def test_apply_capture_profile_validate_keeps_its_check(self):
         text = (ROOT / "scripts" / "apply_capture_profile.py").read_text()
         self.assertIn('fail(timeline.get("no_time_stretch") is not True, '
                       '"verified no-time-stretch native mapping is required")', text)
+
+
+
+class NarrationRow:
+    """The refusal-matrix row for a narration manifest with zero applied stretch: every case above, again."""
+
+    foreign_manifest = staticmethod(narration_manifest)
+    foreign_timeline = staticmethod(narration_timeline)
+
+
+class NarrationRunDirConsumers(NarrationRow, RunDirConsumers):
+    pass
+
+
+class NarrationManifestConsumers(NarrationRow, ManifestConsumers):
+    pass
+
+
+class NarrationCaptureConsumers(NarrationRow, CaptureConsumers):
+    pass
+
+
+# One row per narrated-video mapping, over each consumer group: NarratedVideo_<mapping>_<group>.
+for _mapping in NV_MAPPINGS:
+    for _group in (RunDirConsumers, ManifestConsumers, CaptureConsumers):
+        _name = f"NarratedVideo_{_mapping}_{_group.__name__}"
+        globals()[_name] = type(_name, (_group,), {"foreign_manifest": staticmethod(nv_manifest_for(_mapping)),
+                                                   "foreign_timeline": staticmethod(nv_timeline_for(_mapping))})
+del _mapping, _group, _name
+
+
+class NarratedVideoManifestShape(unittest.TestCase):
+    def test_every_mapping_says_no_time_stretch_false_and_is_never_identity(self):
+        for mapping in NV_MAPPINGS:
+            manifest = nv_manifest_for(mapping)(Path("/run"), {})
+            self.assertEqual(manifest["timeline"]["mapping"], mapping)
+            self.assertIs(manifest["timeline"]["no_time_stretch"], False)
+            self.assertIn("stretch_applied", manifest["timeline"])
+            self.assertTrue(manifest["timeline"]["output_axis"] and manifest["timeline"]["source_axis"])
+            self.assertEqual((manifest["kind"], manifest["synthetic"]), ("nv_stage", True))
+            self.assertNotIn("source", manifest)
+            self.assertNotIn("pcm", manifest)
+
+    def test_the_mappings_are_new_names(self):
+        self.assertEqual(len(set(NV_MAPPINGS)), 3)
+        self.assertTrue(set(NV_MAPPINGS).isdisjoint({"identity", "edl_v1", "narration_v1"}))
+        rows = [name for name in globals() if name.startswith("NarratedVideo_")]
+        self.assertEqual(len(rows), 9)
+
+
+class NarrationManifestShape(unittest.TestCase):
+    def test_the_matrix_manifest_uses_the_rendered_shape(self):
+        manifest = narration_manifest(Path("/run"), {})
+        self.assertLessEqual(set(manifest), set(NARRATION_SHAPE["manifest_keys"]))
+        self.assertEqual(sorted(manifest["timeline"]), NARRATION_SHAPE["timeline_keys"])
+        self.assertEqual(manifest["timeline"]["edl"]["file"], "narration.edl.json")
+
+    def test_a_render_with_no_stretch_still_says_no_time_stretch_false(self):
+        manifest = narration_manifest(Path("/run"), {})
+        self.assertIs(manifest["timeline"]["no_time_stretch"], False)
+        self.assertIs(manifest["timeline"]["stretch_applied"], False)
+        self.assertNotIn(manifest["timeline"]["mapping"], (None, "identity"))
+        self.assertNotIn("source", manifest)
+        self.assertNotIn("pcm", manifest)
 
 
 if __name__ == "__main__":
