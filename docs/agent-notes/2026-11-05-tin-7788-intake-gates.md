@@ -61,6 +61,21 @@ decode (`7b7b4cfe`).
 | Slide with alpha | Compared without its alpha, so it may fail `slide_match` |
 | `voice_qa` and fit | Still after spend. The pre-window fit check belongs to stage 11 |
 
+## Verification
+
+All local and non-qualifying, on fixes commit `fe381970` through the capped test wrapper. Bazel did not run.
+
+| Check | Result |
+| --- | --- |
+| `narrate/tests`, 6 capped batches | 2740 passed, 1 skipped |
+| `just narrate-dhall-check` | 0 errors, 86 mutations |
+| Ruff check and format on `narrate` | clean |
+| `test_public_tree`, `test_tool_contracts`, `test_capabilities` | 83 passed, 3 skipped, 1 failed |
+| Mutants on the frame, render stage and subject tests | 24 of 24 killed, including the 9 that survived the first review |
+
+The 1 failure is `test_real_marked_video_mcp_preserves_vfr_audio_and_rejects_stale_evidence`. It fails the same way at
+base `e3761ee6`, so this branch did not cause it.
+
 ## Merge order
 
 `git merge-tree` against `feat/tin-7788-rerun-mixed-takes` reports content conflicts in 5 files:
