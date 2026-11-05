@@ -292,3 +292,11 @@ evaluates these receipts; the CLI workflow executes the tools.
 and fillers, and keeps every word. It is a speech workflow beside the guitar
 workflow. Run `nix develop .#condense`, then the `just condense-*` recipes; see
 `condense/README.md` and `docs/spec/CONDENSE.md`.
+
+## Practice capture
+
+`livecode/` records or streams the screen with a camera corner and the
+microphone, using plain FFmpeg on macOS. It is a capture source for practice
+takes: its MKV goes to take intake like any other recording. It ships as a Nix
+package (`livecode/package.nix`) and a Bazel package (`//livecode`); see
+`livecode/README.md`. `just livecode-check` runs its tests.

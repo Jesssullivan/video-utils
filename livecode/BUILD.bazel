@@ -1,0 +1,42 @@
+"""
+livecode (livecode/README.md): screen + camera corner + mic capture with plain
+ffmpeg on macOS. A shard: it depends on nothing else in this repository (no
+//:repo_data), and its version is package.nix `passthru.version`.
+
+`just livecode-check` is the operator entrypoint. One test file has two
+runners: this py_test against the source script, and the flake's
+checks.<system>.livecode against the built package. The test receives the
+script through LIVECODE_UNDER_TEST and stubs ffmpeg, df and diskutil through
+livecode's hooks, so it needs no FFmpeg, camera or macOS. It runs the script
+with the bash, awk, sed and coreutils on the test PATH; the Nix check is the
+hermetic proof.
+"""
+
+load("@rules_python//python:defs.bzl", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["livecode.sh"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+py_test(
+    name = "livecode_test",
+    srcs = ["tests/test_livecode.py"],
+    data = [":livecode.sh"],
+    env = {
+        "LIVECODE_UNDER_TEST": "$(rootpath :livecode.sh)",
+        "PYTHONDONTWRITEBYTECODE": "1",
+    },
+    main = "tests/test_livecode.py",
+    tags = ["python-unittest"],
+)

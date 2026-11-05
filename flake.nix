@@ -7,7 +7,45 @@
   outputs = { self, nixpkgs, nixpkgs-condense, ... }: let
     systems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
+    inherit (nixpkgs) lib;
+    # Shards (AGENTS.md, livecode): self-contained directories, each with a
+    # callPackage-able package.nix and a tests/ directory that takes the built
+    # program from <NAME>_UNDER_TEST. tests/test_bazel_graph_s3.py holds this
+    # list equal to the directories, their Bazel packages and CHANGELOG rows.
+    shards = [ "livecode" ];
+    # audio.cpp 47c2756e audiocpp_cli with the Vulkan backend (narrate/bench/image/audiocpp.nix): the source of
+    # the binary sha256 an AudioCppBatch engine record pins (narrate/serve/audiocpp_batch.py --binary-sha256).
+    # x86_64-linux only: the GPU host is x86_64. Built on demand, never by `just check`.
+    x86Packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (system: {
+      narrate-bench-audiocpp = nixpkgs.legacyPackages.${system}.callPackage ./narrate/bench/image/audiocpp.nix {};
+      # The Cade render worker's CPU image (deploy/cade-render-worker/image.nix, docs/spec/RENDER_STAGE.md): no
+      # private input, no GPU binary. Its tools come from the condense pin; its commit is this flake's revision.
+      cade-render-worker-image = nixpkgs-condense.legacyPackages.${system}.callPackage ./deploy/cade-render-worker/image.nix {
+        src = ./.;
+        commit = self.rev or null;
+      };
+    });
   in {
+    # Each shard on every system, joined with the x86_64-linux narrate and render packages.
+    packages = lib.recursiveUpdate (forAllSystems (system: let
+      pkgs = import nixpkgs { inherit system; };
+    in lib.genAttrs shards (name: pkgs.callPackage (./. + "/${name}/package.nix") { }))) x86Packages;
+
+    # The shard's own test file against the built package; no FFmpeg, camera or macOS.
+    checks = forAllSystems (system: let
+      pkgs = import nixpkgs { inherit system; };
+    in lib.genAttrs shards (name: let
+      package = self.packages.${system}.${name};
+      tests = builtins.path { path = ./. + "/${name}/tests"; name = "${name}-tests"; };
+    in pkgs.runCommand "${name}-check" {
+      nativeBuildInputs = [ pkgs.bash pkgs.python3 ];
+      "${lib.toUpper name}_UNDER_TEST" = lib.getExe package;
+      PYTHONDONTWRITEBYTECODE = "1";
+    } ''
+      python3 -m unittest discover -s ${tests} -p 'test_*.py' -v
+      touch "$out"
+    ''));
+
     devShells = forAllSystems (system: let
       pkgs = import nixpkgs { inherit system; };
       core = with pkgs; [ rustc cargo rustfmt clippy ffmpeg-headless just jq python3 uv git gh gitleaks shellcheck ];
@@ -67,18 +105,6 @@
         OMP_NUM_THREADS = "2";
         OPENBLAS_NUM_THREADS = "2";
         MKL_NUM_THREADS = "2";
-      };
-    });
-    # audio.cpp 47c2756e audiocpp_cli with the Vulkan backend (narrate/bench/image/audiocpp.nix): the source of
-    # the binary sha256 an AudioCppBatch engine record pins (narrate/serve/audiocpp_batch.py --binary-sha256).
-    # x86_64-linux only: the GPU host is x86_64. Built on demand, never by `just check`.
-    packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (system: {
-      narrate-bench-audiocpp = nixpkgs.legacyPackages.${system}.callPackage ./narrate/bench/image/audiocpp.nix {};
-      # The Cade render worker's CPU image (deploy/cade-render-worker/image.nix, docs/spec/RENDER_STAGE.md): no
-      # private input, no GPU binary. Its tools come from the condense pin; its commit is this flake's revision.
-      cade-render-worker-image = nixpkgs-condense.legacyPackages.${system}.callPackage ./deploy/cade-render-worker/image.nix {
-        src = ./.;
-        commit = self.rev or null;
       };
     });
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
