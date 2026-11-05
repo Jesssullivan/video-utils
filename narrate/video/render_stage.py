@@ -8,12 +8,18 @@ GPU window runs outside this process (docs/spec/RENDER_STAGE.md, "Lease protocol
     check REQUEST [--inputs DIR | --gpu-draft]
                                    validate the request and print its phase plan. With --inputs (verify_inputs, on
                                    the worker) also check the worker's commit and re-hash every input under
-                                   DIR/<sha256>. --gpu-draft plans a gpu_window request, which v1 otherwise refuses;
-                                   it never goes with --inputs. Writes nothing.
+                                   DIR/<sha256>. --gpu-draft plans a gpu_window or mixed request, which v1 otherwise
+                                   refuses; it never goes with --inputs. Writes nothing.
+    takes JOB --request REQUEST [--after-window] [--gpu-draft]
+                                   the voice nodes against the request: which takes stay, which are adopted and which
+                                   a window voices. Before a window it refuses a request that would spend on a beat
+                                   that needs no take or adopt a take the beat outgrew. With --after-window, the
+                                   voice_ready phase, ready says every take is in place. Writes nothing.
     result JOB --request REQUEST [--export DIR]
                                    the result of a job that ran to deliver_check: every output by digest and the
                                    deliver_check gates, after binding the request's inputs to the job's intake
-                                   (JOB/intake/intake.json). With --export, copy the composed video and the
+                                   (JOB/intake/intake.json). It records the render in JOB/rerun.json (rerun.py) and
+                                   reports what ran since the last one. With --export, copy the composed video and the
                                    deliver_check report into DIR under their sha256 names, then the result itself.
 
 A request or a result holds no path, host, address or prose: every string is a single token, a digest or a fixed
@@ -28,7 +34,7 @@ import shutil
 from pathlib import Path
 
 from ..ir import sha256_file
-from . import accept, keys
+from . import accept, keys, rerun
 from .job import ID, SHA256, JobError, check_shape
 from .store import StoreError, verify_stage_dir
 from .store import tree_sha256 as store_tree_sha256
@@ -49,7 +55,8 @@ NOTICE_TICKET = "TIN-5397"
 WINDOW_MAX_S = 1800  # docs/spec/NARRATE.md, "GPU use": attended or unattended windows of 30 minutes or less
 EDITIONS_V1 = ("Internal",)  # T1 renders Internal demos only; a client edition needs its own tenant (T4)
 UNTIL = ("deliver_check",)
-VOICE_MODES = ("gpu_window", "from_run")
+VOICE_MODES = ("gpu_window", "from_run", "mixed")
+WINDOW_MODES = ("gpu_window", "mixed")  # the modes that voice a take, so they name a Lease and a spend cap
 # inputs: name -> (required, how DIR/<sha256> is checked). "file" re-hashes a file, "tree" a directory's tree
 # digest, "manifest" a bundle directory's manifest.json (intake then checks every asset against that manifest).
 INPUTS = {
@@ -75,6 +82,10 @@ REQUEST_KEYS = {
     "lease",
     "until",
 }
+# Optional, so a request written before reruns stays valid. rerun marks a new event on a job root that may hold a
+# render. spend is the cap of one GPU window. Neither has a default: TIN-7125 3672cb05 set no number.
+OPTIONAL_KEYS = {"rerun", "spend"}
+SPEND_KEYS = {"window_cap_usd_cents", "rate_usd_cents_per_hour"}
 LEASE_KEYS = {"lease", "holder", "max_seconds", "helper_sha256", "notice"}
 # How far this module checks the Lease binding: form_only. It checks the shape of the notice comment id and of the
 # helper digest. It never reads Linear or hashes a helper; Cade's voice_gpu does both before the window starts.
@@ -127,7 +138,7 @@ def check_request(request, gpu_draft=False):
     gpu_window request refuses gpu_window_not_v1 unless gpu_draft (check --gpu-draft) asks for its plan only."""
     if not isinstance(request, dict):
         _refuse("request_invalid", "the request is not a JSON object")
-    extra, missing = sorted(set(request) - REQUEST_KEYS), sorted(REQUEST_KEYS - set(request))
+    extra, missing = sorted(set(request) - REQUEST_KEYS - OPTIONAL_KEYS), sorted(REQUEST_KEYS - set(request))
     if extra or missing:
         _refuse("request_keys", f"unknown keys {extra}, missing keys {missing}")
     if request["kind"] != REQUEST_KIND or request["schema_version"] != SCHEMA_VERSION:
@@ -149,7 +160,9 @@ def check_request(request, gpu_draft=False):
         _refuse("until_invalid", f"the render stage stops at {', '.join(UNTIL)}; delivery is deliver_internal's")
     check_inputs(request["inputs"])
     check_voice(request["voice"], request["lease"])
-    if request["voice"]["mode"] == "gpu_window" and not gpu_draft:
+    check_spend(request.get("spend"), request["voice"]["mode"], request["lease"])
+    check_rerun(request.get("rerun", {}), request["voice"]["mode"])
+    if request["voice"]["mode"] in WINDOW_MODES and not gpu_draft:
         _refuse(
             "gpu_window_not_v1",
             "v1 runs no GPU window: no TIN-5397 notice poster exists yet (R3) and no lease or batch receipt binds a"
@@ -178,6 +191,10 @@ def check_voice(voice, lease):
     if voice["mode"] not in VOICE_MODES:
         _refuse("voice_invalid", f"voice.mode is one of {', '.join(VOICE_MODES)}")
     runs = voice["runs"]
+    if voice["mode"] == "mixed":
+        check_mixed(runs)
+        check_lease(lease)
+        return
     if voice["mode"] == "from_run":
         if lease is not None:
             _refuse("lease_unneeded", "an adopted voice runs no GPU window, so the request names no Lease")
@@ -190,6 +207,51 @@ def check_voice(voice, lease):
     if runs is not None:
         _refuse("voice_runs_unexpected", "a GPU window renders the runs, so voice.runs is null")
     check_lease(lease)
+
+
+def check_mixed(runs):
+    """A mixed request names every segment: a narrate content_sha256 keeps or adopts that take, null voices the beat
+    in this window. It holds at least one of each, because the other two modes serve the rest."""
+    if not isinstance(runs, dict) or not runs:
+        _refuse("voice_runs_missing", "mixed names each segment's take by content_sha256, or null to voice it")
+    for segment, digest in runs.items():
+        if not isinstance(segment, str) or not ID.fullmatch(segment) or not (digest is None or _sha(digest)):
+            _refuse("voice_runs_invalid", "voice.runs maps a segment id to a content_sha256 or null")
+    if all(d is None for d in runs.values()) or None not in runs.values():
+        _refuse("voice_mixed_invalid", "mixed adopts at least one take and voices at least one beat")
+
+
+def check_spend(spend, mode, lease):
+    """The spend cap of one GPU window, a parameter with no default number. The window is time-capped, so its ceiling
+    is lease.max_seconds at the caller's rate, rounded up to a cent. On-prem windows pass a rate of 0. A window whose
+    ceiling is over the cap refuses before it starts, so a cap can never stop one partway."""
+    if mode not in WINDOW_MODES:
+        if spend is not None:
+            _refuse("spend_unneeded", "an adopted voice runs no GPU window, so the request names no spend cap")
+        return
+    if spend is None:
+        _refuse("spend_cap_missing", f"a GPU window needs spend with {sorted(SPEND_KEYS)}")
+    if not isinstance(spend, dict) or set(spend) != SPEND_KEYS:
+        _refuse("spend_invalid", f"spend holds {sorted(SPEND_KEYS)}")
+    cap, rate = spend["window_cap_usd_cents"], spend["rate_usd_cents_per_hour"]
+    for value, least in ((cap, 1), (rate, 0)):
+        if isinstance(value, bool) or not isinstance(value, int) or value < least:
+            _refuse("spend_invalid", "the cap is a positive count of US cents and the rate a count that may be 0")
+    if window_ceiling(lease, spend) > cap:
+        _refuse("spend_cap_exceeded", "lease.max_seconds at this rate can cost more than the window's cap")
+
+
+def window_ceiling(lease, spend):
+    """The most one window can cost, in US cents: its time cap at the caller's rate, rounded up."""
+    return -(-lease["max_seconds"] * spend["rate_usd_cents_per_hour"] // 3600)
+
+
+def check_rerun(value, mode):
+    """rerun marks a new event on a job root. scope compose_only says no voice changes, so it names no window."""
+    if not isinstance(value, dict) or set(value) - {"scope"} or value.get("scope", "any") not in rerun.SCOPES:
+        _refuse("rerun_invalid", f"rerun is {{scope}}, one of {', '.join(rerun.SCOPES)}")
+    if value.get("scope") == "compose_only" and mode != "from_run":
+        _refuse("rerun_scope_conflict", "a compose-only rerun voices nothing, so its voice mode is from_run")
 
 
 def check_lease(lease):
@@ -257,17 +319,32 @@ def check_input_dir(inputs, root):
     return seen
 
 
+def revoiced(request):
+    """The segments this request voices in its window, in request order. None means every segment."""
+    if request["voice"]["mode"] != "mixed":
+        return None
+    return [segment for segment, digest in request["voice"]["runs"].items() if digest is None]
+
+
 def phases(request):
-    """The ordered phases of one render stage. Only voice_gpu holds the Lease, and it runs under the lease helper."""
-    gpu = request["voice"]["mode"] == "gpu_window"
+    """The ordered phases of one render stage. Only voice_gpu holds the Lease, and it runs under the lease helper. A
+    rerun re-intakes into the same job root, and a compose-only rerun skips voice_adopt because every voice stays."""
+    mode, scope = request["voice"]["mode"], request.get("rerun", {}).get("scope")
+    gpu = mode in WINDOW_MODES
+    intake = "narrate video intake --out JOB/intake, then init --from"
+    if "rerun" in request:
+        intake = "narrate video intake --out JOB/intake --replace, then init --from --replace"
     rows = [
         {"id": "verify_inputs", "gpu": False, "runs": "render-stage check --inputs"},
-        {"id": "intake", "gpu": False, "runs": "narrate video intake --out JOB/intake, then init --from"},
+        {"id": "intake", "gpu": False, "runs": intake},
     ]
+    if mode == "mixed":
+        rows.append({"id": "voice_takes", "gpu": False, "runs": "render-stage takes"})
     if gpu:
-        lease = request["lease"]
+        lease, spend, segments = request["lease"], request["spend"], revoiced(request)
+        scoped = {} if segments is None else {"segments": segments}
         rows += [
-            {"id": "voice_plan", "gpu": False, "runs": "narrate plan"},
+            {"id": "voice_plan", "gpu": False, "runs": "narrate plan"} | scoped,
             {
                 "id": "voice_gpu",
                 "gpu": True,
@@ -279,11 +356,16 @@ def phases(request):
                     "resolution": LEASE_RESOLUTION,
                     "verify_before_run": list(LEASE_VERIFIED_BY_VOICE_GPU),
                 },
-            },
-            {"id": "voice_render", "gpu": False, "runs": "narrate render --prerendered"},
+                "spend": spend | {"ceiling_usd_cents": window_ceiling(lease, spend)},
+            }
+            | scoped,
+            {"id": "voice_render", "gpu": False, "runs": "narrate render --prerendered"} | scoped,
         ]
+    if scope != "compose_only":
+        rows.append({"id": "voice_adopt", "gpu": False, "runs": "narrate video stage JOB voice --from-run"})
+    if mode == "mixed":
+        rows.append({"id": "voice_ready", "gpu": False, "runs": "render-stage takes --after-window"})
     rows += [
-        {"id": "voice_adopt", "gpu": False, "runs": "narrate video stage JOB voice --from-run"},
         {"id": "compose", "gpu": False, "runs": "narrate video run JOB --until deliver_check"},
         {"id": "collect", "gpu": False, "runs": "render-stage result"},
     ]
@@ -292,7 +374,7 @@ def phases(request):
 
 def plan(request, gpu_draft=False):
     check_request(request, gpu_draft)
-    gpu = request["voice"]["mode"] == "gpu_window"
+    gpu = request["voice"]["mode"] in WINDOW_MODES
     return {
         "ok": True,
         "kind": "narrate_render_stage_plan",
@@ -390,8 +472,66 @@ def voice_runs(store, job):
     return out
 
 
+def take_action(row, digest, held, after, is_new):
+    """What one segment needs. row is its voice node from the plan, digest the request's take (None voices the beat)
+    and held the run the node holds. after is true once the window ran, and is_new says the node was committed since
+    the job's last render. Before a window a null on a fresh node always refuses, because no commit time can tell a
+    take already in place from a take this window has yet to pay for. A stale node that holds the named take refuses
+    here, before any spend, because voice_adopt would refuse that take after the window."""
+    fresh = row["state"] == "fresh"
+    if row["state"] in ("blocked", "refused"):
+        _refuse("voice_blocked", f"{row['id']} is {row['state']}: {row['reason']}")
+    if digest is None:
+        if fresh and not (after and is_new):
+            _refuse("revoice_unneeded", f"{row['id']} is fresh, so a window would spend on a beat that needs no take")
+        return "revoiced" if fresh else "revoice"
+    if row["state"] == "stale" and digest == held:
+        _refuse("voice_run_mismatch", f"{row['id']} changed since this take: name a newer take or null to voice it")
+    if not fresh:
+        return "adopt"
+    if held != digest:
+        _refuse("voice_run_mismatch", f"{row['id']} holds another narrate run than the request names")
+    return "keep"
+
+
+def takes(request, g, store, job, gpu_draft=False, after=False):
+    """The voice nodes of a planned job against the request, by segment: keep (the node holds that take), adopt (the
+    take goes in at voice_adopt), revoice (the window voices the beat) or revoiced (the window's take is in). ready is
+    true once every take is in place. after is false at voice_takes, before any spend, and true at voice_ready, which
+    alone may show revoiced. A gpu_window request names no runs, so it voices every beat, and any fresh beat refuses
+    revoice_unneeded: a job with some fresh beats takes mixed."""
+    check_request(request, gpu_draft)
+    if store.job_id != request["job_id"]:
+        _refuse("job_mismatch", "the store holds another job than the request names")
+    voice, segments = request["voice"], [segment["id"] for segment in job["segments"]]
+    runs = voice["runs"] if voice["mode"] != "gpu_window" else dict.fromkeys(segments)
+    if sorted(runs) != sorted(segments):
+        _refuse("voice_runs_invalid", "voice.runs must name exactly the job's segments")
+    rows = {n["id"]: n for n in g["nodes"]}
+    stages = store.current()["stages"]
+    previous = rerun.read(store)["renders"]
+    since = rerun.previous_seq(previous[-1] if previous else None)
+    out = {}
+    for segment in segments:
+        node = f"voice/{segment}"
+        manifest = store.manifest(node) or {}
+        held = (manifest.get("measurements") or {}).get("narrate_content_sha256")
+        is_new = (stages.get(node) or {}).get("seq", 0) > since
+        out[segment] = take_action(rows[node], runs[segment], held, after, is_new)
+    return {
+        "ok": True,
+        "kind": "narrate_render_stage_takes",
+        "job_id": job["id"],
+        "mode": voice["mode"],
+        "takes": out,
+        "revoice": [s for s in segments if out[s] == "revoice"],
+        "ready": all(action in ("keep", "revoiced") for action in out.values()),
+    }
+
+
 def result(request, store, env=None):
-    """The render stage's result for a job that ran to deliver_check. Refuses a stale or partial render."""
+    """The render stage's result for a job that ran to deliver_check. Refuses a stale or partial render. Records the
+    render in rerun.json and reports what ran since the last one (rerun.py), last, so a refusal records nothing."""
     check_request(request)
     check_commit(request, env)
     if store.job_id != request["job_id"]:
@@ -409,12 +549,14 @@ def result(request, store, env=None):
     if request["voice"]["mode"] == "from_run" and runs != request["voice"]["runs"]:
         _refuse("voice_run_mismatch", "the job's voice nodes hold other narrate runs than the request adopts")
     stages = {}
-    for node_id, row in sorted(store.current()["stages"].items()):
+    current = store.current()
+    for node_id, row in sorted(current["stages"].items()):
         if verify_stage_dir(store.dir / row["dir"], row["key"]):
             _refuse("stage_corrupt", f"{node_id} fails re-hashing")
         stages[node_id] = row["content_sha256"]
     measurements = manifest.get("measurements") or {}
     machine_passed = machine_gates(gates, measurements.get("delivery_gate"))
+    shown = rerun.record_render(store, job, request, render, current["stages"], current.get("seq", 0))
     return {
         "kind": RESULT_KIND,
         "schema_version": SCHEMA_VERSION,
@@ -429,6 +571,7 @@ def result(request, store, env=None):
         "intake_sha256": intake_sha256,
         "inputs_bound_by": {name: BOUND_BY[name] for name in INPUTS if request["inputs"].get(name) is not None},
         "voice": {"mode": request["voice"]["mode"], "runs": runs},
+        "rerun": shown,
         # v1 results are from_run only (check_request), so no Lease attests this voice. A gpu_window result would
         # need the helper's run receipt and the batch receipt by digest.
         "lease": None,

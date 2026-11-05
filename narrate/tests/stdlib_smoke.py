@@ -65,6 +65,7 @@ VIDEO_MODULES = (
     "private_terms",
     "relay",
     "render_stage",
+    "rerun",
     "run",
     "speech",
     "store",

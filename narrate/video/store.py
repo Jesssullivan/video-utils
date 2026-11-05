@@ -3,14 +3,17 @@
     artifacts/narrated/<job_id>/
       job.json        the NarratedVideo record (dhall-to-json render)
       graph.json      the last recorded plan (plan --record, init)
-      current.json    {stages: {node: {key, dir, content_sha256}}, refusals: {node: {key, code, detail}}}
-      history/        stage directories that failed re-hashing, moved aside
+      current.json    {seq, stages: {node: {key, dir, content_sha256, seq}}, refusals: {node: {key, code, detail}}}
+      history/        stage directories that failed re-hashing, moved aside, and earlier intakes
+      rerun.json      the renders of this job root and its FIX rounds (narrate/video/rerun.py)
       stages/<stage>[/<segment>]/<key16>/   one finished stage: its outputs and manifest.json
 
 A stage writes into <key16>.partial/ and is renamed into place when done; current.json then points at it. current.json
 replaces symlinks, and a symlink anywhere in a stage directory makes it corrupt. Freshness re-hashes every output and
-never reads an mtime. The store lives outside artifacts/runs/ and outside artifacts/narrate/, so no guitar tool and
-no narrate run reader ever sees it. v1 keeps every stage directory until the operator removes the job (no gc).
+never reads an mtime. seq counts the commits of a job root, so a reader can tell which nodes ran since a render without
+reading a time. An entry written before seq existed reads as 0. The store lives outside artifacts/runs/ and outside
+artifacts/narrate/, so no guitar tool and no narrate run reader ever sees it. v1 keeps every stage directory until the
+operator removes the job (no gc).
 """
 
 import hashlib
@@ -252,6 +255,9 @@ class JobStore:
                 raise StoreError("store_invalid", f"current.json {table} is not a table of entries with keys")
         if not all(isinstance(row.get("dir"), str) for row in value["stages"].values()):
             raise StoreError("store_invalid", "current.json has a stage entry without a dir")
+        counters = [value.get("seq", 0)] + [row.get("seq", 0) for row in value["stages"].values()]
+        if any(isinstance(n, bool) or not isinstance(n, int) for n in counters):
+            raise StoreError("store_invalid", "current.json holds a seq that is not an integer")
         return value
 
     def entry(self, node_id):
@@ -338,10 +344,12 @@ class JobStore:
         if partial.exists():
             os.rename(partial, final)
         current = self.current()
+        current["seq"] = current.get("seq", 0) + 1
         current["stages"][node_id] = {
             "key": key,
             "dir": final.relative_to(self.dir).as_posix(),
             "content_sha256": manifest["content_sha256"],
+            "seq": current["seq"],
         }
         current["refusals"].pop(node_id, None)
         write_atomic(self.current_file, current)
