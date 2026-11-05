@@ -175,8 +175,9 @@ The store:
 artifacts/narrated/<job_id>/        NARRATED_VIDEO_ROOT overrides artifacts/narrated
   job.json                          the NarratedVideo record (dhall-to-json render)
   graph.json                        the last recorded plan (init, plan --record)
-  current.json                      {stages: {node: {key, dir, content_sha256}}, refusals: {node: {key, code, detail}}}
-  history/                          stage directories that failed re-hashing, moved aside
+  current.json                      {seq, stages: {node: {key, dir, content_sha256, seq}}, refusals: {node: {key, code, detail}}}
+  history/                          stage directories that failed re-hashing, moved aside, and earlier intakes
+  rerun.json                        the job root's renders and FIX rounds (docs/spec/RENDER_STAGE.md, "Reruns")
   stages/<stage>[/<segment>]/<key16>/  one finished stage: its outputs and manifest.json (kind nv_stage)
 ```
 
@@ -194,6 +195,7 @@ v1 keeps every stage directory until the operator removes the job.
 | One segment's script | that segment's `script`, `voice`, `voice_qa`, `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check` |
 | Overlay width | `compose`, `deliver_check` |
 | Avatar-off pages or slide layout | `compose`, `deliver_check`, and `handoff` when it is on |
+| One slide's picture, re-intaken into the same job root | `compose`, `deliver_check`, and `handoff` when it is on |
 | kitpip rig or pin | every `avatar` and `avatar_check`, then `compose`, `deliver_check` |
 | Persona label | every `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check`. No voice |
 | Deck re-assembled with the same takes | `base`, `place`, `mix`, `compose`, `deliver_check` |
@@ -398,10 +400,11 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `stage JOB voice --from-run RUN_DIR [--segment ID] [--replace]` | `just nv-stage-voice-from-run JOB RUN_DIR` | adopts a narrate run already rendered and verified elsewhere (`narrate render --prerendered` for an `AudioCppBatch` engine) as the voice node instead of voicing it. See "Adopting a rendered run" |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
-| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal |
+| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX] [--replace]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal. `--replace` lets a rerun event replace an earlier intake at `--out`, which moves to `history/` beside it once the new one passes |
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
+| `fix JOB --decision ID --video-sha256 HEX` | `just nv-fix JOB DECISION VIDEO` | records the operator's FIX of the current cut against the job root's 3 rounds. The fourth refuses `fix_cap_reached`. See "Reruns" in `docs/spec/RENDER_STAGE.md` |
 | `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken, each shown asset's stored text, and `shown_unread`, the kinds of asset it shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard. On a guarded intake's `never_name` marker it refuses `shown_text_unread` when any shown text is unreadable. See "Guard subject and cut" |
 | `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 

@@ -14,15 +14,16 @@ claim_job -> verify_packet -> assets_build -> bs21_privacy_guard -> readiness_ch
   -> deliver_internal
 ```
 
-The task body is `python -m narrate video render-stage` (`narrate/video/render_stage.py`). It has two actions:
+The task body is `python -m narrate video render-stage` (`narrate/video/render_stage.py`). It has three actions:
 
 | Action | What it does | Writes |
 | --- | --- | --- |
 | `check --request R [--inputs DIR]` | Validates the request and prints its phases. With `--inputs`, the `verify_inputs` phase, it also compares the worker's commit with the request and then re-hashes every input at `DIR/<sha256>` | nothing |
-| `check --request R --gpu-draft` | Prints the plan of a `gpu_window` request, which v1 refuses otherwise. It never goes with `--inputs` | nothing |
-| `result JOB --request R [--export DIR]` | Binds the request to the job's intake and reports a job that ran to `deliver_check`, every output by digest. With `--export`, it copies the cut, the report and the result into `DIR` under their sha256 names | `DIR/<sha256>.mp4`, `DIR/<sha256>.json` |
+| `check --request R --gpu-draft` | Prints the plan of a `gpu_window` or `mixed` request, which v1 refuses otherwise. It never goes with `--inputs` | nothing |
+| `takes JOB --request R [--gpu-draft]` | Compares the voice nodes with the request, one action per segment (see "Mixed takes") | nothing |
+| `result JOB --request R [--export DIR]` | Binds the request to the job's intake and reports a job that ran to `deliver_check`, every output by digest, and what ran since its last render. With `--export`, it copies the cut, the report and the result into `DIR` under their sha256 names | `JOB/rerun.json`, `DIR/<sha256>.mp4`, `DIR/<sha256>.json` |
 
-The recipes are `just nv-render-stage-check` and `just nv-render-stage-result`. The phases between them run the
+The recipes are `just nv-render-stage-check`, `just nv-render-stage-takes` and `just nv-render-stage-result`. The phases between them run the
 existing commands: `narrate video intake`, `narrate plan`, `narrate render --prerendered`,
 `narrate video stage JOB voice --from-run` and `narrate video run JOB --until deliver_check`. This stage adds no new
 processing primitive, so it has no MCP tool of its own. The `narrated-video-verify` skill points at it.
@@ -42,9 +43,11 @@ terms out of Hatchet payloads and logs.
 | `video_utils_commit` | 40 hex. The worker's own commit must match it | `commit_invalid` |
 | `worker_image` | `sha256:<64 hex>`, the OCI digest the task ran in | `image_invalid` |
 | `inputs` | digests, listed below | `digest_invalid`, `inputs_keys` |
-| `voice` | `{mode: from_run, runs: {segment: narrate content_sha256}}`. `{mode: gpu_window, runs: null}` refuses in v1 outside `check --gpu-draft` | `voice_invalid`, `gpu_window_not_v1` and the codes below |
-| `lease` | the window's Lease binding with `gpu_window`. Null with `from_run` | `lease_missing`, `lease_unneeded` |
+| `voice` | `{mode: from_run, runs: {segment: narrate content_sha256}}`. `{mode: gpu_window, runs: null}` and `{mode: mixed, runs: {segment: content_sha256 or null}}` refuse in v1 outside `--gpu-draft` | `voice_invalid`, `gpu_window_not_v1` and the codes below |
+| `lease` | the window's Lease binding with `gpu_window` or `mixed`. Null with `from_run` | `lease_missing`, `lease_unneeded` |
 | `until` | `deliver_check` | `until_invalid` |
+| `rerun` | optional. `{scope: any}` or `{scope: compose_only}` marks a new event on a job root that may already hold a render (see "Reruns") | `rerun_invalid`, `rerun_scope_conflict` |
+| `spend` | `{window_cap_usd_cents, rate_usd_cents_per_hour}`, required with `gpu_window` or `mixed` and refused with `from_run` (see "Spend cap") | `spend_cap_missing`, `spend_unneeded`, `spend_invalid`, `spend_cap_exceeded` |
 
 ## Inputs by digest
 
@@ -94,23 +97,120 @@ and, for each input, how it is bound:
 | --- | --- | --- | --- |
 | `verify_inputs` | no | `render-stage check --inputs` | none |
 | `intake` | no | `narrate video intake --out JOB/intake` with the bundle, the records and the denylist, then `init --from` | the job, its narrate jobs and `JOB/intake/intake.json` |
+| `voice_takes` | no | `render-stage takes`, `mixed` only, before any GPU spend | one action per segment |
 | `voice_plan` | no | `narrate plan`, the AudioCppBatch requests | a plan directory and its digest |
 | `voice_gpu` | yes | the lease helper's `run`, then `audiocpp_batch.py run` inside it | WAVs and a batch receipt by sha256 |
 | `voice_render` | no | `narrate render --prerendered` | a narrate run with its `content_sha256` |
 | `voice_adopt` | no | `narrate video stage JOB voice --from-run` for each segment | the voice nodes |
+| `voice_ready` | no | `render-stage takes`, `mixed` only. `ready` must be true | one action per segment |
 | `compose` | no | `narrate video run JOB --until deliver_check` | every stage up to `deliver_check` |
 | `collect` | no | `render-stage result --export` | the cut, the report and the result by sha256 |
 
 A `from_run` request skips `voice_plan`, `voice_gpu` and `voice_render`. It adopts runs already rendered and names
-each by `content_sha256`. The result refuses `voice_run_mismatch` when the voice nodes hold other runs.
+each by `content_sha256`. The result refuses `voice_run_mismatch` when the voice nodes hold other runs. A
+`mixed` request scopes those three phases to the segments it voices, and each of their rows lists them under
+`segments`. A `rerun` request re-intakes with `--replace`. A `compose_only` rerun also skips `voice_adopt`.
 
 No phase name matches the cade-infra `SEND_TASKS` pattern. If Cade maps phases to Hatchet tasks one to one, the
 names stay as they are.
 
+## Reruns
+
+TIN-7125 `3672cb05` rules that a rerun keeps the same job folder and resumes by a new event, stops after 3 FIX rounds
+to ask the operator, and holds a spend cap per GPU window with no number set.
+
+A rerun event is a request with a new `run_id`, the same `job_id` and a `rerun` block. It runs on the same job root, so
+every stage whose key held stays fresh. Its order is:
+
+1. `narrate video intake --out JOB/intake --replace`. The new intake passes every check first. Only then does the
+   earlier one move to `JOB/history/intake--<time>`. A refusal leaves the earlier intake current. `--replace` takes
+   only a directory that holds an `intake.json`.
+2. `init --from JOB/intake/narrated-video.json --replace`.
+3. `narrate video run JOB --until deliver_check` runs what the new job changed, and a resume runs what the last event
+   left.
+4. `render-stage result` records the render in `JOB/rerun.json` and reports it.
+
+A resume after a crash uses `{scope: any}`, because `JOB/intake` already exists and a plain intake refuses
+`out_exists`.
+
+### Compose-only proof
+
+`current.json` counts every commit of a job root, and each stage entry holds the `seq` of its own commit. `result`
+records one row per event in `rerun.json`, with the stage keys and that counter, and returns `rerun`:
+
+| Field | Value |
+| --- | --- |
+| `event`, `previous` | this `run_id`, and the previous render's `run_id` and `video_sha256`. `previous` is null on a job root with no render recorded |
+| `ran` | every node committed since the previous render, in commit order. It reads `seq`, never a time. With no previous render it reaches back to the root's first commit |
+| `changed_keys`, `repeated` | the nodes whose key moved, and the nodes that ran with the key they already held. Only `run --force` does the second |
+| `unchanged_nodes` | how many current nodes did not run |
+| `compose_only` | true when something ran and every node of it is `compose`, `deliver_check` or `handoff` |
+| `fix` | `rounds`, `cap`, `left` and `answers_round`, the FIX round this render answers |
+
+A `{scope: compose_only}` request turns that into a refusal. `result` refuses `rerun_not_compose_only` when any other
+node ran, `rerun_no_previous` with no earlier render and `rerun_no_change` when nothing ran. A refused `result` records
+nothing. The test `test_one_slide_rerun_on_the_same_root_runs_only_compose_and_deliver_check` runs the synthetic bundle
+through the real stages and swaps one slide. Only `compose` and `deliver_check` run.
+
+A second `result` for the same event and render is a no-op that returns the same proof. The same event with another
+render refuses `rerun_event_reused`, because a resume is a new event.
+
+### FIX rounds
+
+`narrate video fix JOB --decision sp:dec:<ulid> --video-sha256 V` records the operator's FIX of the current cut. Cade
+is meant to call it where it calls `nv accept`, and that side is not wired (R10). The forms and `resolution: form_only` are `nv accept`'s. A round stores ids
+and digests. FIX notes stay with Cade.
+
+The fourth FIX on a job root refuses `fix_cap_reached` with nothing recorded, so the caller stops and asks the
+operator. Rounds count per job root and so span packets, because a producer's fix arrives as a new packet on the same
+root. Cade's own cap counts FIX cuts per packet (`docs/DEMO_DELIVERY.md`). The rest of the refusals:
+
+| Refusal | When |
+| --- | --- |
+| `video_mismatch` | the decision names another cut than the current composed video |
+| `fix_already_recorded` | this cut's round holds another decision. The same decision is a no-op, `recorded: false`, and that holds at the cap |
+| `decision_bound_elsewhere` | the decision already held another round, or accepted a gate here or in another job |
+| `cut_accepted` | the operator already accepted a gate of this cut |
+
+`result` reports which round a render answers. A rerun that makes the cut the operator sent back refuses
+`fix_unchanged_cut`.
+
+### Mixed takes
+
+`from_run` adopts every segment and `gpu_window` voices every segment. `{mode: mixed, runs}` names each segment: a
+`content_sha256` keeps or adopts that take, and null voices the beat in this window. It holds at least one of each
+(`voice_mixed_invalid`) and needs the window's Lease and spend cap.
+
+`render-stage takes` reads the plan and gives each segment one action. The `voice_takes` phase runs it before any GPU
+spend, and `voice_ready` runs it after `voice_adopt`.
+
+| Action | Means |
+| --- | --- |
+| `keep` | the fresh voice node holds the named take |
+| `adopt` | the node is stale, so `voice_adopt` brings in the named take |
+| `revoice` | the node is stale and the request voices the beat |
+| `revoiced` | the node is fresh and was committed since the last render |
+
+`takes` refuses `revoice_unneeded` when the request would spend on a beat that is fresh and unchanged,
+`voice_run_mismatch` when a fresh node holds another run than the request names, `voice_runs_invalid` when the names
+are not the job's segments and `voice_blocked` when a voice node is blocked or refused. `ready` is true when every
+action is `keep` or `revoiced`.
+
+Each adopted run still passes every check in "Adopting a rendered run" in `docs/spec/NARRATED_VIDEO.md`.
+
+### Spend cap
+
+A window names `spend`, with no default number. `window_cap_usd_cents` is a positive integer and
+`rate_usd_cents_per_hour` an integer that may be 0, as an on-prem window's is. The window is time-capped, so its
+ceiling is `lease.max_seconds` at that rate, rounded up to a cent. A ceiling over the cap refuses
+`spend_cap_exceeded` before the window starts, so a cap never stops a window partway. The `voice_gpu` plan row shows
+the cap, the rate and `ceiling_usd_cents`. No receipt binds the real spend yet.
+
 ## Lease protocol
 
-**v1 runs no GPU window.** A `gpu_window` request refuses `gpu_window_not_v1` in `check` (and so in
-`verify_inputs`) and in `result`. Only `check --gpu-draft` plans one, and that flag never goes with `--inputs`. Two
+**v1 runs no GPU window.** A `gpu_window` or `mixed` request refuses `gpu_window_not_v1` in `check` (and so in
+`verify_inputs`), in `takes` and in `result`. Only `--gpu-draft` on `check` or `takes` reads one, and that flag never
+goes with `--inputs`. Two
 gaps keep it closed. Nobody posts the TIN-5397 notice for Cade yet (R3), and no result binds the helper's run receipt
 or the batch receipt. A later version needs `lease.receipt_sha256` and `batch_receipt_sha256` in a `gpu_window`
 result before it can lift the refusal. The protocol below is the design that version follows.
@@ -207,6 +307,7 @@ A result is `narrate_render_stage_result` at schema version 1. It holds no path.
 | `video_utils_commit`, `worker_image` | the request's pins. The commit was checked against the worker's own. Cade binds the image digest from the pod or unit that ran the task |
 | `job_sha256` | the digest of `job.json` that `deliver_check` keyed on |
 | `voice` | the mode and each segment's narrate `content_sha256` |
+| `rerun` | what ran since the previous render and the FIX count (see "Compose-only proof") |
 | `intake_sha256`, `inputs_bound_by` | the digest of the job's `intake.json` and how each input is bound (see "Binding inputs to the job") |
 | `lease` | null in v1. Only `from_run` results pass, so no Lease attests the voice |
 | `outputs.video_sha256` | the composed cut |
@@ -235,11 +336,19 @@ re-hashed, and other content refuses `export_conflict`. A second export of the s
 | R8 | Whether `intake` should also record the engine record and kitpip digests it read, so that they are bound like the bundle. Today they are `mount_only` | this repository |
 | R4 | Where the hash-pinned VoxCPM2 batch body and its weights live for Cade's worker (P7) | the kit owner |
 | R5 | Multi-clip bundles. Intake refuses a second MP4 until P18 | this repository |
+| R9 | What the operator's answer does after `fix_cap_reached`. The ruling says stop and ask, and names no way to continue on the same root. `rerun.json` has no extension row | the operator |
+| R10 | Whether Cade's FIX cap moves from per packet to the job root's count, and when Cade calls `nv fix`. The Cade side is not wired | Cade |
 
 ## Limits
 
 - No test runs a GPU window, the lease helper, FFmpeg or a model. The tests use a fake stage runner, as the accept
   tests do.
+- `rerun.json` carries no signature. A hand edit or a deleted file resets the FIX count on this side, so a reader that
+  needs the count to hold compares it with its own ledger.
+- `nv accept` does not read `rerun.json`, so a FIX does not stop a later accept of the same cut. `nv fix` refuses a cut
+  with an acceptance, but only one direction is checked.
+- `result` refuses a `mixed` request until the Lease gaps close, so a real mixed run has no result yet. The tests prove
+  `takes` and the keys. A fake engine stands in for the window.
 - `check --inputs` proves that the mounted inputs match the request. It does not prove where the request came from.
   Cade's `verify_packet` checks the packet signature first.
 - `machine_passed` reads the four machine gates. It closes no operator gate. Listening and lip sync close only through
