@@ -3,11 +3,13 @@
 http(s) engines get one `POST /v1/audio/speech` per chunk:
   {model, input, voice, response_format: "wav", speed, seed, ref_audio, ref_text}
 ref_audio is the reference clip sent by content (a base64 data URI of the stored WAV, found by its digest) and
-ref_text its verified transcript. The bearer token, when an engine needs one, comes only from
-NARRATE_ENGINE_TOKEN. Plain http is allowed only to a loopback host (condense.transcribe.loopback) unless no token
-is sent; Hosted and RentedOpen engines always need https. No proxy sees a request and no redirect is followed.
-Every failure raises EngineError with a typed code; nothing is retried here (qa.py owns retries). The endpoint is
-never recorded: real endpoints are private and live outside git.
+ref_text its verified transcript. A server may answer X-Ref-Audio-Used, X-Ref-Text-Used and X-Seed-Used (true
+or false; narrate/serve/mlx_speech.py does); each take records what it said, else "unknown". The bearer token,
+when an engine needs one, comes only from NARRATE_ENGINE_TOKEN. Plain http is allowed only to a loopback host
+(condense.transcribe.loopback) unless no token is sent; Hosted and RentedOpen engines always need https. No
+proxy sees a request and no redirect is followed. Every failure raises EngineError with a typed code; nothing is
+retried here (qa.py owns retries). The endpoint is never recorded: real endpoints are private and live outside
+git.
 
 QwenTtsCpp engines (qwentts.cpp tts-server, narrate/serve/qwentts.sh) take no ref_audio on the speech route:
 the server clones from a voice registered by name. A render opens one `session`: the first take of each voice
@@ -266,15 +268,19 @@ def speech(engine, text, voice, ref, seed, speed, options):
         body["ref_audio"] = "data:audio/wav;base64," + base64.b64encode(ref["audio"]).decode("ascii")
         body["ref_text"] = ref["text"]
     data, headers = call(engine, speech_url(engine["endpoint"]), body, options, "audio/wav")
-    used = headers.get("X-Ref-Text-Used")
+    said = {key: headers.get(f"X-{key}") for key in ("Ref-Audio-Used", "Ref-Text-Used", "Seed-Used")}
     record = {
         "variant": "http",
-        "ref_audio_used": "unknown" if body.get("ref_audio") else False,
-        "ref_text_used": {"true": True, "false": False}.get(str(used).lower(), "unknown")
-        if body.get("ref_text")
-        else False,
+        "ref_audio_used": told(said["Ref-Audio-Used"]) if body.get("ref_audio") else False,
+        "ref_text_used": told(said["Ref-Text-Used"]) if body.get("ref_text") else False,
+        "seed_used": told(said["Seed-Used"]),
     }
     return wav_reply(engine, data), record
+
+
+def told(header):
+    """A server's X-...-Used answer: True or False when it says so, else "unknown"."""
+    return {"true": True, "false": False}.get(str(header).strip().lower(), "unknown")
 
 
 QWENTTS = "QwenTtsCpp"

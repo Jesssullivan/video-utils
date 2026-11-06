@@ -906,6 +906,23 @@ Lane W5 (TIN-7087) refines these details with the code in `narrate/` (see `narra
 | Vale | Run only when `vale` is on PATH; otherwise recorded `not_run` |
 | Exit codes | A refusal prints `{"refused": code}` on stderr and exits 1; a flagged run (overrun, `qa_failed`, loudness, `wer_not_measured`, `sim_not_measured`, `input_unpinned`) still publishes and lists its flags; only a run with no flag meets the acceptance gate |
 
+## Mac engine (`mac-mlx`, lane E1, 2026-10-23)
+
+The `mac-mlx` profile is served by `narrate/serve/mlx_speech.py`, a loopback server on the Mac host that runs
+mlx-audio at the commit pinned in `narrate/bench/sources.json` (v0.6.1) and speaks this spec's
+`/v1/audio/speech` dialect.
+
+| Topic | Choice |
+| --- | --- |
+| Why not `mlx_audio.server` | At the pin it reads `ref_audio` as a path on the server's disk and refuses a data URI, has no `seed` field and reports no memory figure |
+| Reach | The server binds 127.0.0.1 only; another host reaches it through an SSH local forward, so the engine record's endpoint is a loopback URL and the transport rule above holds |
+| Models | Only the snapshots named at start (`--model NAME=DIR`, fetched and hash-checked by `narrate/bench/fetch.py`), with the Hub forced offline; one model resident at a time |
+| Reference | `ref_audio` only as a WAV data URI, never a server path; written to a private temporary file for one request and passed the way `mlx_audio.tts.generate` passes it. A preset `voice` is passed only when no reference is sent |
+| Seed | MLX, NumPy and `random` are seeded with the request's `seed` before each take |
+| Facts | `X-Ref-Audio-Used`, `X-Ref-Text-Used`, `X-Seed-Used` (recorded per take by `engine.py`, else `unknown`), plus load and synthesis seconds, MLX peak memory and the process's maximum resident size |
+| VoxCPM2 transcript | Its reference-only mode does not read `ref_text` (the server answers `X-Ref-Text-Used: false`); `--ref-mode NAME=combined` also sends the clip as `prompt_audio` with the transcript as `prompt_text`, which it reads |
+| Ming-3.0 reference length | The MLX port decodes inside a 512-position cache that holds the reference latent (about 12.5 positions per second), its transcript and the text fragment. A 34.75 s reference is refused (618 positions); references of about 20 s fit |
+
 ## W7a implementation choices (2026-10-23)
 
 Lane W7a (TIN-7090, tools half) refines these details with the tools:
