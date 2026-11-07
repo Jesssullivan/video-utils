@@ -36,11 +36,16 @@ trillion or an ordinal. "one" is always the number 1, and "first" or "second" al
 script that uses them as words cites a claim or rewords. These rules are strict on purpose (TIN-7735): a demo must
 not speak a number that no receipt backs.
 
+typed_rows gives every refused mention of a claims report as a typed finding (narrate/video/findings.py), by segment
+and without the spoken text.
+
 Standard library only. Numbers are decimal.Decimal, so 17.877 compares exactly.
 """
 
 import re
 from decimal import Decimal, InvalidOperation
+
+from . import findings as typed
 
 SMALL = {
     "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
@@ -687,3 +692,16 @@ def check_segment(voiced, cited, claims):
         "mentions": rows,
         "unused_claims": [c for c in cited if c not in used],
     }
+
+
+def typed_rows(report):
+    """One typed finding per refused mention of a claims report ([{segment, mentions, ...}]), in order."""
+    rows = []
+    for row in report:
+        for number, mention in enumerate(row["mentions"]):
+            if mention["status"] == "refused":
+                extra = {"reason": mention["reason"]} if "reason" in mention else {}
+                rows.append(
+                    typed.finding(mention["code"], page=row["segment"], segment=row["segment"], mention=number, **extra)
+                )
+    return rows

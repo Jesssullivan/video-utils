@@ -434,7 +434,10 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `preflight JOB` | `just nv-preflight` | the frame gates a job can fail before any voice spend (see "Frame gates"). Exit 1 on a finding. Writes nothing |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
-| `fix JOB --decision ID --video-sha256 HEX` | `just nv-fix JOB DECISION VIDEO` | records the operator's FIX of the current cut against the job root's 3 rounds. The fourth refuses `fix_cap_reached`. See "Reruns" in `docs/spec/RENDER_STAGE.md` |
+| `fix JOB --decision ID --video-sha256 HEX [--extend]` | `just nv-fix JOB DECISION VIDEO` | records the operator's FIX of the current cut against the job root's 3 rounds. The fourth refuses `fix_cap_reached` without `--extend`, which adds one round for that decision. See "Reruns" in `docs/spec/RENDER_STAGE.md` |
+| `findings JOB` | `just nv-findings JOB` | prints every finding the job root holds as one typed report. Writes nothing. See "Findings" |
+| `campaign-bind JOB --campaign ID` | `just nv-campaign-bind JOB CAMPAIGN` | binds a job root to a campaign. A client edition refuses. See "Machine rounds" in `docs/spec/RENDER_STAGE.md` |
+| `round JOB --findings FILE [--video-sha256 HEX]` | `just nv-round JOB FINDINGS` | records a round those findings started, with no decision, on a job bound to a campaign. At the cap it prints `result: parked` and exits 0 |
 | `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken, each shown asset's stored text, and `shown_unread`, the kinds of asset it shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard. On a guarded intake's `never_name` marker it refuses `shown_text_unread` when any shown text is unreadable. See "Guard subject and cut" |
 | `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the pages no frame gate read, the operator gates still pending and the gates an acceptance of that render closed. Digests, gate names and page ids only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
@@ -1201,6 +1204,32 @@ cut that failed `flash`, a photosensitivity risk, or `loudness`, `profile` or
 `captions` therefore never reaches Jess as a request for a decision. A
 `deliver_check` with no machine gate state or no `delivery_gate` refuses
 `deliver_check_invalid`.
+
+## Findings
+
+A gate refuses on its first code, with the same exit code it always had. So a machine that fixes a job can see the
+rest, every gate also gives a typed record per code and page (`narrate/video/findings.py`, TIN-7125 `0690fe88`):
+
+| Field | Value |
+| --- | --- |
+| `gate`, `code` | the check that found it and what it found. `findings.CODES` lists each code a gate here writes |
+| `stage` | where a fix enters the stage graph, so `graph.reach` gives what that fix may run. Null reaches the whole graph, as a bundle's structure fault does |
+| `blocking` | false only for an advisory lexical finding (R-N12) |
+| `page`, `segment` | where it is, or null |
+| `detail` | counts, measures and short tokens. A record never holds a path or a text, so a token holds no slash except a ratio such as `30000/1001` |
+
+| Source | Gives | How |
+| --- | --- | --- |
+| `narrate video intake`, `claims` | every asset, beat, claim and spoken number at fault, in the `findings` key they print. A fault inside one of those stops that one, a file that does not parse stops that file, and the private-terms guard stops the read at once | `BundleError.findings`, `claims.typed_rows` |
+| `preflight` | every frame finding, under `typed` in the report | `frames.typed_rows` |
+| `deliver_check.json` | every failed machine gate, per field, change, file, code and page. A failed gate no limit explains gives `gate_failed` | `deliver.typed_findings` |
+| `script`, `voice_qa` | each lexical finding without its match, and each measured gate that failed | `speech.lexical_rows`, `speech.qa_rows` |
+| `narrate video findings JOB` | all of the above a job root holds, plus each stage refusal in `current.json`, with the cut they read. A preflight or `deliver_check` of an older `job.json` gives no row, and `deliver_check` in the report says `current`, `stale` or `missing`, because `ok` speaks for the rows alone | `render_stage.job_findings` |
+
+Stage output stays as it was: the readers above only read `deliver_check.json` and `lexical.json`, so no stage key
+moves. A voice key reads the script stage's digest, so a new byte in `lexical.json` would re-voice every segment. An
+unchecked page is no finding, as in "Frame gates". A machine round reads this report ("Machine rounds" in
+`docs/spec/RENDER_STAGE.md`).
 
 ## Demo bundle intake
 
