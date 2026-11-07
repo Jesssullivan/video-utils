@@ -8,6 +8,9 @@
 -- Refuses camera picture-in-picture and an uncleared music bed.
 -- ClientVoiceOnly: operator takes only, available per project. Refuses synthetic voice, any avatar or other
 -- picture-in-picture, and an uncleared music bed.
+-- Campaign: public marketing video under a signed campaign rule (TIN-7125 52ca88bf, 0690fe88). Synthetic voice, a
+-- campaign look and a bed are allowed here, and narrate/video/campaign.py holds its verdict. Never client content, so
+-- no client rule applies, and admit refuses a voice under a client consent (campaign_client_consent).
 -- clientDefault names the client default; NarratedVideo.defaults.clientEdition and narrate/dhall/check.py
 -- (CLIENT_DEFAULT_EDITION) hold the same value.
 --
@@ -19,7 +22,8 @@
 -- stems' manifests) and DeliverCheck (over the labels re-derived from the composed leaves). Each point sees
 -- its own Leaves, so a synthetic stem that reaches place under a clean job is still refused there.
 -- program/dags/narrated-video.json names each point's stage under edition_point (narrate/dhall/check.py).
-let Edition = < Internal | OwnContent | ClientVoiceOnly | ClientNarrated >
+let Edition =
+      < Internal | OwnContent | ClientVoiceOnly | ClientNarrated | Campaign >
 
 let Point = < Plan | Place | DeliverCheck >
 
@@ -42,6 +46,7 @@ let voiceOnly =
           , OwnContent = False
           , ClientVoiceOnly = True
           , ClientNarrated = False
+          , Campaign = False
           }
           e
 
@@ -52,6 +57,7 @@ let client =
           , OwnContent = False
           , ClientVoiceOnly = True
           , ClientNarrated = True
+          , Campaign = False
           }
           e
 

@@ -40,12 +40,23 @@ PROFILE = "profile"
 LOUDNESS = "loudness"
 FLASH = "flash"
 CAPTIONS = "captions"
+VISIBLE_TEXT = "visible_text"
+FRAME_UNREAD = "frame_unread"
+VISIBLE_TEXT_UNREAD = "visible_text_unread"
+CAMPAIGN_CHECK_FAILED = "campaign_check_failed"
 # Only a composed cut can show these, so a round on them names that cut. The frame gates also read before any voice.
 CUT_GATES = (PROFILE, LOUDNESS, FLASH, CAPTIONS)
 # The slide gate reads before any voice too, and these three of its codes only read a composed cut. So does a failed
 # gate that left no row of its own (deliver.typed_findings).
 GATE_FAILED = "gate_failed"
-CUT_CODES = ("slide_layer_missing", "slide_layer_mismatch", "slide_not_shown", GATE_FAILED)
+CUT_CODES = (
+    "slide_layer_missing",
+    "slide_layer_mismatch",
+    "slide_not_shown",
+    GATE_FAILED,
+    FRAME_UNREAD,
+    CAMPAIGN_CHECK_FAILED,
+)
 PROFILE_FIELDS = (
     "video_codec", "pix_fmt", "size", "fps", "frames", "audio_codec", "audio_rate_hz", "audio_channels",
     "subtitle_tracks",
@@ -64,6 +75,9 @@ CODES = {
     "claim_ambiguous": (CLAIMS, "script"),
     "claim_unreceipted": (CLAIMS, "script"),
     "claims_not_passed": (CLAIMS, "script"),
+    # Only a Campaign job gives these two (deliver.campaign_rows): no person reads what no gate read.
+    FRAME_UNREAD: (AVATAR_BOX, "base"),
+    VISIBLE_TEXT_UNREAD: (VISIBLE_TEXT, None),
     "card_in_avatar_box": (AVATAR_BOX, "compose"),
     "avatar_box_occupied": (AVATAR_BOX, "base"),
     "slide_digest_mismatch": (SLIDE_MATCH, "compose"),

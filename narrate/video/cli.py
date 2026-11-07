@@ -1,5 +1,5 @@
 """python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,fix,
-render-stage,preflight,subject,cut}.
+render-stage,preflight,subject,cut,campaign-bind,campaign-manifest,campaign-verdict}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -72,6 +72,7 @@ from ..ir import sha256_file
 from . import (
     accept,
     bundle,
+    campaign,
     findings,
     fixture,
     frames,
@@ -170,7 +171,7 @@ def cmd_init(a):
     records = load_records(a.records or os.environ.get(RECORDS_ENV))
     defaults_flags = [
         f"--{n.replace('_', '-')}"
-        for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona")
+        for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona", "look")
         if getattr(a, n) is not None
     ]
     switches = [f"--{n.replace('_', '-')}" for n in ("avatar", "no_avatar", "client") if getattr(a, n)]
@@ -210,6 +211,7 @@ def cmd_init(a):
             avatar=True if a.avatar else False if a.no_avatar else None,
             persona=a.persona,
             client=a.client,
+            look=a.look,
         )
     records = records_for(a, job)
     s = job_store(a, a.job)
@@ -383,6 +385,7 @@ def cmd_intake(a):
         denylist=denylist(a),
         pin=a.denylist_sha256,
         replace=a.replace,
+        look=a.look,
     )
     summary = {
         "ok": True,
@@ -446,6 +449,23 @@ def cmd_findings(a):
 
 def cmd_campaign_bind(a):
     emit(rerun.bind_campaign(job_store(a, a.job), a.campaign))
+    return 0
+
+
+def cmd_campaign_manifest(a):
+    emit(campaign.manifest(job_store(a, a.job), a.campaign, a.consent_record))
+    return 0
+
+
+def cmd_campaign_verdict(a):
+    evidence = None
+    if a.evidence:
+        try:
+            evidence = json.loads(Path(a.evidence).read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return refusal("campaign_evidence_invalid", "--evidence is not a JSON file")
+    s = job_store(a, a.job)
+    emit(campaign.verdict(s, records_for(a, s.read_job()), evidence))
     return 0
 
 
@@ -598,6 +618,7 @@ def main(argv=None):
     )
     switch.add_argument("--no-avatar", action="store_true", help="turn the kitpip avatar off")
     i.add_argument("--persona", help="labels.persona (required while the avatar is on)")
+    i.add_argument("--look", help="the avatars.json record of a campaign look; only --edition Campaign admits it")
     i.add_argument("--replace", action="store_true", help="replace a different job with the same id")
 
     n = sub.add_parser("plan", help="key every stage and print its state; read-only")
@@ -637,6 +658,7 @@ def main(argv=None):
     t.add_argument("--records", help="the records directory, instead of NARRATED_VIDEO_RECORDS")
     t.add_argument("--store", help="where the beat scripts and assets go by digest (default OUT/store)")
     t.add_argument("--job", help="the job id (default the bundle directory's name)")
+    t.add_argument("--look", help="a campaign look's avatars.json record, which makes this a Campaign job")
     t.add_argument(
         "--narrate-template",
         required=True,
@@ -718,6 +740,19 @@ def main(argv=None):
     cb.add_argument("--campaign", required=True, help="the campaign id, as a signed campaign record holds it")
     cb.add_argument("--json", action="store_true", help="print JSON (campaign-bind always does)")
 
+    cm = sub.add_parser("campaign-manifest", help="print the render manifest a Campaign cut's checks read")
+    cm.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    cm.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    cm.add_argument("--campaign", required=True, help="the campaign id, as a signed campaign record holds it")
+    cm.add_argument("--consent-record", required=True, help="the id of the signed consent the record names")
+    cm.add_argument("--json", action="store_true", help="print JSON (campaign-manifest always does)")
+
+    cv = sub.add_parser(
+        "campaign-verdict", help="the machine verdict of a Campaign job's cut; every other edition reads not public"
+    )
+    common(cv)
+    cv.add_argument("--evidence", help="the caller's nv_campaign_evidence file: the signed record's id and the checks")
+
     rd = sub.add_parser(
         "round", help="record a round findings started, on a job bound to a campaign; at the cap the root parks"
     )
@@ -795,6 +830,8 @@ def main(argv=None):
             "fix": cmd_fix,
             "findings": cmd_findings,
             "campaign-bind": cmd_campaign_bind,
+            "campaign-manifest": cmd_campaign_manifest,
+            "campaign-verdict": cmd_campaign_verdict,
             "round": cmd_round,
             "render-stage": cmd_render_stage,
             "preflight": cmd_preflight,

@@ -4,6 +4,12 @@
 
 ### Added
 
+- A `Campaign` edition and `narrate video campaign-verdict`: on a Campaign job a machine
+  verdict stands where `accept` and the operator outbox stand, and it is the one place
+  `public_upload_allowed` reads true. Every other edition reads false and keeps listening
+  and lip sync. Off by default: nothing runs it, and nothing here publishes.
+- `avatar.external: look` (`narrate/video/look.py`): a Campaign job's overlay comes from a
+  look record by digest, one clip per voice take. It draws nothing and calls no engine.
 - `narrate/video/findings.py`: one typed record per gate code and page, read from
   intake, claims, preflight, `deliver_check.json` and the script and `voice_qa`
   stages, and `narrate video findings JOB`. A gate's exit code and first code stay,

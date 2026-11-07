@@ -30,6 +30,13 @@ delivery_gate.public_upload_allowed also needs every operator state closed: veri
 until a first listening receipt; an overlay without lip-sync acceptance stays private). deliver_check never closes
 listening itself, so it never reports a public upload as allowed.
 
+A Campaign job (TIN-7125 52ca88bf, 0690fe88) is the one exception to the operator gates. Its signed rule lifts listening
+and lip sync, which read not_applicable here and which delivery_gate.lifted names, and accept refuses them. Every other
+operator gate stays open. Its delivery_gate.public_upload_allowed stays false too, because the stage holds neither the
+signed record nor the campaign's checks. narrate/video/campaign.py reads this report with them and is the one place
+that says public. A page no frame gate read and a shown asset no guard read give it rows here (campaign_rows), since no
+person reads them on this path. A client or internal job's report holds the same gates and bytes as before.
+
 visible_text (TIN-7788): records from a guarded intake carry its visible-text summary (job.load_records). The gate is
 passed when the guard read a text source for every shown asset and none was opaque, pending_operator when one was
 unread or opaque (or the marker predates the summary), and not_applicable without a guarded intake. So on a private
@@ -46,7 +53,7 @@ from .common import StageRefused, ffprobe, loudness, upstream, work_dir, write_j
 from .compose import FLASH_FLOOR_Y, FLASH_MAX, YAVG, page_kind, parse_cues, profile_for, slide_runs
 from .frames import final_gates, frame_review, typed_rows
 from .graph import selection
-from .job import CLIENT_EDITIONS
+from .job import CAMPAIGN_EDITION, CLIENT_EDITIONS
 
 
 # Pure parts ------------------------------------------------------------------------------------------------------
@@ -147,6 +154,7 @@ def page_at(pages, at_s):
     return next((p["id"] for p in pages if p["endS"] == at_s), None)
 
 
+LIFTED_BY_CAMPAIGN = ("listening", "lip_sync")
 MACHINE_GATES = (typed.PROFILE, typed.LOUDNESS, typed.FLASH, typed.CAPTIONS, typed.AVATAR_BOX, typed.SLIDE_MATCH)
 
 
@@ -170,9 +178,23 @@ def typed_findings(report, job):
     rows += [typed.finding(CAPTION_CODES[text]) for text in report["captions"]["findings"]]
     rows += typed_rows(report["avatar_box"]["findings"]) + typed_rows(report["slide_match"]["findings"])
     named = {row["gate"] for row in rows}
-    return rows + [
-        typed.finding(typed.GATE_FAILED, gate=g) for g in MACHINE_GATES if gates[g] == "failed" and g not in named
-    ]
+    failed = [g for g in MACHINE_GATES if gates[g] == "failed" and g not in named]
+    rows += [typed.finding(typed.GATE_FAILED, gate=g) for g in failed]
+    return rows + campaign_rows(report, job)
+
+
+def campaign_rows(report, job):
+    """What no gate read, as typed rows, on a Campaign job only: every page the frame gates left unchecked or exempt,
+    and a shown asset whose text no guard read. On any other job a person reads these before a GO (frame_review)."""
+    if job.get("edition") != CAMPAIGN_EDITION:
+        return []
+    review = frame_review(report["avatar_box"])
+    rows = [typed.finding(typed.FRAME_UNREAD, page=page) for page in review["unchecked"] + review["exempt"]]
+    shows_asset = bool((job["slides"] or {}).get("pages")) or "card" not in job["base"]
+    visible = report["gates"].get("visible_text")
+    if visible == "pending_operator" or (visible != "passed" and shows_asset):
+        rows.append(typed.finding(typed.VISIBLE_TEXT_UNREAD))
+    return rows
 
 
 def delivery_gate(job, bed, machine, operator):
@@ -185,7 +207,7 @@ def delivery_gate(job, bed, machine, operator):
     listen_ok = bed is None or job["edition"] not in CLIENT_EDITIONS or job["delivery"]["voiceOnlyListen"] is not None
     upload_closed = bool(job["delivery"]["upload"] and machine_ok and bed_closed and listen_ok)
     open_states = sorted(k for k, v in operator.items() if v == "pending_operator")
-    return {
+    gate = {
         "machine_gates_passed": machine_ok,
         "internal_review_allowed": machine_ok,
         "upload_gates_closed": upload_closed,
@@ -193,6 +215,10 @@ def delivery_gate(job, bed, machine, operator):
         "operator_states_open": open_states,
         "note": "public upload, sending and Content ID stay operator actions (the deck playbook's ship step)",
     }
+    if job["edition"] == CAMPAIGN_EDITION:
+        note = "only narrate/video/campaign.py says public, with the signed record and the campaign's checks"
+        gate |= {"public_upload_allowed": False, "lifted": list(LIFTED_BY_CAMPAIGN), "note": note}
+    return gate
 
 
 # The stage ------------------------------------------------------------------------------------------------------
@@ -256,6 +282,14 @@ def vrm_overlays(rc):
     return found
 
 
+def listen_gates(job, overlays):
+    """The states of listening and lip sync. Only a person closes them, except on a Campaign job, whose signed rule
+    lifts both."""
+    if job["edition"] == CAMPAIGN_EDITION:
+        return dict.fromkeys(LIFTED_BY_CAMPAIGN, "not_applicable")
+    return {"listening": "pending_operator", "lip_sync": "pending_operator" if overlays else "not_applicable"}
+
+
 def run_deliver_check(rc, row, partial):
     job = rc.job
     compose_manifest, compose_dir = upstream(rc.store, "compose")
@@ -300,9 +334,7 @@ def run_deliver_check(rc, row, partial):
         "avatar_box": avatar_box["state"],
         "slide_match": slide_match["state"],
     }
-    operator = {
-        "listening": "pending_operator",
-        "lip_sync": "pending_operator" if composed["overlays"] else "not_applicable",
+    operator = listen_gates(job, composed["overlays"]) | {
         "bed_licence_pdf": "not_applicable",
         "bed_content_id": "not_applicable",
     }

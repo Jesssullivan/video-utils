@@ -41,7 +41,7 @@ terms out of Hatchet payloads and logs.
 | `workflow` | `cade-hardware-handoff` | `workflow_mismatch` |
 | `run_id`, `packet_id` | one token each. The job ledger keys on `packet_id` plus the bundle digest | `token_invalid` |
 | `job_id` | a narrated-video job id | `token_invalid` |
-| `edition` | `Internal`. A client edition waits for its own tenant (T4) | `edition_not_v1` |
+| `edition` | `Internal` or `Campaign`. A client edition waits for its own tenant (T4) | `edition_not_v1` |
 | `video_utils_commit` | 40 hex. The worker's own commit must match it | `commit_invalid` |
 | `worker_image` | `sha256:<64 hex>`, the OCI digest the task ran in | `image_invalid` |
 | `inputs` | digests, listed below | `digest_invalid`, `inputs_keys` |

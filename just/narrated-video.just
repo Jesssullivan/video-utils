@@ -123,6 +123,17 @@ nv-findings job *args:
 nv-campaign-bind job campaign *args:
     python3 -m narrate video campaign-bind {{quote(job)}} --campaign {{quote(campaign)}} {{args}}
 
+# Print the render manifest a Campaign cut's checks read: synthetic, the campaign id and the signed record's id, on this cut.
+# Writes nothing. Refuses any other edition, an unbound root and another campaign. ARGS: --root DIR.
+nv-campaign-manifest job campaign consent *args:
+    python3 -m narrate video campaign-manifest {{quote(job)}} --campaign {{quote(campaign)}} --consent-record {{quote(consent)}} --json {{args}}
+
+# Print the machine verdict of a Campaign job's cut and keep it beside job.json. Any other edition reads not public and
+# keeps its decision. No evidence reads not public. Off by default: only a code argument in Cade calls this.
+# ARGS: --records DIR, --root DIR.
+nv-campaign-verdict job evidence *args:
+    python3 -m narrate video campaign-verdict {{quote(job)}} --evidence {{quote(evidence)}} --json {{args}}
+
 # Record a round a findings report started, on a job bound to a campaign. Every other job refuses round_needs_decision.
 # At the cap it prints result parked and exits 0, and asks nobody. ARGS: --video-sha256 HEX, --root DIR.
 nv-round job findings *args:

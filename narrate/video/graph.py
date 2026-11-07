@@ -38,7 +38,7 @@ from datetime import UTC, datetime
 
 from . import accept as acceptance
 from . import admit as admit_stage
-from . import keys, vrm
+from . import keys, look, vrm
 from .job import JobError
 
 Stage = namedtuple("Stage", "id fan_out depends_on optional mapping intent")
@@ -147,7 +147,7 @@ TOOLS = {
     "handoff": ("narrate.video.handoff", "1"),
 }
 KITPIP_STAGES = ("avatar", "avatar_check")
-AVATAR_STAGES = KITPIP_STAGES  # run by the job's avatar external: kitpip or vrm (narrate/video/avatar.py)
+AVATAR_STAGES = KITPIP_STAGES  # run by the job's avatar external: kitpip, vrm or look (narrate/video/avatar.py)
 # The neutral tool name of each avatar stage. program/dags/narrated-video.json publishes them with dispatch.by
 # avatar.external, so a job that moves from kitpip to vrm keeps the same stage tools (TIN-7788).
 AVATAR_TOOLS = {"avatar": "avatar_overlay", "avatar_check": "avatar_verify"}
@@ -234,7 +234,7 @@ def row_tasks_sha256(tasks):
 
 
 def avatar_external(job):
-    """The job's avatar.external (kitpip or vrm), or None without an avatar block."""
+    """The job's avatar.external (kitpip, vrm or look), or None without an avatar block."""
     return (job.get("avatar") or {}).get("external")
 
 
@@ -245,7 +245,10 @@ def avatar_pin(job, ctx):
 
 
 def avatar_resolution(job, ctx):
-    """The resolution ({state, binary, tool, detail}) of the job's avatar external, or None."""
+    """The resolution ({state, binary, tool, detail}) of the job's avatar external, or None. A campaign look spawns no
+    binary, so it holds no pin and always resolves."""
+    if avatar_external(job) == look.EXTERNAL:
+        return look.RESOLUTION
     keys_ = AVATAR_CTX.get(avatar_external(job))
     return ctx.get(keys_[1]) if keys_ else None
 
@@ -325,6 +328,8 @@ def knobs_for(stage, segment, job, records, pin):
         }
     if stage == "avatar" and avatar_external(job) == "vrm":
         return vrm.knobs(job, records, pin)
+    if stage == "avatar" and avatar_external(job) == look.EXTERNAL:
+        return look.knobs(job, records)
     if stage == "avatar":
         # The pin's default-rig revision belongs only to the default rig. Another rig with no revision in the job
         # keys None; its stage manifest records the revision kitpip reports (measurements.rig).
@@ -343,6 +348,8 @@ def knobs_for(stage, segment, job, records, pin):
         }
     if stage == "avatar_check" and avatar_external(job) == "vrm":
         return {"external": "vrm", "persona": job["labels"]["persona"]}
+    if stage == "avatar_check" and avatar_external(job) == look.EXTERNAL:
+        return {"external": look.EXTERNAL, "persona": job["labels"]["persona"]}
     if stage == "avatar_check":
         return {"persona": job["labels"]["persona"]}
     if stage == "music":

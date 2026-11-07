@@ -41,7 +41,17 @@ from . import claims as gate
 from . import findings as typed
 from . import private_terms, visible_text
 from .admit import admit, port
-from .job import DEFAULTS, ID, RECORD_FILES, SHA256, JobError, check_shape, load_records
+from .job import (
+    CAMPAIGN_EDITION,
+    DEFAULTS,
+    ID,
+    RECORD_FILES,
+    SHA256,
+    JobError,
+    check_shape,
+    for_campaign,
+    load_records,
+)
 from .store import tree_sha256
 
 MANIFEST, SCRIPT, CLAIMS = "manifest.json", "script.md", "claims.json"
@@ -760,12 +770,13 @@ def pronunciation_check(b, records, template):
     }
 
 
-def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None):
+def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None, look=None):
     """(NarratedVideo record, {beat id: (narrate Job record, Markdown bytes)}).
 
     One segment per beat, anchored at the beat's start: beats run back to back from 0, each target_s long. A PNG beat
     shows its picture as a Full slide page over the beat's span; an MP4 beat shows the base, which is that MP4. With
-    no MP4 the base is the default card. Edition Internal; the avatar is on with persona, off without it."""
+    no MP4 the base is the default card. Edition Internal; the avatar is on with persona, off without it. look names a
+    campaign look's record: the job is then a Campaign job drawn by that look."""
     if not ID.match(job_id):
         raise BundleError("job_invalid", "the job id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'")
     jobs = narrate_jobs(b, records, job_id, template, voice, engine)
@@ -800,7 +811,7 @@ def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s
     exempt = [beat["id"] for beat in b["beats"] if b["assets"][beat["asset_id"]].get("avatar_box")]
     job = {
         "id": job_id,
-        "edition": EDITION,
+        "edition": CAMPAIGN_EDITION if look else EDITION,
         "base": base,
         "segments": segments,
         "avatar": copy.deepcopy(d["avatar"]) | {"boxExempt": exempt} if persona else None,
@@ -811,7 +822,7 @@ def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s
         "labels": copy.deepcopy(d["labels"]) | {"persona": persona},
         "delivery": copy.deepcopy(d["delivery"]),
     }
-    return check_shape(job), jobs
+    return check_shape(for_campaign(job, look)), jobs
 
 
 # Writing --------------------------------------------------------------------------------------------------------
@@ -933,7 +944,7 @@ def merged_records(records_dir, new_jobs):
 
 def intake(
     bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None,
-    denylist=None, pin=None, replace=False,
+    denylist=None, pin=None, replace=False, look=None,
 ):  # fmt: skip
     """Read, gate, convert, check and write one bundle. Returns the intake manifest written to out/intake.json.
 
@@ -948,7 +959,7 @@ def intake(
     with withheld(state):
         return guarded_intake(bundle, out, records_dir, state, job_id=job_id, template=template, voice=voice,
                               engine=engine, persona=persona, tail_s=tail_s, store=store, denylist=denylist,
-                              pin=pin, replace=replace)  # fmt: skip
+                              pin=pin, replace=replace, look=look)  # fmt: skip
 
 
 def earlier_intake(out):
@@ -979,7 +990,8 @@ def retire_intake(out):
 
 
 def guarded_intake(
-    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace
+    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace,
+    look=None,
 ):  # fmt: skip
     out = Path(out)
     if out.is_symlink() or (
@@ -1003,7 +1015,15 @@ def guarded_intake(
     records = load_records(records_dir, marker_optional=True)
     b["records_sha256"] = records_tree(records_dir)
     job, jobs = convert(
-        b, records, job_id=job_id, template=template, voice=voice, engine=engine, persona=persona, tail_s=tail_s
+        b,
+        records,
+        job_id=job_id,
+        template=template,
+        voice=voice,
+        engine=engine,
+        persona=persona,
+        tail_s=tail_s,
+        look=look,
     )
     new_jobs = [record for record, _ in jobs.values()]
     tables = merged_records(records_dir, new_jobs)

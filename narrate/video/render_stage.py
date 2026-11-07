@@ -39,7 +39,7 @@ import shutil
 from pathlib import Path
 
 from ..ir import sha256_file
-from . import accept, deliver, frames, keys, rerun, speech
+from . import accept, campaign, deliver, frames, keys, rerun, speech
 from . import findings as typed
 from .job import ID, SHA256, JobError, check_shape
 from .store import StoreError, load_store_json, verify_stage_dir, write_atomic
@@ -59,7 +59,8 @@ HOLDER = re.compile(r"^narrate-bench-[0-9]{8}-s[0-9]{6}$")
 LEASE_NAME = "gpu-lease"  # the one GPU Lease; its cluster name stays outside this public repository
 NOTICE_TICKET = "TIN-5397"
 WINDOW_MAX_S = 1800  # docs/spec/NARRATE.md, "GPU use": attended or unattended windows of 30 minutes or less
-EDITIONS_V1 = ("Internal",)  # T1 renders Internal demos only; a client edition needs its own tenant (T4)
+# T1 renders Internal demos and Campaign video only; a client edition needs its own tenant (T4)
+EDITIONS_V1 = ("Internal", "Campaign")
 UNTIL = ("deliver_check",)
 VOICE_MODES = ("gpu_window", "from_run", "mixed")
 WINDOW_MODES = ("gpu_window", "mixed")  # the modes that voice a take, so they name a Lease and a spend cap
@@ -548,6 +549,7 @@ def job_findings(store):
         if render is not None:
             path = store.dir / current["stages"]["deliver_check"]["dir"] / "deliver_check.json"
             rows += deliver.typed_findings(load_store_json(path), job)
+            rows += campaign.held_rows(store, job_sha256, render["video_sha256"])
     except (AttributeError, KeyError, TypeError) as exc:
         raise JobError("store_invalid", "a report this job root holds is not the report its stage writes") from exc
     return typed.report(rows) | {

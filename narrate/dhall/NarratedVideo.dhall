@@ -18,6 +18,8 @@
 -- Avatar.external: "kitpip", resolved through the private pin record. rig None takes the pin's default rig.
 --   Or "vrm" (SPR-128, a draft): rig names a VRM model record in the private avatars.json and rigRevisionSha256,
 --   when set, its sha256. admit refuses it without the model's likeness consent and appearance approval.
+--   Or "look" (a Campaign job only): rig names a look record in avatars.json and rigRevisionSha256, when set, the
+--   digest of its anchors. The clip of each voice take comes from that record by digest (narrate/video/look.py).
 --   width is a fraction of the base width, 0.10 to 0.30. avatarOff names pages (Slides.pages ids) whose whole
 --   span hides the overlay, the deck pattern for dense screens; it fades out over fadeS before such a span and
 --   back in over fadeS after it. boxExempt names pages, or segments in a job with no slides, that the avatar_box
