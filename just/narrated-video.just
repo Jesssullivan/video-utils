@@ -109,9 +109,24 @@ nv-render-stage-takes job request *args:
 
 # Record the operator's FIX of the job's current cut against the job root's 3 rounds (docs/spec/RENDER_STAGE.md,
 # "Reruns"). DECISION is the Softproxy decision id (sp:dec:<ulid>) and VIDEO the sha256 of the cut it saw. The fourth
-# FIX refuses fix_cap_reached with nothing recorded: stop and ask the operator. ARGS: --root DIR.
+# FIX refuses fix_cap_reached with nothing recorded: stop and ask the operator. Their answer takes --extend, which adds
+# one round for that decision. ARGS: --extend, --root DIR.
 nv-fix job decision video *args:
     python3 -m narrate video fix {{quote(job)}} --decision {{quote(decision)}} --video-sha256 {{quote(video)}} {{args}}
+
+# Print every finding a job root holds as one typed report (narrate/video/findings.py). Writes nothing.
+nv-findings job *args:
+    python3 -m narrate video findings {{quote(job)}} {{args}}
+
+# Bind a job root to a campaign, which lets a round start with no decision. A client edition refuses, and so does a root
+# that holds an operator's decision. Off by default: nothing calls this. ARGS: --root DIR.
+nv-campaign-bind job campaign *args:
+    python3 -m narrate video campaign-bind {{quote(job)}} --campaign {{quote(campaign)}} {{args}}
+
+# Record a round a findings report started, on a job bound to a campaign. Every other job refuses round_needs_decision.
+# At the cap it prints result parked and exits 0, and asks nobody. ARGS: --video-sha256 HEX, --root DIR.
+nv-round job findings *args:
+    python3 -m narrate video round {{quote(job)}} --findings {{quote(findings)}} {{args}}
 
 # Report a job that ran to deliver_check, every output by digest, for the request that started it, and record the
 # render in JOB/rerun.json with what ran since the last one. Refuses unless VIDEO_UTILS_COMMIT is the request's commit
@@ -227,4 +242,5 @@ nv-test:
         tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py \
         tests/test_narrated_video_claims_units.py tests/test_narrated_video_private_terms.py \
         tests/test_narrated_video_vrm.py tests/test_narrated_video_visible_text.py tests/test_narrated_video_accept.py \
-        tests/test_narrated_video_subject.py tests/test_relay_readback.py tests/test_narrated_video_rerun.py
+        tests/test_narrated_video_subject.py tests/test_relay_readback.py tests/test_narrated_video_rerun.py \
+        tests/test_narrated_video_findings.py

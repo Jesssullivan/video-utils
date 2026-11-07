@@ -19,6 +19,10 @@ and never re-synthesises a voice.
 
 The script is copied to a fixed name before narrate reads it, so the run's IR and content digest depend on the
 script's bytes and never on its name in the store.
+
+lexical_rows and qa_rows read what these stages left and give it as typed findings (narrate/video/findings.py). They
+read and never write, because a voice key reads the script stage's digest: a new byte in lexical.json would re-voice
+every segment. A lexical row stays advisory, and its match stays in lexical.json.
 """
 
 import json
@@ -35,6 +39,7 @@ from ..normalise import NormaliseError
 from ..policy import Refused
 from ..prerender import PrerenderError
 from ..registry import RegistryError
+from . import findings as typed
 from . import labels
 from .common import StageRefused, upstream, work_dir, write_json
 from .keys import KeyDocumentError, normalise
@@ -42,6 +47,7 @@ from .store import StoreError, files_under
 
 SUFFIX = {"Markdown": ".md", "PlainText": ".txt", "Srt": ".srt", "Vtt": ".vtt", "Dialog": ".txt"}
 RUN = "narration"  # the narrate run directory inside a voice stage directory
+QA_FAILED = "measured gates failed: "
 NARRATE_ERRORS = (Refused, LexicalError, EngineError, render.RenderError, RegistryError, ConfigError)
 
 
@@ -113,6 +119,17 @@ def run_script(rc, row, partial):
     }
     write_json(partial / "script.json", measured | {"script_sha256": segment["scriptSha256"]})
     return {"measurements": measured, "states": {"lexical": "advisory"}}
+
+
+def lexical_rows(report, segment_id):
+    """One typed finding per lexical finding of a script stage's lexical.json, by rule and offset, without the match."""
+    rows = report["findings"]["findings"]
+    return [
+        typed.finding(
+            "lexical_finding", segment=segment_id, rule=r["rule"], severity=r.get("severity"), start=r["start"]
+        )
+        for r in rows
+    ]
 
 
 # voice ----------------------------------------------------------------------------------------------------------
@@ -410,6 +427,14 @@ def adopt_voice(rc, row, partial):
 
 
 # voice_qa -------------------------------------------------------------------------------------------------------
+def qa_rows(segment_id, refusal):
+    """The typed findings of a voice_qa refusal as the store holds it: one per measured gate that failed."""
+    code, detail = refusal["code"], refusal["detail"]
+    if code == "voice_qa_failed" and detail.startswith(QA_FAILED):
+        return [typed.finding(code, segment=segment_id, metric=m) for m in detail[len(QA_FAILED) :].split(", ")]
+    return [typed.finding(code, gate=typed.VOICE_QA, stage="script", segment=segment_id)]
+
+
 def measured_failures(metrics):
     """The metrics a gate measured and failed. not_measured never fails a gate; it stays a recorded state."""
     return sorted(name for name, value in metrics.items() if isinstance(value, dict) and value.get("passed") is False)
@@ -441,7 +466,7 @@ def run_voice_qa(rc, row, partial):
         },
     )
     if failed:
-        raise StageRefused("voice_qa_failed", f"measured gates failed: {', '.join(failed)}")
+        raise StageRefused("voice_qa_failed", f"{QA_FAILED}{', '.join(failed)}")
     status = {
         name: ("passed" if value.get("passed") else value.get("status", "measured"))
         for name, value in metrics.items()

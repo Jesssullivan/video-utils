@@ -39,9 +39,10 @@ import shutil
 from pathlib import Path
 
 from ..ir import sha256_file
-from . import accept, frames, keys, rerun
+from . import accept, deliver, frames, keys, rerun, speech
+from . import findings as typed
 from .job import ID, SHA256, JobError, check_shape
-from .store import StoreError, verify_stage_dir, write_atomic
+from .store import StoreError, load_store_json, verify_stage_dir, write_atomic
 from .store import tree_sha256 as store_tree_sha256
 
 REQUEST_KIND = "narrate_render_stage_request"
@@ -508,6 +509,38 @@ def preflight(request, store, media, env=None):
         first = report["findings"][0]
         _refuse(first["code"], f"preflight holds {len(report['findings'])} findings; page {first['page']} is the first")
     return report | {"preflight_sha256": sha256_file(target)}
+
+
+def job_findings(store):
+    """Every finding this job root holds, as one typed report (narrate/video/findings.py): the last preflight, each
+    script stage's lexical findings, each stage refusal the store holds and the current deliver_check's failed gates.
+    Read only, so it moves no key. video_sha256 is the composed cut those last findings read, or None."""
+    job = store.read_job()
+    current = store.current()
+    rows = []
+    preflight_path = store.dir / INTAKE_DIR / PREFLIGHT_FILE
+    if preflight_path.is_file() and not preflight_path.is_symlink():
+        rows += frames.typed_rows(_intake_json(preflight_path).get("findings") or [])
+    for node_id, entry in sorted(current["stages"].items()):
+        stage, _, segment = node_id.partition("/")
+        path = store.dir / entry["dir"] / "lexical.json"
+        if stage == "script" and path.is_file():
+            rows += speech.lexical_rows(load_store_json(path), segment)
+    for node_id, refusal in sorted(current["refusals"].items()):
+        stage, _, segment = node_id.partition("/")
+        if stage == "voice_qa":
+            rows += speech.qa_rows(segment, refusal)
+        else:
+            rows.append(typed.finding(refusal["code"], gate=stage, stage=stage, segment=segment or None))
+    entry = current["stages"].get("deliver_check")
+    path = store.dir / entry["dir"] / "deliver_check.json" if entry is not None else None
+    if path is not None and path.is_file():
+        try:
+            rows += deliver.typed_findings(load_store_json(path), job)
+        except (KeyError, TypeError) as exc:
+            raise JobError("store_invalid", "deliver_check.json is not a deliver_check report") from exc
+    video = (store.manifest("compose") or {}).get("outputs", {}).get("video.mp4") if entry is not None else None
+    return typed.report(rows) | {"job_id": store.job_id, "job_sha256": keys.digest(job), "video_sha256": video}
 
 
 def preflight_binding(store, job, intake_sha256):

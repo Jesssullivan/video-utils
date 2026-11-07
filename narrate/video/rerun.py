@@ -9,25 +9,36 @@ fresh and only what changed runs again. rerun.json, beside job.json, records eac
   of an unchanged key still shows. A compose-only request refuses unless `ran` holds a compose stage and nothing else.
 - fix records the operator's FIX of the current cut by Softproxy decision id, as accept records a GO: the id's form is
   checked, not Softproxy (resolution form_only), and the decision must name the cut it saw. The fourth FIX on a root
-  refuses fix_cap_reached with nothing recorded, so the caller stops and asks the operator.
+  refuses fix_cap_reached with nothing recorded, so the caller stops and asks the operator. The answer extends the
+  root by one round per decision, each recorded (ruling TIN-7125 11296de3): with extend, that FIX takes a round past
+  the cap and its row says extended.
+- machine_round records a round a gate's findings started, with no Softproxy decision, on a job bound to a campaign
+  (rulings TIN-7125 52ca88bf, 0690fe88). bind_campaign is the one write that binds it, and it refuses a client edition
+  and a root that already holds an operator's decision, so every other job keeps its fix or accept. The row holds the
+  findings by digest and code count and the stages their fix may run (graph.reach), and the render that answers it
+  refuses round_out_of_reach when anything else ran, so a slide fix cannot re-voice. At the cap the root parks: a
+  parked record and the result parked, which asks nobody. A later round on that root reads parked again.
 
 A decision binds one cut of one job, whether it was a GO or a FIX: accept.bound_elsewhere reads every job's rerun.json
 under the store root, under the root lock. A round binds its cut for good: accept refuses that cut and a later result
-refuses to record it, whichever round sent it back and whether or not a render row names it.
+refuses to record it, whichever round sent it back and whether or not a render row names it. A machine round on findings
+read before any render binds no cut.
 
 The counter is per job root, not per packet: a fixed bundle arrives as a new packet on the same root, so the rounds
 add up across packets. A FIX stores ids and digests, never its notes. rerun.json carries no signature, so a reader
-that needs the count to survive a hand edit keeps its own ledger too, as Cade does.
+that needs the count to survive a hand edit keeps its own ledger too, as Cade does. The same holds for the campaign
+binding: its id's form is checked here, and that a signed campaign record holds it is the caller's check.
 """
 
-from . import accept, keys
-from .job import JobError
+from . import accept, graph, keys
+from . import findings as typed
+from .job import CLIENT_EDITIONS, ID, JobError
 from .store import load_store_json, utc_now, write_atomic
 
 LEDGER = "rerun.json"
 KIND = "nv_rerun"
 SCHEMA_VERSION = 1
-FIX_CAP = 3  # TIN-7125 3672cb05: stop after 3 FIX rounds and ask the operator
+FIX_CAP = 3  # TIN-7125 3672cb05: stop after 3 FIX rounds. Each operator decision past it adds one (11296de3)
 COMPOSE_STAGES = ("compose", "deliver_check", "handoff")
 SCOPES = ("any", "compose_only")
 RENDER_FIELDS = {
@@ -43,6 +54,10 @@ RENDER_FIELDS = {
     "recorded_utc",
 }
 FIX_FIELDS = {"round", "decision", "resolution", "video_sha256", "job_sha256", "deliver_check", "recorded_utc"}
+MACHINE = "machine"  # a machine round's resolution, where a FIX holds form_only
+ROUND_FIELDS = FIX_FIELDS | {"campaign", "findings_sha256", "codes", "reach"}
+CAMPAIGN_FIELDS = {"id", "resolution", "recorded_utc"}
+PARKED_FIELDS = {"round", "findings_sha256", "codes", "video_sha256", "job_sha256", "recorded_utc"}
 
 
 def empty(job_id):
@@ -63,14 +78,43 @@ def valid_render(row):
         and isinstance(row["seq"], int)
         and not isinstance(row["seq"], bool)
         and isinstance(row["keys"], dict)
-        and (row["fix_round"] is None or row["fix_round"] in range(1, FIX_CAP + 1))
+        and (row["fix_round"] is None or (type(row["fix_round"]) is int and row["fix_round"] >= 1))
+    )
+
+
+def valid_round(row, position):
+    """A machine round's row. It holds no decision and never passes the cap, and only a cut it read names a render."""
+    return (
+        isinstance(row, dict)
+        and set(row) == ROUND_FIELDS
+        and row["round"] == position
+        and position <= FIX_CAP
+        and row["decision"] is None
+        and row["resolution"] == MACHINE
+        and isinstance(row["campaign"], str)
+        and accept.sha256(row["findings_sha256"])
+        and isinstance(row["codes"], dict)
+        and isinstance(row["reach"], list)
+        and accept.sha256(row["job_sha256"])
+        and (row["video_sha256"] is None or accept.sha256(row["video_sha256"]))
+        and (
+            row["deliver_check"] is None
+            or (isinstance(row["deliver_check"], dict) and set(row["deliver_check"]) == accept.RENDER_FIELDS)
+        )
     )
 
 
 def valid_fix(row, position):
+    """An operator's FIX. A round past the cap says extended, and no other round may."""
+    if isinstance(row, dict) and row.get("resolution") == MACHINE:
+        return valid_round(row, position)
+    if not isinstance(row, dict) or ("extended" in row) != (position > FIX_CAP):
+        return False
+    if row.get("extended", True) is not True:
+        return False
+    row = {k: v for k, v in row.items() if k != "extended"}
     return (
-        isinstance(row, dict)
-        and set(row) == FIX_FIELDS
+        set(row) == FIX_FIELDS
         and row["round"] == position
         and accept.DECISION.fullmatch(str(row["decision"])) is not None
         and row["resolution"] == accept.RESOLUTION
@@ -81,9 +125,31 @@ def valid_fix(row, position):
     )
 
 
+def valid_campaign(value):
+    return (
+        value is None
+        or isinstance(value, dict)
+        and set(value) == CAMPAIGN_FIELDS
+        and isinstance(value["id"], str)
+        and ID.match(value["id"]) is not None
+        and value["resolution"] == accept.RESOLUTION
+    )
+
+
+def valid_parked(value):
+    return (
+        value is None
+        or isinstance(value, dict)
+        and set(value) == PARKED_FIELDS
+        and accept.sha256(value["findings_sha256"])
+        and accept.sha256(value["job_sha256"])
+    )
+
+
 def read_path(path, job_id):
     """The ledger at path for job_id, an empty one when there is none. store_invalid when it is malformed, holds a row
-    this module would not write or holds more FIX rounds than the cap."""
+    this module would not write or holds a round past the cap that no operator's decision extended. A ledger written
+    before campaigns holds neither campaign nor parked and reads as holding none."""
     if path.is_symlink():
         raise JobError("stage_symlink", f"{LEDGER} is a symlink")
     if not path.exists():
@@ -100,9 +166,10 @@ def read_path(path, job_id):
         or value.get("job_id") != job_id
         or not isinstance(renders, list)
         or not isinstance(fixes, list)
-        or len(fixes) > FIX_CAP
         or not all(valid_render(r) for r in renders)
         or not all(valid_fix(r, i) for i, r in enumerate(fixes, 1))
+        or not valid_campaign(value.get("campaign"))
+        or not valid_parked(value.get("parked"))
     ):
         raise JobError("store_invalid", f"{job_id}/{LEDGER} is not that job's {KIND} record")
     return value
@@ -114,8 +181,10 @@ def read(store):
 
 
 def fix_summary(ledger, answers=None):
+    """rounds used of the cap. A round past FIX_CAP raised the cap by one, and that round is used, so left stays 0."""
     used = len(ledger["fixes"])
-    return {"rounds": used, "cap": FIX_CAP, "left": FIX_CAP - used, "answers_round": answers}
+    cap = max(FIX_CAP, used)
+    return {"rounds": used, "cap": cap, "left": cap - used, "answers_round": answers}
 
 
 def fix_of(ledger, video):
@@ -150,6 +219,17 @@ def proof(previous, stages):
         "unchanged_nodes": len(set(now) - set(ran)),
         "compose_only": bool(ran) and all(n.partition("/")[0] in COMPOSE_STAGES for n in ran),
     }
+
+
+def check_reach(ledger, answers, previous, shown):
+    """Refuse a render that answers a machine round and ran a stage that round's fix may not. A first render has
+    nothing to compare: what ran since no render is the whole job."""
+    row = ledger["fixes"][answers - 1] if answers is not None else None
+    if row is None or row["resolution"] != MACHINE or previous is None:
+        return
+    others = [n for n in shown["ran"] if n.partition("/")[0] not in row["reach"]]
+    if others:
+        raise JobError("round_out_of_reach", f"round {answers} reaches no {others[0]}; {len(others)} such nodes ran")
 
 
 def check_scope(scope, previous, shown):
@@ -192,8 +272,9 @@ def record_render(store, job, request, render, stages, seq, now=utc_now):
         shown = proof(previous, stages)
         check_scope((request.get("rerun") or {}).get("scope"), previous, shown)
         if fix_of(ledger, video) is not None:
-            raise JobError("fix_unchanged_cut", "the rerun made a cut the operator sent back")
+            raise JobError("fix_unchanged_cut", "the rerun made a cut a FIX round sent back")
         answers = unanswered(ledger)
+        check_reach(ledger, answers, previous, shown)
         rows.append(
             {
                 "run_id": request["run_id"],
@@ -212,11 +293,13 @@ def record_render(store, job, request, render, stages, seq, now=utc_now):
     return shown | {"event": request["run_id"], "fix": fix_summary(ledger, answers)}
 
 
-def fix(store, decision, video_sha256, now=utc_now):
+def fix(store, decision, video_sha256, now=utc_now, extend=False):
     """Record the operator's FIX of the cut whose sha256 is video_sha256. Returns {ok, job_id, round, recorded, fix}.
     recorded is False when this decision already holds this cut's round. Refusals: the decision and video forms
     accept refuses, video_mismatch, fix_already_recorded (this cut holds another decision), decision_bound_elsewhere,
-    cut_accepted and fix_cap_reached. Nothing is written on a refusal."""
+    cut_accepted, fix_extend_unneeded (extend with rounds left) and fix_cap_reached (no rounds left and no extend).
+    extend is the operator's answer at the cap: this decision adds the one round it takes. Nothing is written on a
+    refusal."""
     accept.check_decision(decision)
     accept.check_video(video_sha256)
     job = store.read_job()
@@ -234,10 +317,13 @@ def fix(store, decision, video_sha256, now=utc_now):
                 raise JobError("decision_bound_elsewhere", "this decision already answered another cut or gate")
             if any(r["video_sha256"] == video_sha256 for r in rows):
                 raise JobError("cut_accepted", "the operator already accepted a gate of this cut")
-            if len(ledger["fixes"]) >= FIX_CAP:
+            at_cap = len(ledger["fixes"]) >= FIX_CAP
+            if at_cap and not extend:
                 raise JobError(
                     "fix_cap_reached", f"this job root used its {FIX_CAP} FIX rounds: stop and ask the operator"
                 )
+            if extend and not at_cap:
+                raise JobError("fix_extend_unneeded", "this job root has FIX rounds left, so no decision extends it")
             existing = {
                 "round": len(ledger["fixes"]) + 1,
                 "decision": decision,
@@ -246,7 +332,7 @@ def fix(store, decision, video_sha256, now=utc_now):
                 "job_sha256": keys.digest(job),
                 "deliver_check": render["deliver_check"],
                 "recorded_utc": now(),
-            }
+            } | ({"extended": True} if at_cap else {})
             ledger["fixes"].append(existing)
             write_atomic(store.dir / LEDGER, ledger)
             recorded = True
@@ -258,6 +344,134 @@ def fix(store, decision, video_sha256, now=utc_now):
         "round": existing["round"],
         "decision": decision,
         "resolution": existing["resolution"],
+        "recorded": recorded,
+        "fix": fix_summary(ledger),
+    }
+
+
+def bind_campaign(store, campaign, now=utc_now):
+    """Bind this job root to a campaign, the one thing that lets a round start with no Softproxy decision. Returns {ok,
+    job_id, campaign, recorded}. Refusals: campaign_id_invalid, campaign_client_job (a client edition), campaign_bound
+    (another campaign holds the root) and campaign_after_decision (the root holds an operator's FIX or acceptance, so
+    it stays on that path). Nothing is written on a refusal, and binding the same campaign again is a no-op."""
+    if not isinstance(campaign, str) or ID.match(campaign) is None:
+        raise JobError("campaign_id_invalid", "a campaign id is 1 to 64 of a-z, 0-9, '.', '_' and '-'")
+    job = store.read_job()
+    if job["edition"] in CLIENT_EDITIONS:
+        raise JobError("campaign_client_job", f"edition {job['edition']} keeps the operator's decision")
+    with accept.locked(store):
+        ledger = read(store)
+        held = (ledger.get("campaign") or {}).get("id")
+        if held not in (None, campaign):
+            raise JobError("campaign_bound", "another campaign already holds this job root")
+        if held is None:
+            decided = any(r["decision"] is not None for r in ledger["fixes"]) or accept.read(store)["acceptances"]
+            if decided:
+                raise JobError("campaign_after_decision", "this job root holds an operator's decision")
+            ledger["campaign"] = {"id": campaign, "resolution": accept.RESOLUTION, "recorded_utc": now()}
+            write_atomic(store.dir / LEDGER, ledger)
+    return {"ok": True, "job_id": store.job_id, "campaign": campaign, "recorded": held is None}
+
+
+def round_entry(ledger, findings_sha256, job_sha256, video_sha256):
+    """The round this same reading already recorded, or None. fix_already_recorded when this cut holds another."""
+    if video_sha256 is None:
+        rows = [r for r in ledger["fixes"] if r["video_sha256"] is None and r["job_sha256"] == job_sha256]
+    else:
+        rows = [r for r in ledger["fixes"] if r["video_sha256"] == video_sha256]
+    if not rows:
+        return None
+    if rows[-1].get("findings_sha256") != findings_sha256:
+        raise JobError("fix_already_recorded", f"round {rows[-1]['round']} already holds this cut")
+    return rows[-1]
+
+
+def round_result(store, ledger, row, recorded):
+    return {
+        "ok": True,
+        "result": "round",
+        "job_id": store.job_id,
+        "round": row["round"],
+        "campaign": row["campaign"],
+        "reach": row["reach"],
+        "recorded": recorded,
+        "fix": fix_summary(ledger),
+    }
+
+
+def machine_round(store, report, video_sha256=None, now=utc_now):
+    """Record a round that report (narrate/video/findings.py) started, on a job bound to a campaign. video_sha256 names
+    the cut those findings read, and a report only a cut can give must name one. Returns {ok, result, ...}: result is
+    round with its number and reach, or parked at the cap with the rounds used. Refusals: findings_invalid,
+    round_needs_decision (a client edition, or no campaign bound), round_no_findings (no blocking row),
+    round_video_missing, the video forms, video_mismatch, cut_accepted and fix_already_recorded. Parking writes the
+    parked record, a refusal writes nothing, and the same findings on the same cut again is a no-op."""
+    shown = typed.check(report)
+    rows = [row for row in shown["findings"] if row["blocking"]]
+    job = store.read_job()
+    job_sha256, findings_sha256 = keys.digest(job), keys.digest(shown["findings"])
+    codes = {code: sum(1 for row in rows if row["code"] == code) for code in sorted({row["code"] for row in rows})}
+    with accept.locked(store):
+        ledger = read(store)
+        campaign = (ledger.get("campaign") or {}).get("id")
+        if job["edition"] in CLIENT_EDITIONS or campaign is None:
+            raise JobError("round_needs_decision", "only a job bound to a campaign starts a round with no decision")
+        if not rows:
+            raise JobError("round_no_findings", "the report holds no blocking finding, so nothing starts a round")
+        render = None
+        if video_sha256 is not None:
+            accept.check_video(video_sha256)
+            render, _ = accept.render_of(store, job)
+            if video_sha256 != render["video_sha256"]:
+                raise JobError("video_mismatch", "the findings name another cut than the current composed video")
+            if any(r["video_sha256"] == video_sha256 for r in accept.read(store)["acceptances"]):
+                raise JobError("cut_accepted", "the operator already accepted a gate of this cut")
+        elif any(row["gate"] in typed.CUT_GATES for row in rows):
+            raise JobError("round_video_missing", "these findings read a composed cut, so the round names it")
+        if ledger.get("parked") is not None:
+            return parked_result(store, ledger, recorded=False)
+        existing = round_entry(ledger, findings_sha256, job_sha256, video_sha256)
+        if existing is not None:
+            return round_result(store, ledger, existing, recorded=False)
+        fixes = ledger["fixes"]
+        if len(fixes) >= FIX_CAP:
+            ledger["parked"] = {
+                "round": len(fixes),
+                "findings_sha256": findings_sha256,
+                "codes": codes,
+                "video_sha256": video_sha256,
+                "job_sha256": job_sha256,
+                "recorded_utc": now(),
+            }
+            write_atomic(store.dir / LEDGER, ledger)
+            return parked_result(store, ledger, recorded=True)
+        row = {
+            "round": len(fixes) + 1,
+            "decision": None,
+            "resolution": MACHINE,
+            "campaign": campaign,
+            "findings_sha256": findings_sha256,
+            "codes": codes,
+            "reach": graph.reach({row["stage"] for row in rows}),
+            "video_sha256": video_sha256,
+            "job_sha256": job_sha256,
+            "deliver_check": None if render is None else render["deliver_check"],
+            "recorded_utc": now(),
+        }
+        fixes.append(row)
+        write_atomic(store.dir / LEDGER, ledger)
+    return round_result(store, ledger, row, recorded=True)
+
+
+def parked_result(store, ledger, recorded):
+    held = ledger["parked"]
+    return {
+        "ok": True,
+        "result": "parked",
+        "job_id": store.job_id,
+        "campaign": ledger["campaign"]["id"],
+        "codes": held["codes"],
+        "findings_sha256": held["findings_sha256"],
         "recorded": recorded,
         "fix": fix_summary(ledger),
     }

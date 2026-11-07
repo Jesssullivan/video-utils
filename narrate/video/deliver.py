@@ -34,13 +34,17 @@ visible_text (TIN-7788): records from a guarded intake carry its visible-text su
 passed when the guard read a text source for every shown asset and none was opaque, pending_operator when one was
 unread or opaque (or the marker predates the summary), and not_applicable without a guarded intake. So on a private
 lane a cut whose on-screen text the guard did not read keeps operator_states_open non-empty.
+
+typed_findings reads a deliver_check.json and gives every failed machine gate as typed findings
+(narrate/video/findings.py), one per field, change, file, code and page. It only reads, so no stage key moves.
 """
 
 from ..config import FF, run
 from . import admit, labels
+from . import findings as typed
 from .common import StageRefused, ffprobe, loudness, upstream, work_dir, write_json
 from .compose import FLASH_FLOOR_Y, FLASH_MAX, YAVG, page_kind, parse_cues, profile_for, slide_runs
-from .frames import final_gates, frame_review
+from .frames import final_gates, frame_review, typed_rows
 from .graph import selection
 from .job import CLIENT_EDITIONS
 
@@ -109,6 +113,15 @@ def loudness_gate(measured, delivery):
     return state(ok), {"drift_lu": drift} | measured
 
 
+CAPTION_CODES = {
+    "captions.srt is missing": "captions_srt_missing",
+    "captions.vtt is missing": "captions_vtt_missing",
+    "the video holds no soft caption track": "captions_soft_missing",
+    "the persona cue does not open the captions": "captions_persona_cue",
+    "extraNotice does not end description.txt": "captions_extra_notice",
+}
+
+
 def captions_gate(job, files, cues, description, subtitles):
     findings = []
     want = job["captions"]
@@ -124,6 +137,33 @@ def captions_gate(job, files, cues, description, subtitles):
     if notice and description.rstrip("\n").rsplit("\n", 1)[-1] != notice:
         findings.append("extraNotice does not end description.txt")
     return state(not findings), findings
+
+
+def page_at(pages, at_s):
+    """The id of the page on screen at at_s, or of the page that ends there, or None."""
+    for page in pages:
+        if page["startS"] <= at_s and (page["endS"] is None or at_s < page["endS"]):
+            return page["id"]
+    return next((p["id"] for p in pages if p["endS"] == at_s), None)
+
+
+def typed_findings(report, job):
+    """Every failed machine gate of a deliver_check.json as typed findings. A gate that passed gives none."""
+    gates, pages = report["gates"], (job["slides"] or {}).get("pages") or []
+    rows = [typed.finding(f"profile_{k}", **v) for k, v in report["profile"]["findings"].items()]
+    if gates["loudness"] == "failed":
+        loud, delivery = report["loudness"], job["delivery"]
+        if abs(loud["drift_lu"]) > delivery["driftLu"]:
+            rows.append(typed.finding("loudness_drift", drift_lu=loud["drift_lu"], limit=delivery["driftLu"]))
+        if loud["true_peak_dbtp"] > delivery["truePeakDbtp"]:
+            peak = loud["true_peak_dbtp"]
+            rows.append(typed.finding("loudness_true_peak", true_peak_dbtp=peak, limit=delivery["truePeakDbtp"]))
+    flash = report["flash"]
+    for change in flash["changes"]:
+        if change["max_jump"] > flash["max"]:
+            rows.append(typed.finding("flash_jump", page=page_at(pages, change["at_s"]), limit=flash["max"], **change))
+    rows += [typed.finding(CAPTION_CODES[text]) for text in report["captions"]["findings"]]
+    return rows + typed_rows(report["avatar_box"]["findings"]) + typed_rows(report["slide_match"]["findings"])
 
 
 def delivery_gate(job, bed, machine, operator):

@@ -33,13 +33,15 @@ channel, with the overlay's square left out while the avatar covers it.
 
 Whether a slide draws the numbers its beat speaks stays with the producer (its shown record and demo check). This
 module compares pixels with pixels and reads no claim. A report holds page ids, counts and digests, never a path or a
-text.
+text. preflight also returns its findings as typed records, every code and page, under typed
+(narrate/video/findings.py).
 """
 
 from collections import Counter
 
 from ..config import FF, run
 from ..ir import sha256_file
+from . import findings as typed
 from . import keys
 from .common import StageRefused, ffprobe, upstream
 from .compose import PROFILES, avatar_box, card_box, conform, page_kind
@@ -327,6 +329,14 @@ def slide_gate(job, env, w, h, intake=None):
     return report | {"state": state(report["checked"], report["findings"])}
 
 
+def typed_rows(rows):
+    """Each row of a frame gate's findings as the typed record (narrate/video/findings.py), one per code and page."""
+    return [
+        typed.finding(row["code"], page=row["page"], **{k: v for k, v in row.items() if k not in ("code", "page")})
+        for row in rows
+    ]
+
+
 def preflight(job, env, intake=None):
     """The nv_preflight report: the frame gates a job can pass or fail before any voice spend, and the claims state
     of the intake that wrote it. No voice is read and nothing renders."""
@@ -338,6 +348,7 @@ def preflight(job, env, intake=None):
     if intake is not None and claims != "passed":
         findings = [{"code": "claims_not_passed", "page": None}] + findings
     return {
+        "typed": typed.report(typed_rows(findings)),
         "kind": KIND,
         "schema_version": SCHEMA_VERSION,
         "job_id": job["id"],

@@ -29,7 +29,11 @@ refuse (narrate/video/accept.py).
 
 fix records the operator's FIX of the current cut the same way, by Softproxy decision id and the sha256 of the cut, and
 counts it against the job root's 3 rounds (narrate/video/rerun.py). The fourth FIX refuses fix_cap_reached with nothing
-recorded, so the caller stops and asks the operator.
+recorded, so the caller stops and asks the operator. --extend is that operator's answer: this decision adds one round.
+
+findings prints every finding a job root holds as one typed report (narrate/video/findings.py). round records a round
+those findings started, with no decision, on a job campaign-bind bound to a campaign. Every other job refuses
+round_needs_decision. At the cap round prints result parked and exits 0, and asks nobody.
 
 render-stage is the Cade render stage's task body (narrate/video/render_stage.py, docs/spec/RENDER_STAGE.md): check
 validates a request of ids and digests and prints its phases (with --inputs it also checks the worker's commit and
@@ -68,6 +72,7 @@ from ..ir import sha256_file
 from . import (
     accept,
     bundle,
+    findings,
     fixture,
     frames,
     graph,
@@ -430,7 +435,26 @@ def cmd_accept(a):
 
 
 def cmd_fix(a):
-    emit(rerun.fix(job_store(a, a.job), a.decision, a.video_sha256))
+    emit(rerun.fix(job_store(a, a.job), a.decision, a.video_sha256, extend=a.extend))
+    return 0
+
+
+def cmd_findings(a):
+    emit(render_stage.job_findings(job_store(a, a.job)))
+    return 0
+
+
+def cmd_campaign_bind(a):
+    emit(rerun.bind_campaign(job_store(a, a.job), a.campaign))
+    return 0
+
+
+def cmd_round(a):
+    try:
+        report = json.loads(Path(a.findings).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return refusal("findings_invalid", "--findings is not a readable JSON report")
+    emit(rerun.machine_round(job_store(a, a.job), report, a.video_sha256))
     return 0
 
 
@@ -680,7 +704,28 @@ def main(argv=None):
     fx.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
     fx.add_argument("--decision", help="the Softproxy decision id of the operator's FIX: sp:dec:<ulid>, only")
     fx.add_argument("--video-sha256", help="the sha256 of the cut the decision saw (required)")
+    fx.add_argument("--extend", action="store_true", help="at the cap: this decision adds the one round it takes")
     fx.add_argument("--json", action="store_true", help="print JSON (fix always does)")
+
+    fd = sub.add_parser("findings", help="every finding a job root holds, as one typed report; writes nothing")
+    fd.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    fd.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    fd.add_argument("--json", action="store_true", help="print JSON (findings always does)")
+
+    cb = sub.add_parser("campaign-bind", help="bind a job root to a campaign; a client edition refuses")
+    cb.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    cb.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    cb.add_argument("--campaign", required=True, help="the campaign id, as a signed campaign record holds it")
+    cb.add_argument("--json", action="store_true", help="print JSON (campaign-bind always does)")
+
+    rd = sub.add_parser(
+        "round", help="record a round findings started, on a job bound to a campaign; at the cap the root parks"
+    )
+    rd.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    rd.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    rd.add_argument("--findings", required=True, help="a typed findings report, as findings or a gate prints it")
+    rd.add_argument("--video-sha256", help="the sha256 of the cut those findings read, when they read one")
+    rd.add_argument("--json", action="store_true", help="print JSON (round always does)")
 
     rs = sub.add_parser("render-stage", help="the Cade render stage's task body: check, preflight, takes or result")
     rs.add_argument(
@@ -748,6 +793,9 @@ def main(argv=None):
             "claims": cmd_claims,
             "accept": cmd_accept,
             "fix": cmd_fix,
+            "findings": cmd_findings,
+            "campaign-bind": cmd_campaign_bind,
+            "round": cmd_round,
             "render-stage": cmd_render_stage,
             "preflight": cmd_preflight,
             "subject": cmd_subject,
@@ -755,10 +803,12 @@ def main(argv=None):
         }
         return commands[a.command](a)
     except bundle.BundleError as exc:
+        shown = {"ok": False, "findings": findings.report(exc.findings)}
         if isinstance(exc.report, dict):
-            emit({"ok": False, "private_terms": exc.report})
+            shown["private_terms"] = exc.report
         elif exc.report is not None:
-            emit({"ok": False, "segments": exc.report})
+            shown["segments"] = exc.report
+        emit(shown)
         return refusal(exc.code, exc.detail)
     except JobError as exc:
         return refusal(exc.code, exc.detail)

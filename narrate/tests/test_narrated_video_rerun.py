@@ -36,7 +36,7 @@ from test_narrated_video_render_stage import (
     sha,
 )
 
-from narrate.video import accept, bundle, cli, fixture, graph, keys, render_stage, rerun, run, store
+from narrate.video import accept, bundle, cli, findings, fixture, graph, keys, render_stage, rerun, run, store
 
 DECISIONS = [f"sp:dec:01J0000000000000000000000{n}" for n in range(6)]
 JOB = "demo-fixture"
@@ -670,6 +670,362 @@ def test_takes_refuses_a_blocked_or_refused_voice_node(tmp_path, state):
     assert refused(render_stage.takes, value, g, s, job, gpu_draft=True) == "voice_blocked"
 
 
+# The extension: one round per decision, each recorded (TIN-7125 11296de3) ---------------------------------------
+def at_the_cap(job, s):
+    for number in (1, 2, 3):
+        job, _ = round_trip(job, s, number)
+    return job
+
+
+def test_a_decision_at_the_cap_extends_the_root_by_the_one_round_it_takes(card):
+    job, s = card
+    job = at_the_cap(job, s)
+    video = video_of(s)
+    assert refused(rerun.fix, s, DECISIONS[3], video) == "fix_cap_reached"
+    out = rerun.fix(s, DECISIONS[3], video, extend=True)
+    assert out["round"] == 4 and out["recorded"] is True and out["fix"] == {
+        "rounds": 4, "cap": 4, "left": 0, "answers_round": None,
+    }  # fmt: skip
+    assert ledger(s)["fixes"][-1]["extended"] is True and ledger(s)["fixes"][-1]["decision"] == DECISIONS[3]
+    assert rerun.read(s)["fixes"][3]["round"] == 4
+    assert rerun.fix(s, DECISIONS[3], video, extend=True)["recorded"] is False
+
+    job = edited(job, s, lambda j: burn(j, "soft"))
+    value = render_stage.result(event(job, 5), s, ENV)
+    assert value["rerun"]["fix"] == {"rounds": 4, "cap": 4, "left": 0, "answers_round": 4}
+    assert refused(rerun.fix, s, DECISIONS[4], video_of(s)) == "fix_cap_reached"
+    assert rerun.fix(s, DECISIONS[4], video_of(s), extend=True)["round"] == 5
+
+
+def test_a_decision_with_rounds_left_extends_nothing(card):
+    _, s = card
+    assert refused(rerun.fix, s, DECISIONS[0], video_of(s), extend=True) == "fix_extend_unneeded"
+    assert not (s.dir / rerun.LEDGER).exists()
+
+
+def test_an_extension_binds_its_decision_like_any_fix(card):
+    job, s = card
+    job = at_the_cap(job, s)
+    assert refused(rerun.fix, s, DECISIONS[0], video_of(s), extend=True) == "decision_bound_elsewhere"
+    assert refused(rerun.fix, s, "one more round please", video_of(s), extend=True) == "decision_free_text"
+    assert len(ledger(s)["fixes"]) == 3
+
+
+def test_a_round_marked_extended_inside_the_cap_is_store_invalid(card):
+    job, s = card
+    round_trip(job, s, 1)
+    value = ledger(s)
+    value["fixes"][0]["extended"] = True
+    (s.dir / rerun.LEDGER).write_text(json.dumps(value))
+    assert refused(rerun.read, s) == "store_invalid"
+    value["fixes"][0]["extended"] = False
+    (s.dir / rerun.LEDGER).write_text(json.dumps(value))
+    assert refused(rerun.read, s) == "store_invalid"
+
+
+# Machine-started rounds ------------------------------------------------------------------------------------------
+CAMPAIGN = "campaign-fixture"
+
+
+def report_of(*codes, page="p1"):
+    return findings.report([findings.finding(code, page=page) for code in codes])
+
+
+def bound(job, s):
+    assert rerun.bind_campaign(s, CAMPAIGN)["recorded"] is True
+    return job, s
+
+
+def machine_trip(job, s, number, *codes):
+    """One round on the current cut, then a new cut from a new event."""
+    out = rerun.machine_round(s, report_of(*(codes or ("slide_not_shown",))), video_of(s))
+    job = edited(job, s, lambda j: burn(j, ("burn", "srt", "vtt", "soft")[number - 1]))
+    return job, out
+
+
+def test_a_campaign_round_needs_no_softproxy_decision(card):
+    job, s = bound(*card)
+    video = video_of(s)
+    out = rerun.machine_round(s, report_of("slide_not_shown", "slide_not_shown"), video)
+    assert out["ok"] is True and out["result"] == "round" and out["round"] == 1 and out["recorded"] is True
+    assert out["campaign"] == CAMPAIGN and out["fix"]["left"] == 2
+    row = ledger(s)["fixes"][0]
+    assert row["decision"] is None and row["resolution"] == rerun.MACHINE and row["codes"] == {"slide_not_shown": 2}
+    assert row["video_sha256"] == video and row["job_sha256"] == keys.digest(job)
+    assert row["reach"] == ["compose", "deliver_check", "handoff"]
+    assert rerun.read(s)["fixes"][0] == row
+
+
+def test_a_campaign_round_binds_its_cut_as_a_fix_does(card):
+    job, s = bound(*card)
+    video = video_of(s)
+    rerun.machine_round(s, report_of("slide_not_shown"), video)
+    assert refused(accept.accept, s, "listening", DECISIONS[0], video) == "cut_sent_back"
+    assert refused(rerun.fix, s, DECISIONS[0], video) == "fix_already_recorded"
+    assert refused(render_stage.result, event(job, 1), s, ENV) == "fix_unchanged_cut"
+    job = edited(job, s, burn)
+    value = render_stage.result(event(job, 2), s, ENV)
+    assert value["rerun"]["fix"]["answers_round"] == 1
+
+
+def test_the_same_findings_on_the_same_cut_are_a_no_op_and_others_refuse(card):
+    job, s = bound(*card)
+    video = video_of(s)
+    rerun.machine_round(s, report_of("slide_not_shown"), video)
+    written = (s.dir / rerun.LEDGER).read_bytes()
+    again = rerun.machine_round(s, report_of("slide_not_shown"), video)
+    assert again["recorded"] is False and again["round"] == 1
+    assert refused(rerun.machine_round, s, report_of("slide_letterbox"), video) == "fix_already_recorded"
+    assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_a_round_read_before_any_render_binds_no_cut_and_a_first_render_answers_it(tmp_path):
+    job, recs = example("nv-fixture-card"), records()
+    s = new_store(tmp_path, job)
+    rerun.bind_campaign(s, CAMPAIGN)
+    out = rerun.machine_round(s, report_of("avatar_box_occupied"))
+    assert out["round"] == 1 and ledger(s)["fixes"][0]["video_sha256"] is None
+    assert ledger(s)["fixes"][0]["deliver_check"] is None
+    assert rerun.machine_round(s, report_of("avatar_box_occupied"))["recorded"] is False
+    assert refused(rerun.machine_round, s, report_of("slide_letterbox")) == "fix_already_recorded"
+    settle(job, recs, s, plain_ctx())
+    value = render_stage.result(event(job, 1), s, ENV)
+    assert value["rerun"]["fix"]["answers_round"] == 1
+
+
+@pytest.mark.parametrize("edition", ["ClientNarrated", "ClientVoiceOnly"])
+def test_a_client_job_cannot_be_bound_and_still_needs_its_decision(card, edition):
+    job, s = card
+    client = copy.deepcopy(job) | {"edition": edition}
+    s.write_job(client, replace=True)
+    assert refused(rerun.bind_campaign, s, CAMPAIGN) == "campaign_client_job"
+    assert refused(rerun.machine_round, s, report_of("slide_not_shown")) == "round_needs_decision"
+    assert not (s.dir / rerun.LEDGER).exists()
+
+
+def test_a_client_edition_written_after_a_binding_still_needs_its_decision(card):
+    job, s = bound(*card)
+    s.write_job(copy.deepcopy(job) | {"edition": "ClientNarrated"}, replace=True)
+    written = (s.dir / rerun.LEDGER).read_bytes()
+    assert refused(rerun.machine_round, s, report_of("slide_not_shown")) == "round_needs_decision"
+    assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_a_job_with_no_binding_needs_its_decision_whatever_its_edition(card):
+    job, s = card
+    assert job["edition"] == "Internal"
+    assert refused(rerun.machine_round, s, report_of("slide_not_shown"), video_of(s)) == "round_needs_decision"
+    assert not (s.dir / rerun.LEDGER).exists()
+    assert rerun.fix(s, DECISIONS[0], video_of(s))["round"] == 1
+
+
+@pytest.mark.parametrize("decision", ["", "FIX it", "machine", None])
+def test_a_person_on_a_bound_job_still_answers_with_a_softproxy_id(card, decision):
+    job, s = bound(*card)
+    code = refused(rerun.fix, s, decision, video_of(s))
+    assert code in ("decision_missing", "decision_free_text", "decision_invalid")
+    assert ledger(s)["fixes"] == []
+
+
+def test_a_root_on_the_operators_path_stays_there(card):
+    job, s = card
+    rerun.fix(s, DECISIONS[0], video_of(s))
+    assert refused(rerun.bind_campaign, s, CAMPAIGN) == "campaign_after_decision"
+    assert refused(rerun.machine_round, s, report_of("slide_not_shown")) == "round_needs_decision"
+
+
+def test_an_accepted_root_stays_on_the_operators_path(card):
+    job, s = card
+    accept.accept(s, "listening", DECISIONS[0], video_of(s))
+    assert refused(rerun.bind_campaign, s, CAMPAIGN) == "campaign_after_decision"
+
+
+def test_a_binding_holds_one_campaign_and_one_id_form(card):
+    job, s = bound(*card)
+    assert rerun.bind_campaign(s, CAMPAIGN)["recorded"] is False
+    assert refused(rerun.bind_campaign, s, "another-campaign") == "campaign_bound"
+    for value in ("", "two words", "../up", None):
+        assert refused(rerun.bind_campaign, s, value) == "campaign_id_invalid"
+
+
+def test_the_cap_parks_the_root_and_asks_nobody(card):
+    job, s = bound(*card)
+    render_stage.result(event(job, 1), s, ENV)
+    for number in (1, 2, 3):
+        job, out = machine_trip(job, s, number)
+        assert out["round"] == number and out["result"] == "round"
+        render_stage.result(event(job, number + 1), s, ENV)
+    video = video_of(s)
+    out = rerun.machine_round(s, report_of("slide_not_shown", "flash_jump"), video)
+    assert out["ok"] is True and out["result"] == "parked" and out["recorded"] is True
+    assert out["campaign"] == CAMPAIGN and out["codes"] == {"flash_jump": 1, "slide_not_shown": 1}
+    assert out["fix"] == {"rounds": 3, "cap": 3, "left": 0, "answers_round": None}
+    held = ledger(s)
+    assert len(held["fixes"]) == 3 and held["parked"]["video_sha256"] == video and held["parked"]["round"] == 3
+    assert rerun.read(s)["parked"] == held["parked"]
+    written = (s.dir / rerun.LEDGER).read_bytes()
+    again = rerun.machine_round(s, report_of("slide_letterbox"), video)
+    assert again["result"] == "parked" and again["recorded"] is False
+    assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_a_person_may_still_extend_a_parked_root_and_it_stays_parked(card):
+    job, s = bound(*card)
+    for number in (1, 2, 3):
+        job, _ = machine_trip(job, s, number)
+    assert rerun.machine_round(s, report_of("slide_not_shown"), video_of(s))["result"] == "parked"
+    assert rerun.fix(s, DECISIONS[0], video_of(s), extend=True)["round"] == 4
+    job = edited(job, s, lambda j: burn(j, "soft"))
+    assert rerun.machine_round(s, report_of("slide_not_shown"), video_of(s))["result"] == "parked"
+
+
+def test_a_machine_round_past_the_cap_is_store_invalid(card):
+    job, s = bound(*card)
+    for number in (1, 2, 3):
+        job, _ = machine_trip(job, s, number)
+    value = ledger(s)
+    value["fixes"].append(value["fixes"][-1] | {"round": 4})
+    (s.dir / rerun.LEDGER).write_text(json.dumps(value))
+    assert refused(rerun.read, s) == "store_invalid"
+
+
+@pytest.mark.parametrize(
+    "edit",
+    [
+        lambda v: v | {"campaign": {"id": "two words", "resolution": "form_only", "recorded_utc": "x"}},
+        lambda v: v | {"campaign": {"id": CAMPAIGN}},
+        lambda v: v | {"parked": {"round": 3}},
+        lambda v: v | {"fixes": [v["fixes"][0] | {"decision": DECISIONS[0]}]},
+        lambda v: v | {"fixes": [v["fixes"][0] | {"deliver_check": 5}]},
+        lambda v: v | {"fixes": [v["fixes"][0] | {"findings_sha256": "short"}]},
+    ],
+)
+def test_a_forged_campaign_parked_or_round_row_is_store_invalid(card, edit):
+    job, s = bound(*card)
+    rerun.machine_round(s, report_of("slide_not_shown"), video_of(s))
+    (s.dir / rerun.LEDGER).write_text(json.dumps(edit(ledger(s))))
+    assert refused(rerun.read, s) == "store_invalid"
+
+
+def test_a_ledger_written_before_campaigns_still_reads_and_starts_no_round(card):
+    job, s = card
+    rerun.fix(s, DECISIONS[0], video_of(s))
+    value = ledger(s)
+    assert "campaign" not in value and "parked" not in value and set(value["fixes"][0]) == rerun.FIX_FIELDS
+    assert refused(rerun.machine_round, s, report_of("slide_not_shown")) == "round_needs_decision"
+
+
+@pytest.mark.parametrize(
+    ("report", "video", "code"),
+    [
+        ({"kind": "other"}, None, "findings_invalid"),
+        (findings.report([]), None, "round_no_findings"),
+        (findings.report([findings.finding("lexical_finding", rule="XL-FIX-001")]), None, "round_no_findings"),
+        (report_of("flash_jump"), None, "round_video_missing"),
+        (report_of("slide_not_shown"), "abc", "video_sha256_invalid"),
+        (report_of("slide_not_shown"), "0" * 64, "video_mismatch"),
+    ],
+)
+def test_a_round_refuses_with_nothing_recorded(card, report, video, code):
+    job, s = bound(*card)
+    written = (s.dir / rerun.LEDGER).read_bytes()
+    assert refused(rerun.machine_round, s, report, video) == code
+    assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_an_accepted_cut_takes_no_round(card):
+    job, s = bound(*card)
+    accept.accept(s, "listening", DECISIONS[0], video_of(s))
+    assert refused(rerun.machine_round, s, report_of("slide_not_shown"), video_of(s)) == "cut_accepted"
+
+
+def test_a_caller_cannot_widen_or_narrow_a_known_codes_reach(card):
+    job, s = bound(*card)
+    row = findings.finding("voice_qa_failed", segment="seg-1") | {"stage": "compose"}
+    out = rerun.machine_round(s, findings.report([row]), video_of(s))
+    assert "voice" in out["reach"]
+
+
+# A round's reach: what its fix may run ---------------------------------------------------------------------------
+def test_the_reach_of_a_slide_fix_holds_no_voice_stage():
+    assert graph.reach(["compose"]) == list(rerun.COMPOSE_STAGES)
+    assert not {"script", "voice", "voice_qa"} & set(graph.reach(["base"]))
+    assert graph.reach(["mix"]) == ["mix", "compose", "deliver_check", "handoff"]
+
+
+def test_the_reach_of_a_script_fix_holds_the_voice_and_what_reads_it():
+    assert {"script", "voice", "voice_qa", "place", "compose"} <= set(graph.reach(["script"]))
+    assert "base" not in graph.reach(["script"])
+
+
+@pytest.mark.parametrize("entries", [[None], ["no-such-stage"], ["compose", None]])
+def test_an_entry_that_bounds_nothing_reaches_the_whole_graph(entries):
+    assert graph.reach(entries) == graph.ORDER
+
+
+def test_every_finding_stage_is_a_stage_of_the_graph():
+    assert {stage for _, stage in findings.CODES.values()} - set(graph.BY_ID) == {None}
+    assert not {"voice", "voice_qa"} & set(graph.reach([findings.CODES["slide_letterbox"][1]]))
+
+
+def test_a_render_that_re_voices_on_a_slide_round_refuses_and_records_nothing(card):
+    job, s = bound(*card)
+    render_stage.result(event(job, 1), s, ENV)
+    rerun.machine_round(s, report_of("slide_letterbox"), video_of(s))
+    recs = records()
+    job = edited(job, s, lambda j: new_script(j, recs), recs)
+    before = ledger(s)
+    assert refused(render_stage.result, event(job, 2), s, ENV) == "round_out_of_reach"
+    assert ledger(s) == before
+
+
+def test_a_round_whose_fix_may_re_voice_takes_that_render(card):
+    job, s = bound(*card)
+    render_stage.result(event(job, 1), s, ENV)
+    rerun.machine_round(s, report_of("voice_qa_failed"), video_of(s))
+    recs = records()
+    job = edited(job, s, lambda j: new_script(j, recs), recs)
+    value = render_stage.result(event(job, 2), s, ENV)
+    assert value["rerun"]["fix"]["answers_round"] == 1
+    assert "voice/" + job["segments"][0]["id"] in value["rerun"]["ran"]
+
+
+# The commands ----------------------------------------------------------------------------------------------------
+def test_the_round_commands_bind_record_park_and_print_findings(card, tmp_path, capsys):
+    job, s = card
+    root = ["--root", str(s.root)]
+    path = tmp_path / "report.json"
+    path.write_text(json.dumps(report_of("slide_not_shown")))
+
+    assert cli.main(["round", job["id"], "--findings", str(path), *root]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "round_needs_decision"
+    assert cli.main(["campaign-bind", job["id"], "--campaign", CAMPAIGN, *root]) == 0
+    assert json.loads(capsys.readouterr().out)["recorded"] is True
+    for number, flag in enumerate(("burn", "srt", "vtt"), 1):
+        assert cli.main(["round", job["id"], "--findings", str(path), "--video-sha256", video_of(s), *root]) == 0
+        assert json.loads(capsys.readouterr().out)["round"] == number
+        job = edited(job, s, lambda j, flag=flag: burn(j, flag))
+    assert cli.main(["round", job["id"], "--findings", str(path), "--video-sha256", video_of(s), *root]) == 0
+    assert json.loads(capsys.readouterr().out)["result"] == "parked"
+    # This fake runner's deliver_check.json is a stub. The real stages' report is read in the job root test below.
+    assert cli.main(["findings", job["id"], *root]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "store_invalid"
+    path.write_text("not json")
+    assert cli.main(["round", job["id"], "--findings", str(path), *root]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "findings_invalid"
+
+
+def test_the_fix_command_takes_extend(card, capsys):
+    job, s = card
+    job = at_the_cap(job, s)
+    capsys.readouterr()
+    argv = ["fix", job["id"], "--root", str(s.root), "--decision", DECISIONS[3], "--video-sha256", video_of(s)]
+    assert cli.main(argv) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "fix_cap_reached"
+    assert cli.main([*argv, "--extend"]) == 0
+    assert json.loads(capsys.readouterr().out)["round"] == 4
+
+
 # One job root through the real stages ---------------------------------------------------------------------------
 @pytest.fixture
 def root(ws, tmp_path, ffmpeg):  # noqa: F811
@@ -761,6 +1117,44 @@ def test_one_slide_rerun_on_the_same_root_runs_only_compose_and_deliver_check(ro
     assert shown["fix"]["answers_round"] == 1
     assert value["outputs"]["video_sha256"] != cut
     assert sorted(p.name.partition("--")[0] for p in (s.dir / "history").iterdir()) == ["intake"]
+
+
+def test_a_campaign_round_on_a_slide_fix_does_not_re_voice(root, capsys):
+    """No Softproxy id, and the proof runs through the real stages with the fake engine's sine voice."""
+    assert root.intake() == 0 and root.init() == 0
+    root.run(capsys)
+    render = root.result(1)
+    s = store.JobStore(root.root, JOB)
+    voices = {seg["id"]: s.manifest(f"voice/{seg['id']}") for seg in s.read_job()["segments"]}
+
+    assert cli.main(["campaign-bind", JOB, "--campaign", CAMPAIGN, "--root", str(root.root)]) == 0
+    capsys.readouterr()
+    assert cli.main(["findings", JOB, "--root", str(root.root)]) == 0
+    assert json.loads(capsys.readouterr().out)["video_sha256"] == render["outputs"]["video_sha256"]
+    cut = render["outputs"]["video_sha256"]
+    out = rerun.machine_round(s, report_of("slide_not_shown", page="intro"), cut)
+    assert out["round"] == 1 and ledger(s)["fixes"][0]["decision"] is None
+
+    swap_slide(root.w)
+    assert root.intake("--replace") == 0 and root.init("--replace") == 0
+    second = root.run(capsys)
+    assert ran(second) == ["compose", "deliver_check"]
+    value = root.result(2, rerun={"scope": "compose_only"})
+    assert value["rerun"]["ran"] == ["compose", "deliver_check"] and value["rerun"]["fix"]["answers_round"] == 1
+    assert value["outputs"]["video_sha256"] != cut
+    assert {seg: s.manifest(f"voice/{seg}") for seg in voices} == voices
+
+
+def test_the_findings_of_a_real_root_are_typed_and_hold_a_real_lexical_finding(root, capsys):
+    set_script(root.w["bundle"], "It did so across", "It did delve across")
+    assert root.intake() == 0 and root.init() == 0
+    root.run(capsys)
+    root.result(1)
+    shown = render_stage.job_findings(store.JobStore(root.root, JOB))
+    assert findings.check(json.loads(json.dumps(shown)))["codes"] == shown["codes"]
+    lexical = [row for row in shown["findings"] if row["code"] == "lexical_finding"]
+    assert lexical and all(row["blocking"] is False and row["segment"] for row in lexical)
+    assert "delve" not in json.dumps(shown)
 
 
 def test_a_changed_beat_re_voices_alone_and_the_held_take_stays(root, capsys):
