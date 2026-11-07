@@ -16,9 +16,16 @@ path; every pinned file's sha256 must match or the pass refuses. Nothing is fetc
   identifier it speaks is the same, byte for byte and in the same order, as the original's. A recognised range or
   dollar amount the rewrite says in words (amounts.find) counts as kept when the words read back to the original's
   values: "seventeen to nineteen" keeps "17–19", "eighteen to nineteen" does not.
+- CheckTool: `xoxd-lexical check` as a DAG's gate reads it (narrate/video/entry.py). Findings, Vale and the
+  `narrate-lexical-check` recipe stay advisory for a person's run (R-N12). This one refuses when the tool is absent or
+  reads another release, because a gate that cannot run has passed nothing. It hands the CLI a Markdown file. The CLI
+  stages stdin as plain text, where Vale 3.14.2 does not run XL-BREV-001, the Error rule on mean sentence length
+  (TIN-7788).
 """
 
+import contextlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -226,6 +233,72 @@ def vale(release, segments, timeout=120):
         for a in items
     ]
     return {"status": "measured", "advisory": True, "findings": alerts}
+
+
+class CheckTool:
+    """`xoxd-lexical check` for one verified release: the bin/xoxd-lexical beside its directory, else the one on PATH,
+    under a XOXD_LEXICAL_HOME whose dist/ is that directory. Refuses lexical_tool_absent with no CLI, no check
+    subcommand or another release. run gives each Error finding of a text as {rule, line}, and refuses
+    lexical_tool_absent when Vale is missing and lexical_tool_fault on any other fault, on output it cannot read and on
+    an Error exit that names no Error finding."""
+
+    def __init__(self, release, timeout=120):
+        from .spoken import release_string  # spoken reads this package's adapters
+
+        self.release, self.timeout = release, timeout
+        beside = release.dir.parent / "bin" / "xoxd-lexical"
+        self.tool = str(beside) if os.access(beside, os.X_OK) else shutil.which("xoxd-lexical")
+        if not self.tool:
+            raise LexicalError("lexical_tool_absent", "no xoxd-lexical CLI beside the release or on PATH")
+        want = release_string(release.dir)
+        with self.home() as env:
+            if self.call(["check", "--help"], env).returncode != 0:
+                raise LexicalError("lexical_tool_absent", "this xoxd-lexical has no check subcommand")
+            got = self.call(["version"], env).stdout.strip()
+        if got != want:
+            read = got or "an unknown release"
+            raise LexicalError("lexical_tool_absent", f"the CLI reads {read}, the job pins {want}")
+
+    @contextlib.contextmanager
+    def home(self):
+        """The environment with XOXD_LEXICAL_HOME on a temporary tree whose dist/ is the release."""
+        with tempfile.TemporaryDirectory() as tree:
+            (Path(tree) / "dist").symlink_to(self.release.dir.resolve())
+            yield os.environ | {"XOXD_LEXICAL_HOME": tree}
+
+    def call(self, args, env):
+        try:
+            return subprocess.run(
+                [self.tool, *args],
+                stdin=subprocess.DEVNULL,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout,
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise LexicalError("lexical_tool_fault", f"xoxd-lexical failed: {type(error).__name__}") from None
+
+    def run(self, text):
+        with self.home() as env:
+            page = Path(env["XOXD_LEXICAL_HOME"]) / "text.md"
+            page.write_text(text, encoding="utf-8")
+            args = ["check", "--register", self.release.register, "--format", "json", "--min-severity", "error"]
+            done = self.call([*args, str(page)], env)
+        if done.returncode == 2 and "vale not found" in done.stderr:
+            raise LexicalError("lexical_tool_absent", "Vale is not on PATH")
+        if done.returncode not in (0, 1):
+            raise LexicalError("lexical_tool_fault", f"xoxd-lexical check exited {done.returncode}")
+        if done.returncode == 0:
+            return []
+        try:
+            found = json.loads(done.stdout)["findings"]
+            rows = [{"rule": f["id"], "line": f.get("line")} for f in found if f["severity"] == "error"]
+        except (ValueError, KeyError, TypeError):
+            raise LexicalError("lexical_tool_fault", "xoxd-lexical check printed no findings report") from None
+        if not rows:
+            raise LexicalError("lexical_tool_fault", "xoxd-lexical check exited 1 and named no Error finding")
+        return rows
 
 
 def protected_spans(text):

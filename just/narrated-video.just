@@ -118,8 +118,16 @@ nv-fix job decision video *args:
 nv-findings job *args:
     python3 -m narrate video findings {{quote(job)}} {{args}}
 
+# One entry gate of a DAG, before any spend: PHASE is claims, intake, preflight or lexical (narrate/video/entry.py). A
+# finding exits 1 with its own code and stays on the root for `nv-findings`. A job with no BUNDLES/JOB.entry.json has no
+# bundle, so claims and intake print entry none. ARGS: --bundles DIR (or NARRATED_VIDEO_BUNDLES), --root DIR, --records
+# DIR, --store DIR, --lexical DIR, --externals FILE, --denylist FILE, --denylist-sha256 HEX, --json.
+nv-entry phase job *args:
+    python3 -m narrate video entry {{quote(phase)}} {{quote(job)}} {{args}}
+
 # Bind a job root to a campaign, which lets a round start with no decision. A client edition refuses, and so does a root
-# that holds an operator's decision. Off by default: nothing calls this. ARGS: --root DIR.
+# that holds an operator's decision. Off by default: nothing calls this. ARGS: --before-intake takes a root with no job
+# yet, --root DIR.
 nv-campaign-bind job campaign *args:
     python3 -m narrate video campaign-bind {{quote(job)}} --campaign {{quote(campaign)}} {{args}}
 

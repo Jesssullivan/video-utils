@@ -101,6 +101,7 @@ LEASE_VERIFIED_BY_VOICE_GPU = ("notice_comment_on_ticket_names_holder", "helper_
 INTAKE_DIR = "intake"
 INTAKE_KIND = "nv_bundle_intake"
 PREFLIGHT_FILE = "preflight.json"  # beside intake.json: result refuses a job with none, or a failed one
+LEXICAL_GATE_FILE = "lexical-gate.json"  # beside job.json: what a DAG's lexical gate last read (narrate/video/entry.py)
 # How each input reaches the job after verify_inputs re-hashed its mount. intake: intake.json records the digest it
 # read. records_pin: the bound records pin the release file by file, and the script stage re-hashes those files.
 # mount_only: only verify_inputs checked it; no later phase records reading it.
@@ -497,11 +498,17 @@ def bound_job(request, store, env=None):
 def preflight(request, store, media, env=None):
     """The preflight phase: run the frame gates on the job the intake wrote and record the report in JOB/intake. A
     finding refuses with its own code, so a planted fault stops here, before voice_plan and any GPU window. media is
-    the common.Env that reads the private store. An earlier report goes first, so a run that crashes leaves no pass
-    for result to read."""
+    the common.Env that reads the private store."""
     job, intake_sha256 = bound_job(request, store, env)
     intake = _intake_json(store.dir / INTAKE_DIR / "intake.json")
+    return recorded_preflight(store, job, media, intake, intake_sha256)
+
+
+def recorded_preflight(store, job, media, intake, intake_sha256):
+    """Run the frame gates and record the report in JOB/intake. An earlier report goes first, so a run that crashes
+    leaves no pass for result to read. A finding refuses with its own code."""
     target = store.dir / INTAKE_DIR / PREFLIGHT_FILE
+    target.parent.mkdir(parents=True, exist_ok=True)
     target.unlink(missing_ok=True)
     report = frames.preflight(job, media, intake) | {"intake_sha256": intake_sha256}
     write_atomic(target, report)
@@ -516,7 +523,19 @@ def job_findings(store):
     job.json, each script stage's lexical findings, each stage refusal the store holds and the current deliver_check's
     failed gates. Read only, so it moves no key. A deliver_check of an older job.json or compose read a cut this job no
     longer is, so its rows are left out: deliver_check says current, stale or missing, and video_sha256 is the cut a
-    current one read, or None. ok speaks for these rows only: a job with no current deliver_check has passed nothing."""
+    current one read, or None. ok speaks for these rows only: a job with no current deliver_check has passed nothing.
+
+    An entry gate's refusal (narrate/video/entry.py) comes first: while one is held the bundle has not become this
+    job, so the report holds those rows, its bundle's digest as job_sha256 and no cut. The job.json may not exist yet.
+    A lexical gate's refusal of this same job.json adds its blocking rows to the rest."""
+    held_entry = store.entry_refused()
+    if held_entry is not None:
+        return typed.check(held_entry["findings"]) | {
+            "job_id": store.job_id,
+            "job_sha256": held_entry["bundle_sha256"],
+            "deliver_check": "missing",
+            "video_sha256": None,
+        }
     job = store.read_job()
     job_sha256 = keys.digest(job)
     current = store.current()
@@ -534,6 +553,11 @@ def job_findings(store):
             held = _intake_json(preflight_path)
             if held.get("job_sha256") == job_sha256:
                 rows += frames.typed_rows(held.get("findings") or [])
+        gate_path = store.dir / LEXICAL_GATE_FILE
+        if gate_path.is_file() and not gate_path.is_symlink():
+            gated = load_store_json(gate_path)
+            if gated.get("job_sha256") == job_sha256:
+                rows += typed.check(gated["findings"])["findings"]
         for node_id, entry in sorted(current["stages"].items()):
             stage, _, segment = node_id.partition("/")
             path = store.dir / entry["dir"] / "lexical.json"

@@ -104,52 +104,64 @@ narrate-spoken input *args:
 # release is the one a render pins: NARRATE_LEXICAL_DIR, else `lexical` in narrate.toml. The check reads it through
 # a XOXD_LEXICAL_HOME whose dist/ is that directory, runs the bin/xoxd-lexical beside it, else xoxd-lexical from
 # PATH, and refuses a CLI whose `version` is not that release's. With no CLI, no check subcommand, no Vale or another
-# release, it says so and exits 0: lexical checks are advisory (R-N12). Otherwise the exit is the CLI's: 0, 1 for an
-# Error-severity finding, 2 for a tool fault. ARGS go to `narrate spoken`, such as --adapter Dialog.
+# release, it says so and exits 0: lexical checks are advisory (R-N12). NARRATE_LEXICAL_GATE=refuse is a DAG's reading:
+# each of those, and a release no one pinned, exits 3 with a refusal line, because a gate that cannot run has passed
+# nothing. It also hands the CLI a Markdown file, because the CLI stages stdin as plain text, where Vale does not run the
+# Error rule on mean sentence length. Otherwise the exit is the CLI's: 0, 1 for an Error-severity finding, 2 for a tool fault. ARGS go to `narrate
+# spoken`, such as --adapter Dialog.
 # Check only the voiced text with `xoxd-lexical check --register narration`.
 narrate-lexical-check input *args:
     #!/usr/bin/env bash
     set -euo pipefail
     say() { echo "narrate-lexical-check: $*" >&2; }
+    not_checked() {
+        if [ "${NARRATE_LEXICAL_GATE:-}" = refuse ]; then
+            say "$1; refused"
+            echo '{"ok": false, "refused": "lexical_tool_absent"}' >&2
+            exit 3
+        fi
+        say "$1; not checked (advisory)"
+        exit 0
+    }
     work="$(mktemp -d)"
     trap 'rm -rf "$work"' EXIT
     tool="" want="" status=0
     python3 -m narrate.spoken lexical narrate.toml > "$work/pin" || status=$?
     if [ "$status" -eq 0 ]; then
         { read -r dist; read -r want; } < "$work/pin"
-        if [ -z "$want" ]; then say "$dist has no estate-lexicon.json; not checked (advisory)"; exit 0; fi
+        if [ -z "$want" ]; then not_checked "$dist has no estate-lexicon.json"; fi
         mkdir "$work/lexicon"
         ln -s "$dist" "$work/lexicon/dist"
         export XOXD_LEXICAL_HOME="$work/lexicon"
         beside="$(dirname "$dist")/bin/xoxd-lexical"
         if [ -x "$beside" ]; then tool="$beside"; fi
     elif [ "$status" -eq 3 ]; then
+        if [ "${NARRATE_LEXICAL_GATE:-}" = refuse ]; then not_checked "no NARRATE_LEXICAL_DIR and no lexical in narrate.toml"; fi
         say "no NARRATE_LEXICAL_DIR and no lexical in narrate.toml; the CLI's own release is used"
     else
         exit "$status"
     fi
     if [ -z "$tool" ] && command -v xoxd-lexical >/dev/null 2>&1; then tool="$(command -v xoxd-lexical)"; fi
-    if [ -z "$tool" ]; then
-        say "no xoxd-lexical CLI beside the release or on PATH; not checked (advisory)"
-        exit 0
-    fi
+    if [ -z "$tool" ]; then not_checked "no xoxd-lexical CLI beside the release or on PATH"; fi
     if ! "$tool" check --help >/dev/null 2>&1; then
-        say "$tool has no check subcommand (xoxd-lexical 0.4.0 added it); not checked (advisory)"
-        exit 0
+        not_checked "$tool has no check subcommand (xoxd-lexical 0.4.0 added it)"
     fi
     got="$("$tool" version 2>/dev/null || true)"
     if [ -n "$want" ] && [ "$got" != "$want" ]; then
-        say "$tool reads ${got:-an unknown release}, the pinned release is $want; not checked (advisory)"
-        exit 0
+        not_checked "$tool reads ${got:-an unknown release}, the pinned release is $want"
     fi
     say "$got, register narration"
     python3 -m narrate spoken {{quote(input)}} {{args}} > "$work/spoken.txt"
     status=0
-    "$tool" check --register narration - < "$work/spoken.txt" 2> "$work/err" || status=$?
+    if [ "${NARRATE_LEXICAL_GATE:-}" = refuse ]; then
+        mv "$work/spoken.txt" "$work/spoken.md"
+        "$tool" check --register narration "$work/spoken.md" 2> "$work/err" || status=$?
+    else
+        "$tool" check --register narration - < "$work/spoken.txt" 2> "$work/err" || status=$?
+    fi
     cat "$work/err" >&2
     if [ "$status" -eq 2 ] && grep -q "vale not found" "$work/err"; then
-        say "Vale is not on PATH; not checked (advisory)"
-        exit 0
+        not_checked "Vale is not on PATH"
     fi
     exit "$status"
 

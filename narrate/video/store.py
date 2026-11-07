@@ -200,6 +200,21 @@ class JobStore:
     def partial_dir(self, node_id, key):
         return self.node_dir(node_id) / (keys.key16(key) + PARTIAL)
 
+    # Entry -----------------------------------------------------------------------------------------------------
+    @property
+    def entry_file(self):
+        return self.dir / "entry.json"
+
+    def entry_refused(self):
+        """The refused report of the job's entry gates (narrate/video/entry.py), or None. While one is held the root's
+        job.json is not what its bundle says, and that bundle's digest stands in for the job."""
+        if self.entry_file.is_symlink() or not self.entry_file.is_file():
+            return None
+        value = load_store_json(self.entry_file)
+        if not isinstance(value, dict) or not isinstance(value.get("bundle_sha256"), str):
+            raise StoreError("store_invalid", "entry.json is not an entry report")
+        return None if value.get("ok") is True else value
+
     # Job -------------------------------------------------------------------------------------------------------
     def exists(self):
         return self.job_file.is_file()

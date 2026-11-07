@@ -10,7 +10,8 @@ that fixes a job needs the rest, so every gate also returns one record per code 
   does not hold, such as a refusal a stage or admit raises, takes the gate and stage its caller names;
 - stage is where a fix enters the stage graph, so graph.reach gives what that fix may run. None means no stage bounds
   it: a bundle whose structure is wrong can hold any fix, so its reach is the whole graph;
-- blocking is False only for what a gate records and never refuses, the advisory lexical findings (R-N12);
+- blocking is False only for what a gate records and never refuses, the advisory lexical findings (R-N12). A
+  lexical_error is the same finding read by a DAG's gate, which refuses (narrate/video/entry.py);
 - page and segment name where it is, and either may be None;
 - detail holds counts, measures and tokens. A record never holds a path or a text, because it leaves the private store
   in a machine's hands: plain drops any string or key that is not one short token. A token holds no slash, except a
@@ -57,6 +58,7 @@ ADVISORY = {"lexical_finding"}
 # may need its words changed, so that fix enters at script.
 CODES = {
     "lexical_finding": (LEXICAL, "script"),
+    "lexical_error": (LEXICAL, "script"),
     "voice_qa_failed": (VOICE_QA, "script"),
     "voice_unverified": (VOICE_QA, "script"),
     "number_ambiguous": (CLAIMS, "script"),
@@ -64,6 +66,8 @@ CODES = {
     "claim_ambiguous": (CLAIMS, "script"),
     "claim_unreceipted": (CLAIMS, "script"),
     "claims_not_passed": (CLAIMS, "script"),
+    "claim_value_mismatch": (CLAIMS, "script"),
+    "claim_value_unread": (CLAIMS, "script"),
     "card_in_avatar_box": (AVATAR_BOX, "compose"),
     "avatar_box_occupied": (AVATAR_BOX, "base"),
     "slide_digest_mismatch": (SLIDE_MATCH, "compose"),

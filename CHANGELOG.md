@@ -4,6 +4,11 @@
 
 ### Added
 
+- `narrate video entry claims|intake|preflight|lexical JOB`: the entry gates as a DAG's task bodies, before any spend.
+  Each refuses on a finding, records every finding for `findings` and a round to read, and moves no stage key. A claim
+  may name a `source`, so a spoken number is compared with the value its receipt holds. A lexical Error and a tool that
+  cannot run refuse here, and the `script` stage and `narrate-lexical-check` stay advisory for a person. Nothing calls
+  these yet.
 - `narrate/video/findings.py`: one typed record per gate code and page, read from
   intake, claims, preflight, `deliver_check.json` and the script and `voice_qa`
   stages, and `narrate video findings JOB`. A gate's exit code and first code stay,

@@ -36,6 +36,11 @@ trillion or an ordinal. "one" is always the number 1, and "first" or "second" al
 script that uses them as words cites a claim or rewords. These rules are strict on purpose (TIN-7735): a demo must
 not speak a number that no receipt backs.
 
+compare_values reads past the receipt's name. A claim may carry a source: a JSON file in the bundle by sha256 and a
+JSON pointer to the measured number. A spoken number whose claim holds a source must agree with that number, or it
+refuses claim_value_mismatch. A source that cannot be read refuses claim_value_unread, and with require set, as a DAG's
+gate runs it, so does a spoken number whose claim holds no source. The measured number never reaches a report.
+
 typed_rows gives every refused mention of a claims report as a typed finding (narrate/video/findings.py), by segment
 and without the spoken text.
 
@@ -692,6 +697,54 @@ def check_segment(voiced, cited, claims):
         "mentions": rows,
         "unused_claims": [c for c in cited if c not in used],
     }
+
+
+def value_agrees(claimed, measured, source):
+    """Whether a claim's number is the measured one. places lets a claim say it rounded: the two may differ by half a
+    unit of that place, whichever way the producer broke a tie, and the claim may say no more places than that."""
+    measured = measured * source.get("scale", Decimal(1))
+    if "places" not in source:
+        return claimed == measured
+    places = int(source["places"])
+    return -claimed.as_tuple().exponent <= places and abs(claimed - measured) <= Decimal(5).scaleb(-places - 1)
+
+
+def compare_values(report, claims, read_source, require=False):
+    """Refuse, in report, each matched mention whose claim's source disagrees with it or cannot be read. read_source
+    takes a claim's source and gives (number, unit or None), or raises ValueError with a short reason. A mention that
+    stays matched and was compared says so under value. Returns report."""
+    for row in report:
+        for mention in row["mentions"]:
+            if mention["status"] != "matched":
+                continue
+            claim = claims[mention["claim"]]
+            source = claim.get("source")
+            if source is None:
+                if require:
+                    refuse_value(row, mention, "claim_value_unread", "no_source")
+                continue
+            try:
+                measured, unit = read_source(source)
+                if unit is not None and unit != claim["value"]["unit"]:
+                    raise ValueError("unit_mismatch")
+                agrees = value_agrees(claim["value"]["number"], measured, source)
+            except ValueError as exc:
+                refuse_value(row, mention, "claim_value_unread", str(exc))
+            except ArithmeticError:
+                refuse_value(row, mention, "claim_value_unread", "source_out_of_range")
+            else:
+                if agrees:
+                    mention["value"] = "compared"
+                else:
+                    refuse_value(row, mention, "claim_value_mismatch", None)
+    return report
+
+
+def refuse_value(row, mention, code, reason):
+    mention.update({"status": "refused", "code": code} | ({"reason": reason} if reason else {}))
+    row["status"] = "refused"
+    if code not in row["codes"]:
+        row["codes"].append(code)
 
 
 def typed_rows(report):
