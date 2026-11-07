@@ -1249,7 +1249,8 @@ The evidence is a file the caller writes: `{kind: nv_campaign_evidence, schema_v
 consent_record, look: {anchors}, job_sha256, video_sha256, checks}`. This repository holds no signing key, so the caller
 verifies the campaign record's signature and the verdict's `resolution` reads `caller_checked`. `checks` holds the required
 checks of the signed rule by name: `canon_b8_identity`, `claims_allowlist`, `brand_public_gate`, `confidentiality`,
-`ai_disclosure`, `synthetic_metadata` and `manifest`. A check with no result fails, and only `passed` passes.
+`ai_disclosure`, `synthetic_metadata` and `manifest`. A check with no result fails, and only `passed` passes. The caller
+writes `stopped` for a check whose refusal no machine may iterate past, such as a failed adult read of `canon_b8_identity`.
 
 `narrate video campaign-manifest JOB --campaign ID --consent-record ID` prints what the `manifest` check reads, before the
 checks run: `{synthetic, campaign, consent_record, video_sha256}` on the current cut. It writes nothing, and it refuses any
@@ -1265,6 +1266,9 @@ other edition, an unbound root, another campaign and a cut not labelled syntheti
 | `campaign_check_missing` | a required check has no result | yes |
 | `campaign_brand_gate_closed` | `brand_public_gate` did not pass. A reviewed record opens it | yes |
 | `campaign_manifest_refused` | `manifest` did not pass | yes |
+| `campaign_confidentiality_refused` | `confidentiality` did not pass. The signed record never covers disclosure-hold, client or health content, so no fix rewrites past it | yes |
+| `campaign_check_stopped` | another required check reads `stopped` | yes |
+| `campaign_admit_refused` | admit refuses on the records as they stand now, such as a voice's consent withdrawn or a client consent recorded after the cut. `gate` names admit's code | yes |
 | `campaign_check_failed` | another required check did not pass | no, the row names its fix's stage |
 | `campaign_gate_failed` | a machine gate did not pass. `profile`, `loudness` and `captions` must read `passed` | no, `deliver_check`'s row routes it |
 | `frame_unread` | a page the frame gates left `unchecked` or `exempt`, because nobody else reads it here | no |

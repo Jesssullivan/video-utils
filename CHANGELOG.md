@@ -7,7 +7,8 @@
 - A `Campaign` edition and `narrate video campaign-verdict`: on a Campaign job a machine
   verdict stands where `accept` and the operator outbox stand, and it is the one place
   `public_upload_allowed` reads true. Every other edition reads false and keeps listening
-  and lip sync. Off by default: nothing runs it, and nothing here publishes.
+  and lip sync. A failed confidentiality check takes no fix, and the verdict reads admit
+  again on the current records. Off by default: nothing runs it, and nothing here publishes.
 - `avatar.external: look` (`narrate/video/look.py`): a Campaign job's overlay comes from a
   look record by digest, one clip per voice take. It draws nothing and calls no engine.
 - `narrate/video/findings.py`: one typed record per gate code and page, read from

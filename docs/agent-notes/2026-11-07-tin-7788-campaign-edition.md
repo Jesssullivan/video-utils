@@ -32,6 +32,19 @@ default: nothing calls `campaign-verdict`, and nothing here publishes.
   verdict then takes all seven results and prints the same four fields.
 - The look route binds clips made elsewhere. It does not draw one, because the live head and lip sync lanes are not landed.
 
+## Review findings
+
+An adversarial review of this draft (R-HOOK-CONVERGENCE-20261004 R-N13, Linear TIN-7788) planted each of these and saw the
+failure before the fix.
+
+| Fault | Fix |
+| --- | --- |
+| A failed `confidentiality` check gave stage `script`, so a fix author could rewrite disclosure-hold, client or health content until it passed | `campaign_confidentiality_refused`, a stop row. The signed record never covers that content |
+| One state per check hid item 2.5's stop on a failed adult read, so it routed to a re-render | `stopped` state, `campaign_check_stopped`, a stop row |
+| A voice's consent revoked, or a client consent recorded, after the cut still read public: the verdict ran no admit | `campaign_admit_refused`, from admit on the current records |
+| `CampaignStandingRule` was refused as a voice scope only in `check.py`, so `narrate/policy.py` let it through at run time | `check_consent` refuses it with `consent_scope` |
+| A probe printing `N/A` for a clip's count or rate raised `ValueError` in the stage | a `look_clip_invalid` problem |
+
 ## Open
 
 | Point | Owner |

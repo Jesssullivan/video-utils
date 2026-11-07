@@ -126,19 +126,26 @@ def recheck_gates(job, records):
         raise LookRefused(code, detail)
 
 
+def rate_of(video):
+    """The stream's frame rate, or None when ffprobe printed none it can state."""
+    try:
+        return Fraction(video.get("avg_frame_rate") or video.get("r_frame_rate") or "0/1")
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
 def clip_problems(probe, size, fps, frames):
     """What is wrong with a clip as this take's overlay. The stream must be ProRes with alpha at the job's render size
     and the base's rate, one frame per frame of the take, so compose never holds or cuts a face against its voice."""
     video = next((s for s in probe["streams"] if s.get("codec_type") == "video"), {})
-    rate = video.get("avg_frame_rate") or video.get("r_frame_rate") or "0/1"
     problems = []
     if video.get("codec_name") != CODEC or video.get("pix_fmt") not in ALPHA_FORMATS:
         problems.append("the clip is not ProRes 4444 with alpha")
     if (video.get("width"), video.get("height")) != (size, size):
         problems.append(f"the clip is not {size}x{size}")
-    if rate == "0/0" or Fraction(rate) != Fraction(fps["num"], fps["den"]):
+    if rate_of(video) != Fraction(fps["num"], fps["den"]):
         problems.append("the clip's rate is not the base's")
-    if int(video.get("nb_frames") or 0) != frames:
+    if str(video.get("nb_frames")) != str(frames):
         problems.append(f"the clip does not hold the take's {frames} frames")
     return problems
 

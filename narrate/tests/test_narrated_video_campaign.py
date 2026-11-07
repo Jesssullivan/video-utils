@@ -20,6 +20,7 @@ import pytest
 from test_narrated_video_intake import intake
 from test_narrated_video_simple import Workspace
 
+from narrate import policy
 from narrate.video import (
     accept,
     admit,
@@ -246,6 +247,71 @@ def test_every_required_check_refuses_when_failed_or_absent(copied, name):
     verdict = campaign.verdict(s, ws.records, absent)
     assert verdict["public_upload_allowed"] is False
     assert codes(verdict) == ["campaign_check_missing"]
+
+
+def test_a_failed_confidentiality_check_takes_no_fix(copied):
+    """The signed record never covers disclosure-hold, client or health content, so no fix author rewrites past it."""
+    ws, s = copied
+    value = evidence_for(s)
+    value["checks"]["confidentiality"] = "failed"
+    verdict = campaign.verdict(s, ws.records, value)
+    assert verdict["public_upload_allowed"] is False
+    assert codes(verdict) == ["campaign_confidentiality_refused"]
+    rows = [r for r in render_stage.job_findings(s)["findings"] if r["code"] == "campaign_confidentiality_refused"]
+    assert [(r["gate"], r["stage"], r["blocking"]) for r in rows] == [("confidentiality", None, True)]
+    assert not [r for r in render_stage.job_findings(s)["findings"] if r["code"] == "campaign_check_failed"]
+
+
+def test_a_check_the_caller_stops_takes_no_fix_and_the_same_check_failed_does(copied):
+    """A failed adult read stops, and identity drift re-renders. One state per check is what carries the difference."""
+    ws, s = copied
+    value = evidence_for(s)
+    value["checks"]["canon_b8_identity"] = "stopped"
+    verdict = campaign.verdict(s, ws.records, value)
+    assert verdict["public_upload_allowed"] is False and codes(verdict) == ["campaign_check_stopped"]
+    rows = [r for r in render_stage.job_findings(s)["findings"] if r["code"] == "campaign_check_stopped"]
+    assert [(r["gate"], r["stage"]) for r in rows] == [("canon_b8_identity", None)]
+    value["checks"]["canon_b8_identity"] = "failed"
+    campaign.verdict(s, ws.records, value)
+    rows = [r for r in render_stage.job_findings(s)["findings"] if r["code"] == "campaign_check_failed"]
+    assert [(r["gate"], r["stage"]) for r in rows] == [("canon_b8_identity", "avatar")]
+
+
+def voice_consent(ws, s):
+    narrate_job = ws.records["jobs"][s.read_job()["segments"][0]["narrateJob"]]
+    return ws.records["consents"][ws.records["voices"][narrate_job["voice"]]["consentId"]]
+
+
+def test_a_voice_consent_withdrawn_after_the_cut_stops_the_verdict(copied):
+    ws, s = copied
+    put_rows(ws, "consents.json", [voice_consent(ws, s) | {"revokedAt": "2026-11-07T00:00:00Z"}])
+    verdict = campaign.verdict(s, ws.records, evidence_for(s))
+    assert verdict["public_upload_allowed"] is False
+    assert [(r["code"], r["gate"]) for r in verdict["refusals"]] == [("campaign_admit_refused", "consent_revoked")]
+    rows = [r for r in render_stage.job_findings(s)["findings"] if r["code"] == "campaign_admit_refused"]
+    assert [(r["gate"], r["stage"]) for r in rows] == [("consent_revoked", None)]
+
+
+def test_a_look_record_gone_after_the_cut_reads_once_and_stops_the_loop(copied):
+    ws, s = copied
+    (ws.paths["records"] / "avatars.json").write_text("[]")
+    ws.reload()
+    verdict = campaign.verdict(s, ws.records, evidence_for(s))
+    assert verdict["public_upload_allowed"] is False
+    assert codes(verdict) == ["look_missing"]
+    rows = [r for r in render_stage.job_findings(s)["findings"] if r["code"] == "look_missing"]
+    assert [r["stage"] for r in rows] == [None]
+
+
+def test_a_client_consent_recorded_after_the_cut_stops_the_verdict(copied):
+    ws, s = copied
+    row = voice_consent(ws, s)
+    put_rows(ws, "consents.json", [row | {"scopes": row["scopes"] + ["ClientDisclosed"]}])
+    verdict = campaign.verdict(s, ws.records, evidence_for(s))
+    assert verdict["public_upload_allowed"] is False
+    assert [(r["code"], r["gate"]) for r in verdict["refusals"]] == [
+        ("campaign_admit_refused", "campaign_client_consent")
+    ]
 
 
 @pytest.mark.parametrize("state", ["pending", "unknown", "Passed", "", "true"])
@@ -587,6 +653,22 @@ def test_a_look_is_ruled_only_for_the_campaign_edition(tmp_path, edition):
     assert "look_edition_unruled" in refusal_codes(ws, job)
 
 
+@pytest.mark.parametrize(
+    "voice_scope, job_scope",
+    [("CampaignStandingRule", "CampaignStandingRule"), ("OwnContent", "CampaignStandingRule")],
+)
+def test_the_campaign_grant_never_grants_a_voice_at_run_time(voice_scope, job_scope):
+    registry = {
+        "voices": {"v": {"consentId": "c", "scope": voice_scope}},
+        "consents": {
+            "c": {"scopes": ["OwnContent", "CampaignStandingRule"], "evidenceSha256": "ab", "revokedAt": None}
+        },
+    }
+    with pytest.raises(policy.Refused) as refusal:
+        policy.check_consent("v", registry, None, job_scope)
+    assert refusal.value.code == "consent_scope" and "campaign rule" in str(refusal.value)
+
+
 def test_a_campaign_voice_under_a_client_consent_refuses(tmp_path):
     ws = Workspace(tmp_path)
     add_look(ws)
@@ -698,6 +780,20 @@ def test_a_clip_with_the_wrong_frame_count_refuses():
     }
     assert look.clip_problems(probe, 8, {"num": 30, "den": 1}, 9) == []
     assert "frames" in look.clip_problems(probe, 8, {"num": 30, "den": 1}, 10)[0]
+
+
+@pytest.mark.parametrize("edit", [{"nb_frames": "N/A"}, {"avg_frame_rate": "N/A"}, {"avg_frame_rate": "30/0"}])
+def test_a_probe_that_states_no_count_or_rate_is_a_problem_and_no_crash(edit):
+    video = {
+        "codec_type": "video",
+        "codec_name": "prores",
+        "pix_fmt": "yuva444p10le",
+        "width": 8,
+        "height": 8,
+        "avg_frame_rate": "30/1",
+        "nb_frames": "9",
+    }
+    assert len(look.clip_problems({"streams": [video | edit]}, 8, {"num": 30, "den": 1}, 9)) == 1
 
 
 def test_the_stored_clip_must_be_its_records(tmp_path, ffmpeg):

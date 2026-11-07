@@ -24,7 +24,12 @@ verified (src/hatchet-client-video.ts).
 A verdict holds ids, digests and gate names, never a text or a path. The last one for a job root is
 campaign-verdict.json beside job.json, outside every stage directory. render_stage.job_findings reads its rows while it
 still names the current job.json and cut, so a failed check reaches a fix the way a failed machine gate does. A check
-whose fix is a reviewed record, not an edit to the job, gives a stop row the loop controller does not route.
+whose fix is a reviewed record, not an edit to the job, gives a stop row the loop controller does not route. So does a
+failed confidentiality check, because the signed record never covers disclosure-hold, client or health content and a
+fix author must not rewrite past it, and any check the caller marks stopped.
+
+The verdict reads admit again on the current records. A voice's consent withdrawn or a client consent recorded after the
+cut refuses here, because no stage runs between the cut and this read.
 public_upload_allowed true on the manifest is what a publish step reads. Nothing here publishes."""
 
 from . import accept, admit, keys, look, rerun
@@ -48,17 +53,27 @@ PASSED = "passed"
 GATE = "campaign"
 # The required checks of the signed rule, each with the stage a fix enters. Cade's src/campaign-checks.ts holds the same
 # names. The brand's public gate opens by a reviewed record, and the manifest is bound by what prints it, so no edit to
-# the job repairs either. Each has no stage and its own code, and each gives a stop row.
+# the job repairs either. Confidentiality takes no fix: the signed record excludes that content outright, and a rewrite
+# that got past the check would still be that content. Each has no stage and its own code, and each gives a stop row.
 CHECKS = {
     "canon_b8_identity": "avatar",
     "claims_allowlist": "script",
     "brand_public_gate": None,
-    "confidentiality": "script",
+    "confidentiality": None,
     "ai_disclosure": "compose",
     "synthetic_metadata": "compose",
     "manifest": None,
 }
-STOP_CHECKS = {"brand_public_gate": "campaign_brand_gate_closed", "manifest": "campaign_manifest_refused"}
+STOP_CHECKS = {
+    "brand_public_gate": "campaign_brand_gate_closed",
+    "confidentiality": "campaign_confidentiality_refused",
+    "manifest": "campaign_manifest_refused",
+}
+# A check state saying no machine may iterate past this failure, such as a failed adult read of canon_b8_identity. The
+# caller knows which of a check's refusals stop, and one state per check is all the evidence carries.
+STOPPED = "stopped"
+CHECK_STOPPED = "campaign_check_stopped"
+ADMIT_REFUSED = "campaign_admit_refused"
 # A gate that must have read something. flash, avatar_box and slide_match read not_applicable with nothing to read.
 MUST_PASS = ("profile", "loudness", "captions")
 LIFTED = ("listening", "lip_sync")
@@ -110,6 +125,8 @@ def evidence_refusals(evidence, binding, job_sha256, video_sha256):
         state = evidence["checks"].get(name)
         if state is None:
             out.append(refused("campaign_check_missing", gate=name))
+        elif state == STOPPED:
+            out.append(refused(STOP_CHECKS.get(name, CHECK_STOPPED), gate=name))
         elif state != PASSED:
             out.append(refused(STOP_CHECKS.get(name, "campaign_check_failed"), gate=name))
     return out
@@ -135,6 +152,15 @@ def consent_refusals(consent_record, records):
     if row.get("revokedAt") is not None:
         return [refused("campaign_consent_revoked", "the signed grant is revoked")]
     return []
+
+
+def admit_refusals(job, records):
+    """What admit refuses on the records as they stand now, by code only. look_refusals reports the look's own gates."""
+    return [
+        refused(ADMIT_REFUSED, gate=row["code"])
+        for row in admit.admit(job, records)["refusals"]
+        if not row["code"].startswith("look_")
+    ]
 
 
 def look_refusals(store, job, records, evidence):
@@ -285,6 +311,7 @@ def verdict(store, records, evidence=None):
         refusals += cut_refusals(job, report, delivery)
         if rerun.fix_of(ledger, render["video_sha256"]) is not None:
             refusals.append(refused("campaign_cut_sent_back", "a round or FIX sent this cut back"))
+    refusals += admit_refusals(job, records)
     if evidence is None:
         refusals.append(refused("campaign_evidence_missing", "no signed record or check results were given"))
     else:
