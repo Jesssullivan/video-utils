@@ -390,13 +390,20 @@ def within(value, bounds) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and bounds[0] <= value <= bounds[1]
 
 
+def agent_acquired(bed: dict) -> bool:
+    """MusicBed.Acquirer.Agent rendered: {agent: the campaign id}. bed_select refuses it off that campaign's root."""
+    acquired = bed["acquisition"]["acquiredBy"]
+    return isinstance(acquired, dict) and set(acquired) == {"agent"} and bool(acquired["agent"])
+
+
 def check_music_beds(data: dict, errors: list) -> None:
     files = fixtures()
     loops = {sha(files[name]): (name, len(files[name])) for name in BED_LOOPS}
     for bed in data["music_beds"]:
         where = f"examples: music bed {bed['id']}"
-        if bed["acquisition"]["acquiredBy"] != "Operator":
-            errors.append(f"{where}: bed_acquisition_agent ({bed['acquisition']['acquiredBy']!r})")
+        acquired = bed["acquisition"]["acquiredBy"]
+        if acquired != "Operator" and not agent_acquired(bed):
+            errors.append(f"{where}: bed_acquisition_agent ({acquired!r})")
         if not bed["acquisition"]["rulingRef"]:
             errors.append(f"{where}: acquisition names no ruling")
         layers = bed["layers"]
@@ -604,6 +611,8 @@ def check_narrated_videos(data: dict, errors: list) -> None:
             bed = beds.get(music["bed"])
             if bed is None:
                 errors.append(f"{where}: bed_record_missing ({music['bed']})")
+            elif nv["edition"] in CLIENT_EDITIONS and agent_acquired(bed):
+                errors.append(f"{where}: bed_acquisition_agent (a client edition keeps the operator's acquisition)")
             for key in ("bedBelowVoiceLu", "duckDb"):
                 if not within(music[key], NV_BOUNDS[f"music.{key}"]) or (key == "duckDb" and music[key] == 0):
                     errors.append(f"{where}: music {key} {music[key]!r} is out of bounds")
@@ -866,6 +875,12 @@ def narrated_video_mutations() -> list:
     def narrated(d):
         return nv(d, "nv-fixture-client-narrated")
 
+    def client_agent_bed(d, m):
+        clear_bed(d)
+        bed(d)["acquisition"].update(acquiredBy={"agent": "probe-campaign"})
+        client(d)["delivery"]["voiceOnlyListen"] = "probe-listen-receipt"
+        client(d).update(music=copy.deepcopy(card(d)["music"]))
+
     def client_narrated_bed(d, m):
         narrated(d).update(music=copy.deepcopy(card(d)["music"]))
 
@@ -887,6 +902,8 @@ def narrated_video_mutations() -> list:
 
     return [
         ("bed acquired by an agent", lambda d, m: bed(d)["acquisition"].update(acquiredBy="Agent")),
+        ("bed by an agent with no campaign", lambda d, m: bed(d)["acquisition"].update(acquiredBy={"agent": ""})),
+        ("client edition with an agent's bed", client_agent_bed),
         ("bed of one loop as-is", lambda d, m: bed(d).update(layers=bed(d)["layers"][:1])),
         ("bed layers one loop twice", lambda d, m: bed(d)["layers"][1].update(sha256=layer(d)["sha256"])),
         ("bed loop digest changed", lambda d, m: layer(d).update(sha256="0" * 64)),

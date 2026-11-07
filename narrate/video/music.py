@@ -12,14 +12,16 @@ The licence PDF and Content ID gates are not music's: its key holds no licence f
 go stale when the operator records one. admit lists them under pending_operator and deliver_check, whose key holds
 them, decides them.
 
-The record's acquisition is checked again here: only the operator acquires a bed. No loop is fetched, searched for
-or bought, and no loop name, vendor id or path enters an output: layers are named by digest.
+The record's acquisition is checked again here: the operator's, or on a job root bound to its campaign the agent's
+(bed_select.acquisition_problems). This stage fetches, searches for and buys no loop, and no loop name, vendor id or
+path enters an output: layers are named by digest.
 """
 
 import array
 import math
 
 from .. import audio
+from . import bed_select
 from .common import RATE_HZ, StageRefused, loudness, to_mono, work_dir, write_json
 
 MAPPING = "music_bed_v1"
@@ -58,8 +60,9 @@ def arrange(layers, total):
 
 def run_music(rc, row, partial):
     bed = rc.records["music_beds"][rc.job["music"]["bed"]]
-    if bed["acquisition"]["acquiredBy"] != "Operator":
-        raise StageRefused("bed_acquisition_agent", "only the operator acquires a bed (MusicBed.acquiredBy)")
+    problems = bed_select.acquisition_problems(bed, rc.job["edition"], bed_select.bound_campaign(rc.store))
+    if problems:
+        raise StageRefused(*problems[0])
     rows, pcms = [], []
     with work_dir(rc.store) as work:
         for i, layer in enumerate(bed["layers"]):

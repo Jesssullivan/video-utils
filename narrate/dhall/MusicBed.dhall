@@ -2,8 +2,10 @@
 -- Real records, loops, licence PDFs and bed audio live in the private store, found by sha256. This
 -- repository holds the type and a fixture bed of generated sine loops (narrate/dhall/check.py).
 --
--- acquiredBy has one constructor, Operator: agents never purchase, search for or download a loop, so a
--- record that says an agent acquired its bed cannot type-check (NV-3, TIN-7476 comment 9db389dc).
+-- acquiredBy is Operator (NV-3, TIN-7476 comment 9db389dc), or Agent with the campaign whose agent spent the
+-- credits (TIN-7125 comment e552e569). The payload is keyed ({ agent = ... }) so the JSON keeps the tag, and
+-- an agent's record cannot leave its campaign out. narrate/video/bed_select.py refuses one on a client
+-- edition or on a job root that campaign does not hold, so NV-3 stands for every other job.
 -- tempoFactor is from 0.5 to 2.0. A loop is never used alone as-is; the bed is an arrangement.
 -- ContentId payloads name the check's receipt, keyed ({ clear = ... }) so the JSON keeps the tag.
 -- Licence.termsRef names the vendor terms the operator read; the record is private.
@@ -35,7 +37,7 @@ let Licence =
       , contentIdCheck : ContentId
       }
 
-let Acquirer = < Operator >
+let Acquirer = < Operator | Agent : { agent : Text } >
 
 let Acquisition =
       { acquiredBy : Acquirer

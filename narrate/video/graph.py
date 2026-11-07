@@ -38,7 +38,7 @@ from datetime import UTC, datetime
 
 from . import accept as acceptance
 from . import admit as admit_stage
-from . import keys, vrm
+from . import bed_select, keys, vrm
 from .job import JobError
 
 Stage = namedtuple("Stage", "id fan_out depends_on optional mapping intent")
@@ -475,10 +475,13 @@ def plan(job, records, store, ctx):
     ctx: {"kitpip": kitpip.resolve() result or None, "pin": the kitpip pin or None, "vrm": vrm.resolve() result
     or None, "vrm_pin": the vrm pin or None, "ffmpeg": FFmpeg identity or None, "sources": set of SHA-256 digests
     in the private store, or None when no store is configured}. The avatar stages use the pin and resolution of
-    the job's avatar.external.
+    the job's avatar.external. With no store yet, ctx["campaign"] names the campaign the caller is about to bind.
     """
     avatar_state = (avatar_resolution(job, ctx) or {}).get("state")
-    gate = admit_stage.admit(job, records, avatar_state if job["avatar"] is not None else None)
+    campaign = None
+    if job["music"] is not None:
+        campaign = ctx.get("campaign") if store is None else bed_select.bound_campaign(store)
+    gate = admit_stage.admit(job, records, avatar_state if job["avatar"] is not None else None, campaign)
     nodes = nodes_for(job)
     by_stage = {}
     for node in nodes:

@@ -2,8 +2,9 @@
 
 admit resolves what a job names and refuses before any stage runs: an unknown narrate job, a script digest that is
 not the narrate job's pinned input, a voice without an active consent, a missing persona label, a bed record that is
-missing or not acquired by the operator, tighten edits on synthetic narration with tighten off, a knob outside its
-bound (a bed layer's tempo factor included), slide pages that break the slide rules (slides_invalid) or an avatarOff
+missing or that this job may not use (bed_select.acquisition_problems), tighten edits on synthetic narration with
+tighten off, a knob outside its bound (a bed layer's tempo factor included), slide pages that break the slide rules
+(slides_invalid) or an avatarOff
 list naming a page the job does not define (page_unknown), an avatar external other than kitpip or vrm
 (avatar_external_unknown), an avatar binary whose digest differs from its pin (kitpip_pin_mismatch,
 vrm_pin_mismatch), a VRM overlay without its model record, likeness consent (SP-R13), appearance approval (TIN-7130)
@@ -20,7 +21,7 @@ persona) and the operator gates still open (pending_operator).
 import importlib.util
 
 from ..config import ROOT
-from . import vrm
+from . import bed_select, vrm
 
 CHECK = ROOT / "narrate" / "dhall" / "check.py"
 AVATAR_EXTERNALS = ("kitpip", "vrm")
@@ -92,15 +93,15 @@ def bounds(job, refusals):
         refusals.append(refusal("knob_out_of_bounds", "delivery.truePeakDbtp is above -1.5"))
 
 
-def bed_record(job, records, refusals):
+def bed_record(job, records, refusals, campaign=None):
     if job["music"] is None:
         return None
     bed = records["music_beds"].get(job["music"]["bed"])
     if bed is None:
         refusals.append(refusal("bed_record_missing", f"music bed {job['music']['bed']} has no record"))
         return None
-    if bed["acquisition"]["acquiredBy"] != "Operator":
-        refusals.append(refusal("bed_acquisition_agent", "only the operator acquires a bed (MusicBed.acquiredBy)"))
+    problems = bed_select.acquisition_problems(bed, job["edition"], campaign)
+    refusals.extend(refusal(code, detail) for code, detail in problems)
     layers = bed["layers"]
     if not 2 <= len(layers) <= 3 or len({layer["sha256"] for layer in layers}) != len(layers):
         refusals.append(refusal("bed_layers_invalid", "a bed arranges 2 or 3 distinct loops"))
@@ -177,10 +178,11 @@ def pending_operator(job, bed, visible=None):
     return items
 
 
-def admit(job, records, avatar_state=None):
+def admit(job, records, avatar_state=None, campaign=None):
     """{verdict, refusals, edition, labels, pending_operator}. avatar_state is the resolve() state of the job's
     avatar external (kitpip or vrm), or None when no avatar is on. Only a digest mismatch refuses here; a missing
-    binary blocks the avatar stages. A VRM avatar also refuses on its gates (vrm.gates)."""
+    binary blocks the avatar stages. A VRM avatar also refuses on its gates (vrm.gates). campaign is the campaign
+    holding the job root, which an agent-acquired bed needs."""
     check = port()
     refusals = []
     consent_ids, voice_ids, personas = segment_labels(job, records, refusals)
@@ -189,7 +191,7 @@ def admit(job, records, avatar_state=None):
     for persona in sorted(personas):
         if job["labels"]["persona"] != persona:
             refusals.append(refusal("persona_label_missing", "a voice's consent names a persona the labels lack"))
-    bed = bed_record(job, records, refusals)
+    bed = bed_record(job, records, refusals, campaign)
     deck = job["base"].get("deck")
     edits = deck is not None and deck["tightenEditsSha256"] is not None
     if edits and job["segments"] and not job["tighten"]["enabled"]:

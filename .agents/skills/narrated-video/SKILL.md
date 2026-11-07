@@ -28,7 +28,7 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 
 ## Limits
 
-- Never purchase, search for or download a loop or a kitpip build. The operator acquires every bed (`acquiredBy` is `Operator` only). No argument takes a URL.
+- Never purchase, search for or download a kitpip build, or a loop off a campaign job. The operator acquires every other bed, and the `music-bed` skill holds the campaign route. No argument takes a URL.
 - kitpip is a pinned external binary checked by digest before every spawn. It is never a flake input and never vendored. Public CI uses the stub in `narrate/tests/fixtures/narrated-video/`, which draws no character.
 - Never upload or publish. A client edition gates the bed until the licence PDF digest, a clear Content ID result and a voice-only listen are recorded.
 - `fresh` means outputs re-hash to their key. Source checks, a stub render, a real local render, lip sync, listening, Content ID and delivery are separate states, and only the operator closes `pending_operator`.
