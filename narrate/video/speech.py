@@ -138,13 +138,15 @@ def lexical_rows(report, segment_id):
 
 def lexical_gate(rc):
     """Every lexical Error of the job's segments as a blocking typed row. A refusal raises LexicalError."""
-    rows, tool = [], None
+    rows, tools = [], {}
     current = rc.store.current()["stages"]
     for segment in rc.job["segments"]:
         narrate_job = rc.records["jobs"][segment["narrateJob"]]
         kind = narrate_job["input"]
         release = lexical.Release(rc.env.lexical, narrate_job["lexical"])
-        tool = tool or lexical.CheckTool(release)
+        key = (release.dir, release.register)
+        if key not in tools:
+            tools[key] = lexical.CheckTool(release)
         node = current[f"script/{segment['id']}"]
         stored = json.loads((rc.store.dir / node["dir"] / "lexical.json").read_text(encoding="utf-8"))
         for row in stored["findings"]["findings"]:
@@ -154,7 +156,7 @@ def lexical_gate(rc):
             script = adapters.load(kind, script_copy(rc, segment, kind, work))
         rows += [
             typed.finding("lexical_error", segment=segment["id"], rule=row["rule"], line=row["line"])
-            for row in tool.run(spoken.lines(script))
+            for row in tools[key].run(spoken.lines(script))
         ]
     return rows
 

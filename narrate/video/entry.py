@@ -4,7 +4,8 @@ gates", Linear TIN-7788, ruling TIN-7125 0690fe88).
 Cade's task bodies hand this module a job id and nothing else, so a path never crosses Hatchet. The bundle a job comes
 from is BUNDLES/<job>/ and its intake knobs BUNDLES/<job>.entry.json, under --bundles or NARRATED_VIDEO_BUNDLES. A job
 with no knobs file has no bundle, as a client or card job has none, and claims and intake print entry none and write
-nothing. A client edition with a knobs file refuses, because intake writes an Internal job and would replace it.
+nothing. A root bound to a campaign comes from a bundle, so it refuses entry_missing instead. A client edition with a
+knobs file refuses, because intake writes an Internal job and would replace it.
 
     claims JOB    the private-terms guard, the spoken-number gate and each number against its claim's source
     intake JOB    the same gates and every asset, then the job, its records and init on the job's own root
@@ -28,7 +29,7 @@ from pathlib import Path
 
 from ..ir import sha256_file
 from ..lexical import LexicalError
-from . import bundle, graph, keys, render_stage, speech
+from . import bundle, graph, keys, render_stage, rerun, speech
 from . import findings as typed
 from .job import CLIENT_EDITIONS, ID, JobError, check_shape, load_records
 from .store import StoreError, tree_sha256, write_atomic
@@ -52,7 +53,9 @@ def bundle_of(store, bundles):
     if not bundles:
         return None
     path = Path(bundles) / f"{store.job_id}.entry.json"
-    if not path.is_file() or path.is_symlink():
+    if path.is_symlink() or (path.exists() and not path.is_file()):
+        refuse("entry_invalid", "the knobs file is not a regular file")
+    if not path.is_file():
         return None
     if store.exists() and store.read_job()["edition"] in CLIENT_EDITIONS:
         refuse("entry_client_job", "a client edition keeps its own job; intake would replace it with an Internal one")
@@ -104,6 +107,8 @@ def record(store, digest, phase, rows):
 
 
 def none(store):
+    if (rerun.read(store).get("campaign") or {}).get("id"):
+        refuse("entry_missing", "a job bound to a campaign comes from a bundle, and this root reads no knobs file")
     return {"ok": True, "job_id": store.job_id, "entry": "none"}
 
 

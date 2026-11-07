@@ -725,15 +725,18 @@ def compare_values(report, claims, read_source, require=False):
                 continue
             try:
                 measured, unit = read_source(source)
+                if unit is not None and unit != claim["value"]["unit"]:
+                    raise ValueError("unit_mismatch")
+                agrees = value_agrees(claim["value"]["number"], measured, source)
             except ValueError as exc:
                 refuse_value(row, mention, "claim_value_unread", str(exc))
-                continue
-            if unit is not None and unit != claim["value"]["unit"]:
-                refuse_value(row, mention, "claim_value_unread", "unit_mismatch")
-            elif not value_agrees(claim["value"]["number"], measured, source):
-                refuse_value(row, mention, "claim_value_mismatch", None)
+            except ArithmeticError:
+                refuse_value(row, mention, "claim_value_unread", "source_out_of_range")
             else:
-                mention["value"] = "compared"
+                if agrees:
+                    mention["value"] = "compared"
+                else:
+                    refuse_value(row, mention, "claim_value_mismatch", None)
     return report
 
 

@@ -18,7 +18,9 @@ path; every pinned file's sha256 must match or the pass refuses. Nothing is fetc
   values: "seventeen to nineteen" keeps "17–19", "eighteen to nineteen" does not.
 - CheckTool: `xoxd-lexical check` as a DAG's gate reads it (narrate/video/entry.py). Findings, Vale and the
   `narrate-lexical-check` recipe stay advisory for a person's run (R-N12). This one refuses when the tool is absent or
-  reads another release, because a gate that cannot run has passed nothing.
+  reads another release, because a gate that cannot run has passed nothing. It hands the CLI a Markdown file. The CLI
+  stages stdin as plain text, where Vale 3.14.2 does not run XL-BREV-001, the Error rule on mean sentence length
+  (TIN-7788).
 """
 
 import contextlib
@@ -237,7 +239,8 @@ class CheckTool:
     """`xoxd-lexical check` for one verified release: the bin/xoxd-lexical beside its directory, else the one on PATH,
     under a XOXD_LEXICAL_HOME whose dist/ is that directory. Refuses lexical_tool_absent with no CLI, no check
     subcommand or another release. run gives each Error finding of a text as {rule, line}, and refuses
-    lexical_tool_absent when Vale is missing and lexical_tool_fault on any other fault or on output it cannot read."""
+    lexical_tool_absent when Vale is missing and lexical_tool_fault on any other fault, on output it cannot read and on
+    an Error exit that names no Error finding."""
 
     def __init__(self, release, timeout=120):
         from .spoken import release_string  # spoken reads this package's adapters
@@ -263,18 +266,25 @@ class CheckTool:
             (Path(tree) / "dist").symlink_to(self.release.dir.resolve())
             yield os.environ | {"XOXD_LEXICAL_HOME": tree}
 
-    def call(self, args, env, text=None):
+    def call(self, args, env):
         try:
             return subprocess.run(
-                [self.tool, *args], input=text, env=env, capture_output=True, text=True, timeout=self.timeout
+                [self.tool, *args],
+                stdin=subprocess.DEVNULL,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout,
             )
         except (OSError, subprocess.TimeoutExpired) as error:
             raise LexicalError("lexical_tool_fault", f"xoxd-lexical failed: {type(error).__name__}") from None
 
     def run(self, text):
-        args = ["check", "--register", self.release.register, "--format", "json", "--min-severity", "error", "-"]
         with self.home() as env:
-            done = self.call(args, env, text)
+            page = Path(env["XOXD_LEXICAL_HOME"]) / "text.md"
+            page.write_text(text, encoding="utf-8")
+            args = ["check", "--register", self.release.register, "--format", "json", "--min-severity", "error"]
+            done = self.call([*args, str(page)], env)
         if done.returncode == 2 and "vale not found" in done.stderr:
             raise LexicalError("lexical_tool_absent", "Vale is not on PATH")
         if done.returncode not in (0, 1):
@@ -283,9 +293,12 @@ class CheckTool:
             return []
         try:
             found = json.loads(done.stdout)["findings"]
-            return [{"rule": f["id"], "line": f.get("line")} for f in found if f["severity"] == "error"]
+            rows = [{"rule": f["id"], "line": f.get("line")} for f in found if f["severity"] == "error"]
         except (ValueError, KeyError, TypeError):
             raise LexicalError("lexical_tool_fault", "xoxd-lexical check printed no findings report") from None
+        if not rows:
+            raise LexicalError("lexical_tool_fault", "xoxd-lexical check exited 1 and named no Error finding")
+        return rows
 
 
 def protected_spans(text):

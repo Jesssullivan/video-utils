@@ -128,9 +128,11 @@ def root(ws, tmp_path, ffmpeg):  # noqa: F811
     return Root(ws, tmp_path)
 
 
-def stub_cli(base, *, version=None, findings_when=None, check_exit=None, stderr="", no_check=False):
-    """An executable xoxd-lexical stub in base/bin, on PATH for the caller. It reads stdin and answers as the real CLI's
-    documented exit codes do: 0, 1 with a JSON findings report, 2 for a fault."""
+def stub_cli(base, *, version=None, findings_when=None, check_exit=None, stderr="", no_check=False, exit_one=None):
+    """An executable xoxd-lexical stub in base/bin, on PATH for the caller. It answers as the real CLI's documented exit
+    codes do: 0, 1 with a JSON findings report, 2 for a fault. It reads a Markdown file and nothing else, as the real
+    Vale reads the narration register's Error rules: stdin reaches it as plain text, which holds no finding. exit_one is
+    a report to print with exit 1 whatever the text."""
     bin_dir = base / "bin"
     bin_dir.mkdir(exist_ok=True)
     tool = bin_dir / "xoxd-lexical"
@@ -144,7 +146,10 @@ if args[:1] == ["version"]:
     sys.exit(0)
 if args[:2] == ["check", "--help"]:
     sys.exit({1 if no_check else 0})
-text = sys.stdin.read()
+text = open(args[-1], encoding="utf-8").read() if args[-1].endswith(".md") else ""
+if {exit_one!r} is not None:
+    print({exit_one!r})
+    sys.exit(1)
 if {check_exit!r} is not None:
     sys.stderr.write({stderr!r})
     sys.exit({check_exit!r})
@@ -327,6 +332,8 @@ def test_a_persons_run_stays_advisory_on_the_same_error(root, capsys, monkeypatc
         ({"check_exit": 2, "stderr": "an unknown register"}, "lexical_tool_fault"),
         ({"check_exit": 7}, "lexical_tool_fault"),
         ({"check_exit": 1}, "lexical_tool_fault"),
+        ({"exit_one": '{"findings": []}'}, "lexical_tool_fault"),
+        ({"exit_one": '{"findings": [{"id": "XL-FIX-001", "severity": "warn", "line": 1}]}'}, "lexical_tool_fault"),
     ],
 )
 def test_a_tool_that_cannot_run_refuses_and_records_no_pass(root, capsys, tmp_path, monkeypatch, stub, code):
@@ -340,6 +347,33 @@ def test_a_tool_that_cannot_run_refuses_and_records_no_pass(root, capsys, tmp_pa
     exit_code, shown, refused = root.gate("lexical", capsys)
     assert (exit_code, refused) == (1, code) and shown is None
     assert not (root.store.dir / render_stage.LEXICAL_GATE_FILE).exists()
+
+
+def test_each_register_of_a_job_gets_its_own_check(root, capsys, tmp_path, monkeypatch):
+    """A job's segments may pin different registers. One tool for them all would read each under the first's."""
+    path_with(monkeypatch, stub_cli(tmp_path, version=spoken.release_string(root.w["lexical"])))
+    assert root.gate("intake", capsys)[0] == 0
+    root.stages(capsys, "script")
+    assert len(root.store.read_job()["segments"]) >= 2
+    registers, seen, release = iter(["slides", "narration"]), [], lexical.Release
+
+    class TwoRegisters(release):
+        def __init__(self, directory, pin):
+            super().__init__(directory, pin)
+            self.register = next(registers, "narration")
+
+    class Tool:
+        def __init__(self, held):
+            self.register = held.register
+
+        def run(self, text):
+            seen.append(self.register)
+            return [{"rule": "XL-FIX-001", "line": 1}] if self.register == "narration" else []
+
+    monkeypatch.setattr(lexical, "Release", TwoRegisters)
+    monkeypatch.setattr(lexical, "CheckTool", Tool)
+    assert root.gate("lexical", capsys)[2] == "lexical_error"
+    assert seen[:2] == ["slides", "narration"]
 
 
 def recipe(tmp_path, gate):
@@ -360,6 +394,15 @@ def test_the_recipe_refuses_an_absent_tool_in_a_dag_and_stays_advisory_for_a_per
     refused = recipe(tmp_path, gate=True)
     assert refused.returncode != 0
     assert '{"ok": false, "refused": "lexical_tool_absent"}' in refused.stderr
+
+
+@pytest.mark.skipif(shutil.which("just") is None, reason="just is not on PATH")
+def test_the_recipe_hands_a_gate_a_markdown_file_and_keeps_stdin_for_a_person(tmp_path, monkeypatch):
+    fixture_dir = ROOT / "narrate" / "tests" / "fixtures" / "lexical"
+    release = spoken.release_string(fixture_dir)
+    path_with(monkeypatch, stub_cli(tmp_path, version=release, findings_when="synthetic"))
+    assert recipe(tmp_path, gate=False).returncode == 0
+    assert recipe(tmp_path, gate=True).returncode == 1
 
 
 # The value comparison ---------------------------------------------------------------------------------------------
@@ -454,6 +497,28 @@ def test_a_source_it_cannot_read_refuses(ws, edit, reason):  # noqa: F811
     assert rows == [reason]
 
 
+@pytest.mark.parametrize(
+    ("value", "source"),
+    [
+        ('{"n": 1e9999999}', {}),
+        ('{"n": 1e999999}', {"scale": 1e300}),
+    ],
+)
+def test_a_number_outside_the_decimal_range_refuses_and_stops_no_gate(ws, value, source):  # noqa: F811
+    b = ws["bundle"]
+    source_all(b)
+    (b / "huge.json").write_text(value)
+    digest = sha(value.encode())
+    set_claims(b, lambda rows: rows[0].update(source={"path": "huge.json", "sha256": digest, "pointer": "/n"} | source))
+    result = bundle.claims_only(b, require_values=True)
+    assert [row["detail"]["reason"] for row in result["findings"]["findings"]] == ["source_out_of_range"]
+
+
+def test_a_pointer_with_a_digit_only_unicode_reads_digits_as_missing(ws):  # noqa: F811
+    with pytest.raises(ValueError, match="pointer_missing"):
+        bundle.pointed([1, 2, 3], "/\u00b2")
+
+
 def test_a_source_in_a_symlink_refuses(ws, tmp_path):  # noqa: F811
     b = ws["bundle"]
     source_all(b)
@@ -473,6 +538,9 @@ def test_a_source_in_a_symlink_refuses(ws, tmp_path):  # noqa: F811
         {"path": "p.json", "sha256": "0" * 64, "pointer": "a"},
         {"path": "p.json", "sha256": "0" * 64, "pointer": "/a", "places": 1.5},
         {"path": "p.json", "sha256": "0" * 64, "pointer": "/a", "places": -1},
+        {"path": "p.json", "sha256": "0" * 64, "pointer": "/a", "places": False},
+        {"path": "p.json", "sha256": "0" * 64, "pointer": "/a", "places": 29},
+        {"path": "p.json", "sha256": "0" * 64, "pointer": "/a", "places": 1e30},
         {"path": "p.json", "sha256": "0" * 64, "pointer": "/a", "scale": 0},
         {"path": "p.json", "sha256": "0" * 64, "pointer": "/a", "unit_pointer": "u"},
     ],
@@ -515,6 +583,73 @@ def test_a_job_with_no_knobs_file_has_no_bundle(ws, tmp_path, capsys):  # noqa: 
     assert not r.store.dir.exists()
 
 
+def test_a_bound_root_with_no_knobs_or_no_bundles_setting_refuses(ws, tmp_path, capsys, monkeypatch):  # noqa: F811
+    r = Root(ws, tmp_path, knobs=False)
+    r.bind(capsys)
+    assert r.gate("claims", capsys)[2] == "entry_missing"
+    assert r.gate("intake", capsys)[2] == "entry_missing"
+    r.knobs()
+    r.common = r.common[:-2]  # --bundles
+    monkeypatch.delenv(entry.BUNDLES_ENV, raising=False)
+    assert r.gate("claims", capsys)[2] == "entry_missing"
+
+
+def test_a_knobs_file_that_is_not_a_file_refuses_rather_than_reads_as_none(ws, tmp_path, capsys):  # noqa: F811
+    r = Root(ws, tmp_path, knobs=False)
+    path = r.bundles / f"{JOB}.entry.json"
+    target = tmp_path / "knobs-elsewhere.json"
+    r.knobs()
+    shutil.move(path, target)
+    path.symlink_to(target)
+    assert r.gate("claims", capsys)[2] == "entry_invalid"
+    path.unlink()
+    path.mkdir()
+    assert r.gate("intake", capsys)[2] == "entry_invalid"
+
+
+def test_a_slide_fix_through_the_bundle_keeps_every_voice_key(root, capsys, tmp_path):
+    """A planted bad slide after the voice ran: the fix re-enters at intake, and no voice key moves."""
+    assert root.gate("claims", capsys)[0] == 0
+    assert root.gate("intake", capsys)[0] == 0
+    root.stages(capsys, "script", "voice")
+    held = {k: v["key"] for k, v in root.store.current()["stages"].items() if k.split("/")[0] in ("script", "voice")}
+    assert any(k.startswith("voice/") for k in held)
+
+    b = root.w["bundle"]
+    fixed = letterbox(tmp_path)
+    (b / "assets" / "slide-a.png").write_bytes(fixed)
+    m = manifest(b)
+    m["assets"][0] |= {"sha256": sha(fixed), "size": {"w": 320, "h": 100}}
+    set_manifest(b, m)
+    assert root.gate("claims", capsys)[0] == 0
+    assert root.gate("intake", capsys)[0] == 0
+    plan = root.stages(capsys, "script", "voice")
+    assert plan["ran"] == []
+    now = {k: v["key"] for k, v in root.store.current()["stages"].items() if k in held}
+    assert now == held
+
+
+def test_a_private_term_leaves_no_text_in_the_report_and_stays_a_stop(ws, tmp_path, capsys):  # noqa: F811
+    r = Root(ws, tmp_path)
+    term = "Quillfeather Labs"
+    deny = tmp_path / "private" / "denylist.json"
+    deny.parent.mkdir()
+    entries = [{"id": "name-a", "class": "name", "literal": term}]
+    salt = "3a9f0c71e6b28d45" * 2
+    deny.write_text(json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": salt, "entries": entries}))
+    m = manifest(ws["bundle"])
+    m["privacy"] = {"ip_private": True, "never_name": True, "denylist_sha256": sha(deny.read_bytes())}
+    set_manifest(ws["bundle"], m)
+    set_script(ws["bundle"], "It did so across", f"It did so for {term} across")
+    r.common += ["--denylist", str(deny)]
+    assert r.gate("claims", capsys)[:1] == (1,)
+    assert r.gate("claims", capsys)[2] == "private_term"
+    held = r.store.entry_file.read_text()
+    assert term not in held and "name-a" not in held
+    report = r.findings(capsys)
+    assert report["codes"] == {"private_term": 1} and term not in json.dumps(report)
+
+
 def test_a_client_edition_with_a_knobs_file_refuses(root, capsys):
     assert root.gate("intake", capsys)[0] == 0
     job = root.store.read_job()
@@ -540,6 +675,30 @@ def test_a_binding_before_intake_is_opt_in_and_keeps_a_client_refused(ws, tmp_pa
     with pytest.raises(JobError) as caught:
         rerun.machine_round(other, render_stage.job_findings(other))
     assert caught.value.code == "round_needs_decision"
+
+
+def test_a_binding_before_intake_keeps_a_client_edition_refused(root, capsys):
+    assert root.gate("intake", capsys)[0] == 0
+    job = root.store.read_job()
+    root.store.job_file.write_text(json.dumps(job | {"edition": "ClientNarrated"}))
+    with pytest.raises(JobError) as caught:
+        rerun.bind_campaign(root.store, CAMPAIGN, before_intake=True)
+    assert caught.value.code == "campaign_client_job"
+    assert rerun.read(root.store).get("campaign") is None
+
+
+def test_an_admit_refusal_at_intake_records_a_finding_and_writes_no_job(root, capsys, monkeypatch):
+    plan = entry.graph.plan
+
+    def refused(job, records, s, ctx):
+        planned = plan(job, records, s, ctx)
+        rows = [{"code": "consent_missing", "detail": "a synthetic refusal"}]
+        return planned | {"admit": planned["admit"] | {"verdict": "Refused", "refusals": rows}}
+
+    monkeypatch.setattr(entry.graph, "plan", refused)
+    assert root.gate("intake", capsys)[2] == "consent_missing"
+    assert not root.store.exists()
+    assert root.findings(capsys)["codes"] == {"consent_missing": 1}
 
 
 def write_refused(s):

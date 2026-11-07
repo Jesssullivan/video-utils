@@ -41,8 +41,29 @@ That belongs to the fix author, plan item 2.4. The row does not name these tasks
 row change, which moves with item 1.5's pin.
 
 The real xoxd-lexical 0.8.0 CLI with Vale 3.14.2 reads as `CheckTool` expects on the `slides` register: clean text gives no
-row, a planted attribution gives `XL-ATTR-002`, and no Vale refuses `lexical_tool_absent`. On the `narration` register I
-could not produce an Error. `XL-ATTR-002` is off there, the three `Metric` rules gave no Error on a text with a sentence
-above 60 words, and the other Error rules have no Vale file. Why the `Metric` rules stay quiet is unknown. So this gate may
-refuse nothing on a narration script until the lexicon gives that register an Error it can read. The refusal path itself
-is proved here on a stub.
+row, a planted attribution gives `XL-ATTR-002`, and no Vale refuses `lexical_tool_absent`.
+
+## Review
+
+The first draft piped the text to `check -`, and the note above it read that the `narration` register gave no Error. That
+reading was wrong. The CLI stages stdin as `stdin.txt`, and Vale 3.14.2 does not run the metric rule `XL-BREV-001` on it.
+Measured on the real 0.8.0 CLI on `narration`, synthetic text:
+
+| Text | Stdin | A `.md` file |
+| --- | --- | --- |
+| 60 words of one capitalized word in a sentence | no finding | `XL-BREV-001` |
+| 60 words of one lowercase word in a sentence | `XL-BREV-002` | `XL-BREV-001`, `XL-BREV-002` |
+| A paragraph of 180 words in short sentences | `XL-BREV-003` | `XL-BREV-003` |
+| 2 paragraphs of short clean sentences | not run | no finding |
+
+So the gate now hands the CLI a Markdown file, and the same held on `blog` and `slides` through `CheckTool`. A person's
+advisory recipe keeps stdin, so its exit codes stay as they were (R-N12). Whether the CLI should stage stdin as Markdown is
+the lexicon's question.
+
+The same pass made five other refusals firm: an Error exit that names no Error finding is `lexical_tool_fault`, each
+release and register gets its own tool, a source number outside the Decimal range refuses `claim_value_unread`, `places`
+stops at 28, and a symlinked knobs file or a campaign root with no bundle refuses.
+
+Open for plan item 2.4: a fix author that can write in the bundle can change a source JSON and its sha256 together, and
+that passes the comparison. Nothing ties a `source` to the producer's receipt. The author's write scope must leave
+`claims.json` and each source file to the producer.

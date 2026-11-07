@@ -106,7 +106,8 @@ narrate-spoken input *args:
 # PATH, and refuses a CLI whose `version` is not that release's. With no CLI, no check subcommand, no Vale or another
 # release, it says so and exits 0: lexical checks are advisory (R-N12). NARRATE_LEXICAL_GATE=refuse is a DAG's reading:
 # each of those, and a release no one pinned, exits 3 with a refusal line, because a gate that cannot run has passed
-# nothing. Otherwise the exit is the CLI's: 0, 1 for an Error-severity finding, 2 for a tool fault. ARGS go to `narrate
+# nothing. It also hands the CLI a Markdown file, because the CLI stages stdin as plain text, where Vale does not run the
+# Error rule on mean sentence length. Otherwise the exit is the CLI's: 0, 1 for an Error-severity finding, 2 for a tool fault. ARGS go to `narrate
 # spoken`, such as --adapter Dialog.
 # Check only the voiced text with `xoxd-lexical check --register narration`.
 narrate-lexical-check input *args:
@@ -152,7 +153,12 @@ narrate-lexical-check input *args:
     say "$got, register narration"
     python3 -m narrate spoken {{quote(input)}} {{args}} > "$work/spoken.txt"
     status=0
-    "$tool" check --register narration - < "$work/spoken.txt" 2> "$work/err" || status=$?
+    if [ "${NARRATE_LEXICAL_GATE:-}" = refuse ]; then
+        mv "$work/spoken.txt" "$work/spoken.md"
+        "$tool" check --register narration "$work/spoken.md" 2> "$work/err" || status=$?
+    else
+        "$tool" check --register narration - < "$work/spoken.txt" 2> "$work/err" || status=$?
+    fi
     cat "$work/err" >&2
     if [ "$status" -eq 2 ] && grep -q "vale not found" "$work/err"; then
         not_checked "Vale is not on PATH"

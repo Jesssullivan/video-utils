@@ -1247,12 +1247,16 @@ is `BUNDLES/<job>/` and its knobs `BUNDLES/<job>.entry.json`, under `--bundles` 
 | `lexical` | each fresh script node's `lexical.json` and a live `xoxd-lexical check` on the voiced text | every Error finding as a blocking `lexical_error`, in `JOB/lexical-gate.json` |
 
 A gate stops on its first code with exit 1 and prints JSON on a pass. A job with no knobs file has no bundle, so `claims`
-and `intake` print `entry: none` and write nothing. The caller decides whether that passes: Cade refuses it on a campaign
-job. A client edition with a knobs file refuses `entry_client_job`, because intake writes an Internal job.
+and `intake` print `entry: none` and write nothing. A root bound to a campaign comes from a bundle, so it refuses
+`entry_missing` there, and Cade refuses `entry: none` on a job its campaign record names. A knobs file that is a symlink
+refuses `entry_invalid`. A client edition with a knobs file refuses `entry_client_job`, because intake writes an Internal
+job.
 
 `lexical` needs its tool and the tool of the release the job pins. No CLI, no `check` subcommand, another release or no
 Vale refuses `lexical_tool_absent`, and any other fault `lexical_tool_fault`, because a gate that cannot run has passed
-nothing. A stale script node refuses `lexical_unread`. The `script` stage itself stays advisory, and so do `plan`, `run`
+nothing. An Error exit that names no Error finding is a fault too. The gate hands the CLI a Markdown file. The CLI stages
+stdin as plain text, where Vale 3.14.2 does not run `XL-BREV-001`, the Error rule on mean sentence length. A stale script
+node refuses `lexical_unread`. The `script` stage itself stays advisory, and so do `plan`, `run`
 and `just narrate-lexical-check` for a person (R-N12). `NARRATE_LEXICAL_GATE=refuse` gives that recipe the same reading.
 
 While `JOB/entry.json` holds a refusal, `findings` reads only those rows, `video_sha256` is null and `job_sha256` holds

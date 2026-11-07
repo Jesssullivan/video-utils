@@ -67,6 +67,7 @@ NARRATE_JOB_FIELDS = {
     "id", "input", "inputSha256", "scope", "confidential", "allowHosted", "lexical", "pronunciation", "voice",
     "speakers", "engine", "seed", "chunkMaxCodepoints", "gates", "post", "audio", "captions", "narrationEdl",
 }  # fmt: skip
+MAX_PLACES = 28  # a claim source's places: the precision a Decimal compares at
 EDITION = "Internal"  # every demo bundle job (TIN-7735); a client edition is a separate, later decision
 SUFFIX = {"png": ".png", "mp4": ".mp4", "gif": ".gif", "md": ".md"}
 
@@ -433,8 +434,9 @@ def read_claim_source(source, where):
     for name in ("pointer", "unit_pointer"):
         if name in source and not (isinstance(source[name], str) and source[name].startswith("/")):
             raise BundleError("claim_invalid", f"{where}: source.{name} is not a JSON pointer")
-    if "places" in source and not (natural(source["places"]) or source["places"] == 0):
-        raise BundleError("claim_invalid", f"{where}: source.places is not a whole number")
+    places = source.get("places", Decimal(0))
+    if not (isinstance(places, Decimal) and places == places.to_integral_value() and 0 <= places <= MAX_PLACES):
+        raise BundleError("claim_invalid", f"{where}: source.places is not a whole number up to {MAX_PLACES}")
     if "scale" in source and not (isinstance(source["scale"], Decimal) and source["scale"] > 0):
         raise BundleError("claim_invalid", f"{where}: source.scale is not a positive number")
 
@@ -445,7 +447,7 @@ def pointed(value, pointer):
         part = part.replace("~1", "/").replace("~0", "~")
         if isinstance(value, dict) and part in value:
             value = value[part]
-        elif isinstance(value, list) and part.isdigit() and int(part) < len(value):
+        elif isinstance(value, list) and part.isascii() and part.isdigit() and int(part) < len(value):
             value = value[int(part)]
         else:
             raise ValueError("pointer_missing")
