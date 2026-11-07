@@ -390,7 +390,7 @@ def read_claims(bundle):
 
 def read_claim(claim, n, out):
     """Refuse one claims.json row that is not a claim. out holds the rows before it."""
-    fields(claim, {"id", "value", "receipt"}, set(), f"{CLAIMS}[{n}]")
+    fields(claim, {"id", "value", "receipt"}, {"source"}, f"{CLAIMS}[{n}]")
     if not isinstance(claim["id"], str) or not ID.match(claim["id"]) or claim["id"] in out:
         raise BundleError("claim_invalid", f"{CLAIMS}[{n}]: id is not a new claim id")
     where = f"claim {claim['id']}"
@@ -417,6 +417,67 @@ def read_claim(claim, n, out):
             f"{where}: value.spoken reads as {reads}, not one number {gate.fmt(value['number'])}"
             f" {value['unit'] or '(no unit)'}",
         )
+    if "source" in claim:
+        read_claim_source(claim["source"], where)
+
+
+def read_claim_source(source, where):
+    """Refuse a claim's source that is not {path, sha256, pointer} with the optional places, scale and unit_pointer."""
+    fields(source, {"path", "sha256", "pointer"}, {"places", "scale", "unit_pointer"}, f"{where} source")
+    try:
+        bundle_path(source["path"], f"{where} source")
+    except BundleError as exc:
+        raise BundleError("claim_invalid", exc.detail) from None
+    if not isinstance(source["sha256"], str) or not SHA256.fullmatch(source["sha256"]):
+        raise BundleError("claim_invalid", f"{where}: source.sha256 is not a sha256")
+    for name in ("pointer", "unit_pointer"):
+        if name in source and not (isinstance(source[name], str) and source[name].startswith("/")):
+            raise BundleError("claim_invalid", f"{where}: source.{name} is not a JSON pointer")
+    if "places" in source and not (natural(source["places"]) or source["places"] == 0):
+        raise BundleError("claim_invalid", f"{where}: source.places is not a whole number")
+    if "scale" in source and not (isinstance(source["scale"], Decimal) and source["scale"] > 0):
+        raise BundleError("claim_invalid", f"{where}: source.scale is not a positive number")
+
+
+def pointed(value, pointer):
+    """What a JSON pointer (RFC 6901) names in value, or ValueError pointer_missing."""
+    for part in pointer.split("/")[1:]:
+        part = part.replace("~1", "/").replace("~0", "~")
+        if isinstance(value, dict) and part in value:
+            value = value[part]
+        elif isinstance(value, list) and part.isdigit() and int(part) < len(value):
+            value = value[int(part)]
+        else:
+            raise ValueError("pointer_missing")
+    return value
+
+
+def source_reader(bundle):
+    """The compare_values reader of one bundle: a source's measured number and unit, by digest. Each failure is a
+    ValueError with a short reason, and a value it read never reaches a message. A source reads once."""
+    held = {}
+
+    def read_source(source):
+        name = source["path"]
+        if name not in held:
+            try:
+                held[name] = read_json(regular_file(bundle, name, "a claim source").parent, Path(name).name)
+            except BundleError:
+                held[name] = None
+        if held[name] is None:
+            raise ValueError("source_unreadable")
+        value, digest = held[name]
+        if digest != source["sha256"]:
+            raise ValueError("source_digest_mismatch")
+        measured = pointed(value, source["pointer"])
+        if not isinstance(measured, Decimal):
+            raise ValueError("source_not_a_number")
+        unit = pointed(value, source["unit_pointer"]) if "unit_pointer" in source else None
+        if "unit_pointer" in source and not isinstance(unit, str):
+            raise ValueError("source_unit_unread")
+        return measured, unit
+
+    return read_source
 
 
 def cited_known(beats, claims):
@@ -429,9 +490,12 @@ def cited_known(beats, claims):
     refuse_all(errors)
 
 
-def claims_report(beats, claims):
-    """[{segment, status, codes, mentions, unused_claims}], one row per beat, in order."""
-    return [{"segment": b["id"]} | gate.check_segment(b["voiced"], b["claims"], claims) for b in beats]
+def claims_report(beats, claims, bundle=None, require_values=False):
+    """[{segment, status, codes, mentions, unused_claims}], one row per beat, in order. With the bundle, a spoken number
+    is also compared with what its claim's source holds. require_values refuses a claim with no source, as a DAG
+    does."""
+    report = [{"segment": b["id"]} | gate.check_segment(b["voiced"], b["claims"], claims) for b in beats]
+    return report if bundle is None else gate.compare_values(report, claims, source_reader(bundle), require_values)
 
 
 def gate_refusal(report):
@@ -540,15 +604,15 @@ def guarded_read(bundle, denylist, pin, state):
     return beats, claims, digests, guard, private
 
 
-def read_claims_only(bundle, denylist=None, pin=None, state=None):
+def read_claims_only(bundle, denylist=None, pin=None, state=None, require_values=False):
     """The claims gate alone: script.md, claims.json and the manifest's privacy declaration, no asset. The
     private-terms guard is built first and runs on the record texts and then on every voiced text and claim text,
     and refuses before the number gate."""
     beats, claims, digests, guard, private = guarded_read(bundle, denylist, pin, {} if state is None else state)
-    return beats, claims_report(beats, claims), digests, guard, private
+    return beats, claims_report(beats, claims, bundle, require_values), digests, guard, private
 
 
-def read(bundle, denylist=None, pin=None, state=None):
+def read(bundle, denylist=None, pin=None, state=None, require_values=False):
     """The parsed bundle: {slug, assets, beats, claims, report, digests}. Refuses structure, assets and references;
     the claims report is returned, not raised, so a caller can print it. The private-terms guard runs before any
     asset is read, and every refusal passes withheld()."""
@@ -556,7 +620,7 @@ def read(bundle, denylist=None, pin=None, state=None):
     if not bundle.is_dir():
         raise BundleError("bundle_invalid", "the bundle is not a directory")
     state = {} if state is None else state
-    beats, report, digests, guard, private = read_claims_only(bundle, denylist, pin, state)
+    beats, report, digests, guard, private = read_claims_only(bundle, denylist, pin, state, require_values)
     with withheld(state):
         return read_assets(bundle, beats, report, digests, guard, private)
 
@@ -933,7 +997,7 @@ def merged_records(records_dir, new_jobs):
 
 def intake(
     bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None,
-    denylist=None, pin=None, replace=False,
+    denylist=None, pin=None, replace=False, require_values=False,
 ):  # fmt: skip
     """Read, gate, convert, check and write one bundle. Returns the intake manifest written to out/intake.json.
 
@@ -948,7 +1012,7 @@ def intake(
     with withheld(state):
         return guarded_intake(bundle, out, records_dir, state, job_id=job_id, template=template, voice=voice,
                               engine=engine, persona=persona, tail_s=tail_s, store=store, denylist=denylist,
-                              pin=pin, replace=replace)  # fmt: skip
+                              pin=pin, replace=replace, require_values=require_values)  # fmt: skip
 
 
 def earlier_intake(out):
@@ -979,7 +1043,8 @@ def retire_intake(out):
 
 
 def guarded_intake(
-    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace
+    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace,
+    require_values=False,
 ):  # fmt: skip
     out = Path(out)
     if out.is_symlink() or (
@@ -990,7 +1055,7 @@ def guarded_intake(
     within = store.resolve() == out.resolve() or out.resolve() in store.resolve().parents
     if store.resolve() == out.resolve():
         raise BundleError("store_conflict", "--store must not be --out itself")
-    b = read(bundle, denylist, pin, state)
+    b = read(bundle, denylist, pin, state, require_values)
     job_id = job_id or b["slug"]
     private_check(b["guard"], [("slug", "record", b["slug"]), ("job", "record", job_id)])  # the directory's name
     if replace and earlier_intake(out):
@@ -1216,10 +1281,10 @@ def visible_binding(b):
     return {} if b["visible_source"] is None else {"source_sha256": b["visible_source"]}
 
 
-def claims_only(bundle, denylist=None, pin=None):
+def claims_only(bundle, denylist=None, pin=None, require_values=False):
     """The claims gate on a bundle's script.md and claims.json, after the private-terms guard:
     {ok, bundle, segments, private_terms}. A private term raises BundleError private_term with the guard's report."""
-    _, report, digests, _, private = read_claims_only(bundle, denylist, pin)
+    _, report, digests, _, private = read_claims_only(bundle, denylist, pin, None, require_values)
     return {
         "ok": gate_refusal(report) is None,
         "bundle": digests,

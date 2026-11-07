@@ -770,7 +770,9 @@ times and refuses an untimed input. `just narrate-lexical-check INPUT` pipes
 in a temporary `XOXD_LEXICAL_HOME`, and the `bin/xoxd-lexical` beside it or on
 PATH. It refuses a CLI whose `version` differs from that release's. It does
 not verify the job's digests. A render still does. Without the CLI or Vale,
-or with another release, it says so and exits 0 (R-N12). Otherwise it exits as
+or with another release, it says so and exits 0 (R-N12).
+`NARRATE_LEXICAL_GATE=refuse` is a DAG's reading: each of those exits 3 with a
+refusal line instead, and so does a release no one pinned. Otherwise it exits as
 the CLI does: 1 for an Error-severity finding, 2 for a fault. The MCP tool
 drafts are unchanged.
 

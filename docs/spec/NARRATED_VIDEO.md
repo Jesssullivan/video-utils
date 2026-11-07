@@ -431,6 +431,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
 | `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX] [--replace]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal. `--replace` lets a rerun event replace an earlier intake at `--out`, which moves to `history/` beside it once the new one passes |
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
+| `entry PHASE JOB [--bundles DIR]` | `just nv-entry` | one entry gate of a DAG: `claims`, `intake`, `preflight` or `lexical`. See "Entry gates" |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `preflight JOB` | `just nv-preflight` | the frame gates a job can fail before any voice spend (see "Frame gates"). Exit 1 on a finding. Writes nothing |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
@@ -1214,7 +1215,7 @@ rest, every gate also gives a typed record per code and page (`narrate/video/fin
 | --- | --- |
 | `gate`, `code` | the check that found it and what it found. `findings.CODES` lists each code a gate here writes |
 | `stage` | where a fix enters the stage graph, so `graph.reach` gives what that fix may run. Null reaches the whole graph, as a bundle's structure fault does |
-| `blocking` | false only for an advisory lexical finding (R-N12) |
+| `blocking` | false only for an advisory lexical finding (R-N12). A `lexical_error` is one a DAG's gate read, and it blocks |
 | `page`, `segment` | where it is, or null |
 | `detail` | counts, measures and short tokens. A record never holds a path or a text, so a token holds no slash except a ratio such as `30000/1001` |
 
@@ -1224,7 +1225,43 @@ rest, every gate also gives a typed record per code and page (`narrate/video/fin
 | `preflight` | every frame finding, under `typed` in the report | `frames.typed_rows` |
 | `deliver_check.json` | every failed machine gate, per field, change, file, code and page. A failed gate no limit explains gives `gate_failed` | `deliver.typed_findings` |
 | `script`, `voice_qa` | each lexical finding without its match, and each measured gate that failed | `speech.lexical_rows`, `speech.qa_rows` |
+| `entry.json`, `lexical-gate.json` | what an entry gate refused ("Entry gates"). While `entry.json` holds a refusal, `findings` reads only its rows | `entry.record`, `speech.lexical_gate` |
 | `narrate video findings JOB` | all of the above a job root holds, plus each stage refusal in `current.json`, with the cut they read. A preflight or `deliver_check` of an older `job.json` gives no row, and `deliver_check` in the report says `current`, `stale` or `missing`, because `ok` speaks for the rows alone | `render_stage.job_findings` |
+
+### Entry gates
+
+`narrate video entry PHASE JOB` is one entry gate as a Hatchet task body runs it (`narrate/video/entry.py`, Linear
+TIN-7788, ruling TIN-7125 `0690fe88`). The job id is the only input a run carries, so no path crosses Hatchet. The bundle
+is `BUNDLES/<job>/` and its knobs `BUNDLES/<job>.entry.json`, under `--bundles` or `NARRATED_VIDEO_BUNDLES`:
+
+```json
+{"kind": "nv_entry_knobs", "schema_version": 1, "narrate_template": "<id>", "voice": "<id>", "engine": "<id>",
+ "persona": null, "tail_s": null}
+```
+
+| Phase | Reads | A refusal |
+| --- | --- | --- |
+| `claims` | the private-terms guard, the spoken-number gate and each number against its claim's `source`. A number with no source refuses | every refused number, in `JOB/entry.json` |
+| `intake` | every asset and beat too, then the job, its records and `init` on `JOB`, replacing an earlier intake only once this one passed | every bundle fault, in `JOB/entry.json`. The job stays as it was |
+| `preflight` | the frame gates on the pictures the job will show | every frame finding, in `JOB/intake/preflight.json`, which `render-stage result` also reads |
+| `lexical` | each fresh script node's `lexical.json` and a live `xoxd-lexical check` on the voiced text | every Error finding as a blocking `lexical_error`, in `JOB/lexical-gate.json` |
+
+A gate stops on its first code with exit 1 and prints JSON on a pass. A job with no knobs file has no bundle, so `claims`
+and `intake` print `entry: none` and write nothing. The caller decides whether that passes: Cade refuses it on a campaign
+job. A client edition with a knobs file refuses `entry_client_job`, because intake writes an Internal job.
+
+`lexical` needs its tool and the tool of the release the job pins. No CLI, no `check` subcommand, another release or no
+Vale refuses `lexical_tool_absent`, and any other fault `lexical_tool_fault`, because a gate that cannot run has passed
+nothing. A stale script node refuses `lexical_unread`. The `script` stage itself stays advisory, and so do `plan`, `run`
+and `just narrate-lexical-check` for a person (R-N12). `NARRATE_LEXICAL_GATE=refuse` gives that recipe the same reading.
+
+While `JOB/entry.json` holds a refusal, `findings` reads only those rows, `video_sha256` is null and `job_sha256` holds
+the bundle's tree digest, because the bundle has not become this job. The root may hold no `job.json` yet. A round reads
+the same digest, so a fix that changes the bundle starts the next round, and a fix that changes nothing reads the same
+round again. `campaign-bind --before-intake` binds such a root. A root with an entry report reads its own
+`JOB/intake/records` when `--records` is not given, because `NARRATED_VIDEO_RECORDS` names what intake read.
+
+None of these moves a stage key, and a repeat of the same bundle keeps every key.
 
 Stage output stays as it was: the readers above only read `deliver_check.json` and `lexical.json`, so no stage key
 moves. A voice key reads the script stage's digest, so a new byte in `lexical.json` would re-voice every segment. An
@@ -1284,7 +1321,7 @@ words to speak, closed by a ```` ``` ```` line. Notes and blank lines may sit an
 refuses `script_invalid` with its line number. A beat without its three lines refuses `beat_invalid`, and a beat with
 no voiced block or an empty one refuses `beat_voiced_missing`.
 
-`claims.json` is a list of claims, each with exactly three fields:
+`claims.json` is a list of claims, each with three required fields and one optional:
 
 ```json
 {"id": "build-ms",
@@ -1300,6 +1337,20 @@ gate's canonical units (`percent`, `pp`, `s`, `ms`, `us`, `ns`, `min`, `h`, `day
 `/` (`m/s`, `N/m`). A claim names the canonical unit: `Nm`, not `N·m`, and `um`, not `µm`. `spoken` must read, through the gate's own extractor, as exactly
 that one number and unit, else `claim_invalid`. `receipt` is text or `null`. An empty or `null` receipt is legal
 in the file, and the claims gate refuses every number that relies on it.
+
+`source` is optional and names where the value was measured, so the gate compares values and not only that a receipt
+is named:
+
+```json
+"source": {"path": "proofs/build.json", "sha256": "<hex>", "pointer": "/timing/build_ms",
+           "places": 1, "scale": 1000, "unit_pointer": "/timing/unit"}
+```
+
+`path` is a JSON file inside the bundle, `sha256` its digest and `pointer` an RFC 6901 pointer to a JSON number. The
+others are optional. `scale` multiplies the measured number first, for a claim in another unit than its source. `places`
+says the claim rounded to that many decimals: the two may differ by half a unit of that place, whichever way the
+producer broke a tie, and the claim may say no more decimals than that. `unit_pointer` names a string that must equal
+the claim's `unit`. A source of another shape refuses `claim_invalid`.
 
 ### Refusals
 
@@ -1410,6 +1461,8 @@ claim of 17000 `kPa`, and "45 dBA" does not match a `dB` claim.
 | only cited claims without a receipt match | `claim_unreceipted` |
 | two cited claims with receipts match | `claim_ambiguous` |
 | the reading is not one value | `number_ambiguous` |
+| the matched claim's source holds another number | `claim_value_mismatch` |
+| the matched claim's source cannot be read, or names another unit. With `entry`, a claim with no source too | `claim_value_unread`, with a short `reason` |
 
 The gate fails closed. These readings are ambiguous and never match:
 

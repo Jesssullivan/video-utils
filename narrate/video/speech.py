@@ -23,6 +23,10 @@ script's bytes and never on its name in the store.
 lexical_rows and qa_rows read what these stages left and give it as typed findings (narrate/video/findings.py). They
 read and never write, because a voice key reads the script stage's digest: a new byte in lexical.json would re-voice
 every segment. A lexical row stays advisory, and its match stays in lexical.json.
+
+lexical_gate is the same check as a DAG's gate reads it (narrate/video/entry.py). Every Error finding of the stage's
+lexical.json and of a live `xoxd-lexical check` on the voiced text is a blocking row, and a tool that cannot run
+refuses. A person's run keeps the advisory stage. So the gate changes no byte of the stage, and no key moves.
 """
 
 import json
@@ -130,6 +134,29 @@ def lexical_rows(report, segment_id):
         )
         for r in rows
     ]
+
+
+def lexical_gate(rc):
+    """Every lexical Error of the job's segments as a blocking typed row. A refusal raises LexicalError."""
+    rows, tool = [], None
+    current = rc.store.current()["stages"]
+    for segment in rc.job["segments"]:
+        narrate_job = rc.records["jobs"][segment["narrateJob"]]
+        kind = narrate_job["input"]
+        release = lexical.Release(rc.env.lexical, narrate_job["lexical"])
+        tool = tool or lexical.CheckTool(release)
+        node = current[f"script/{segment['id']}"]
+        stored = json.loads((rc.store.dir / node["dir"] / "lexical.json").read_text(encoding="utf-8"))
+        for row in stored["findings"]["findings"]:
+            if row.get("severity") == "Error":
+                rows.append(typed.finding("lexical_error", segment=segment["id"], rule=row["rule"], start=row["start"]))
+        with work_dir(rc.store) as work:
+            script = adapters.load(kind, script_copy(rc, segment, kind, work))
+        rows += [
+            typed.finding("lexical_error", segment=segment["id"], rule=row["rule"], line=row["line"])
+            for row in tool.run(spoken.lines(script))
+        ]
+    return rows
 
 
 # voice ----------------------------------------------------------------------------------------------------------

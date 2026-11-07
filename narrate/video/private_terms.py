@@ -691,9 +691,10 @@ def number_text(value):
 
 def record_texts(manifest, beats, claims):
     """(position, "record", text) for every bundle text that reaches a record or a report: the manifest's slug and
-    each asset's id, path and receipt, each beat's id and asset id, and each claim's id and receipt. Positions, not
-    ids, name them, so a refusal never echoes a private id. An asset's text source path is a record text too. The
-    numbers a record holds are texts too: each asset's size and fps (its num, den and num/den), and each beat's
+    each asset's id, path and receipt, each beat's id and asset id, and each claim's id, receipt and source path and
+    pointers. Positions, not ids, name them, so a refusal never echoes a private id. An asset's text source path is a
+    record text too. The numbers a record holds are texts too: each asset's size and fps (its num, den and num/den),
+    and each beat's
     target_s with the start and end the intake writes for it (narrated-video.json pages, intake.json segments, the
     beat's front matter). The manifest is read leniently: read() checks it."""
     texts = []
@@ -726,6 +727,8 @@ def record_texts(manifest, beats, claims):
         texts.append((f"claim#{n}", "record", c["id"]))
         if isinstance(c["receipt"], str):
             texts.append((f"claim#{n}", "record", c["receipt"]))
+        source = c.get("source") or {}
+        texts += [(f"claim#{n}", "record", source[key]) for key in ("path", "pointer", "unit_pointer") if key in source]
     return texts
 
 

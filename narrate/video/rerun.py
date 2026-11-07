@@ -19,7 +19,9 @@ fresh and only what changed runs again. rerun.json, beside job.json, records eac
   render that answers it refuses round_out_of_reach when anything else ran since, so a slide fix cannot re-voice. A
   report that names its job or cut binds them, so findings of another job or an older job.json start nothing, and
   findings of a cut name that cut. At the cap the root parks: a parked record and the result parked, which asks nobody.
-  A later round on that root reads parked again.
+  A later round on that root reads parked again. An entry gate's refusal (narrate/video/entry.py) can start one before
+  the bundle has become a job: its bundle's digest stands in for the job, and the edition is the one intake writes,
+  never a client's.
 
 A decision binds one cut of one job, whether it was a GO or a FIX: accept.bound_elsewhere reads every job's rerun.json
 under the store root, under the root lock. A round binds its cut for good: accept refuses that cut and a later result
@@ -43,6 +45,7 @@ SCHEMA_VERSION = 1
 FIX_CAP = 3  # TIN-7125 3672cb05: stop after 3 FIX rounds. Each operator decision past it adds one (11296de3)
 COMPOSE_STAGES = ("compose", "deliver_check", "handoff")
 SCOPES = ("any", "compose_only")
+INTAKE_EDITION = "Internal"  # the one edition bundle.convert writes
 RENDER_FIELDS = {
     "run_id",
     "packet_id",
@@ -355,16 +358,20 @@ def fix(store, decision, video_sha256, now=utc_now, extend=False):
     }
 
 
-def bind_campaign(store, campaign, now=utc_now):
+def bind_campaign(store, campaign, now=utc_now, before_intake=False):
     """Bind this job root to a campaign, the one thing that lets a round start with no Softproxy decision. Returns {ok,
     job_id, campaign, recorded}. Refusals: campaign_id_invalid, campaign_client_job (a client edition), campaign_bound
     (another campaign holds the root) and campaign_after_decision (the root holds an operator's FIX or acceptance, so
-    it stays on that path). Nothing is written on a refusal, and binding the same campaign again is a no-op."""
+    it stays on that path). before_intake takes a root with no job.json yet, so the first entry gate's refusal can start
+    a round. machine_round reads the edition again once a job exists. Nothing is written on a refusal, and binding the
+    same campaign again is a no-op."""
     if not isinstance(campaign, str) or ID.fullmatch(campaign) is None:
         raise JobError("campaign_id_invalid", "a campaign id is 1 to 64 of a-z, 0-9, '.', '_' and '-'")
-    job = store.read_job()
-    if job["edition"] in CLIENT_EDITIONS:
-        raise JobError("campaign_client_job", f"edition {job['edition']} keeps the operator's decision")
+    if store.exists() or not before_intake:
+        job = store.read_job()
+        if job["edition"] in CLIENT_EDITIONS:
+            raise JobError("campaign_client_job", f"edition {job['edition']} keeps the operator's decision")
+    store.dir.mkdir(parents=True, exist_ok=True)
     with accept.locked(store):
         ledger = read(store)
         held = (ledger.get("campaign") or {}).get("id")
@@ -427,8 +434,10 @@ def machine_round(store, report, video_sha256=None, now=utc_now):
     cut again is a no-op."""
     shown = typed.check(report)
     rows = [row for row in shown["findings"] if row["blocking"]]
-    job = store.read_job()
-    job_sha256, findings_sha256 = keys.digest(job), keys.digest(shown["findings"])
+    held_entry = store.entry_refused()
+    job = store.read_job() if held_entry is None or store.exists() else {"edition": INTAKE_EDITION}
+    job_sha256 = keys.digest(job) if held_entry is None else held_entry["bundle_sha256"]
+    findings_sha256 = keys.digest(shown["findings"])
     codes = {code: sum(1 for row in rows if row["code"] == code) for code in sorted({row["code"] for row in rows})}
     with accept.locked(store):
         ledger = read(store)

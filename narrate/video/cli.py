@@ -72,6 +72,7 @@ from ..ir import sha256_file
 from . import (
     accept,
     bundle,
+    entry,
     findings,
     fixture,
     frames,
@@ -144,10 +145,24 @@ def job_store(a, job_id):
     return store.JobStore(a.root or os.environ.get(store.ROOT_ENV) or store.DEFAULT_ROOT, job_id)
 
 
+def records_dir(a):
+    """--records, else the job's own records when the entry gates built its root (narrate/video/entry.py), else
+    NARRATED_VIDEO_RECORDS. On such a root that variable names what intake read, which holds no beat's narrate job."""
+    if a.records:
+        return a.records
+    job_id = getattr(a, "job", None)
+    if job_id:
+        s = job_store(a, job_id)
+        own = s.dir / render_stage.INTAKE_DIR / "records"
+        if s.entry_file.is_file() and own.is_dir():
+            return str(own)
+    return os.environ.get(RECORDS_ENV)
+
+
 def records_for(a, job=None):
     """The records. When they come from a guarded intake (or the lane is private), job must be the NarratedVideo
     record that intake wrote (private_terms.check_job), so an edit to its persona label or segments refuses."""
-    directory = a.records or os.environ.get(RECORDS_ENV)
+    directory = records_dir(a)
     records = load_records(directory)
     private_terms.check_job(directory, job)
     return records
@@ -256,8 +271,7 @@ def run_env(a, records):
     store_dir = a.store or os.environ.get("NARRATE_STORE")
     if not store_dir or not Path(store_dir).is_dir():
         raise JobError("store_missing", "run reads every source from the private store: pass --store or NARRATE_STORE")
-    records_dir = a.records or os.environ.get(RECORDS_ENV)
-    return Env(records_dir, records, store_dir, a.lexical or os.environ.get("NARRATE_LEXICAL_DIR"))
+    return Env(records_dir(a), records, store_dir, a.lexical or os.environ.get("NARRATE_LEXICAL_DIR"))
 
 
 def run_common(a, only=None, from_run=None):
@@ -445,7 +459,26 @@ def cmd_findings(a):
 
 
 def cmd_campaign_bind(a):
-    emit(rerun.bind_campaign(job_store(a, a.job), a.campaign))
+    emit(rerun.bind_campaign(job_store(a, a.job), a.campaign, before_intake=a.before_intake))
+    return 0
+
+
+def cmd_entry(a):
+    s = job_store(a, a.job)
+    bundles = a.bundles or os.environ.get(entry.BUNDLES_ENV)
+    if a.phase == "claims":
+        emit(entry.claims(s, bundles, denylist(a), a.denylist_sha256))
+    elif a.phase == "intake":
+        source = a.store or os.environ.get("NARRATE_STORE")
+        records = a.records or os.environ.get(RECORDS_ENV)
+        emit(entry.intake(s, bundles, records, source, context(a), denylist(a), a.denylist_sha256))
+    elif a.phase == "preflight":
+        emit(entry.preflight(s, run_env(a, records_for(a, s.read_job()))))
+    else:
+        job = s.read_job()
+        records = records_for(a, job)
+        rc = runner.RunContext(job, records, s, context(a), run_env(a, records))
+        emit(entry.lexical(s, rc, graph.plan(job, records, s, rc.ctx)))
     return 0
 
 
@@ -716,7 +749,15 @@ def main(argv=None):
     cb.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
     cb.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
     cb.add_argument("--campaign", required=True, help="the campaign id, as a signed campaign record holds it")
+    cb.add_argument("--before-intake", action="store_true", help="take a root the entry gates have not built yet")
     cb.add_argument("--json", action="store_true", help="print JSON (campaign-bind always does)")
+
+    en = sub.add_parser("entry", help="one entry gate of a DAG, before any spend: claims, intake, preflight or lexical")
+    en.add_argument("phase", choices=("claims", "intake", "preflight", "lexical"), help="the gate")
+    common(en)
+    en.add_argument("--bundles", help="the bundles directory, instead of NARRATED_VIDEO_BUNDLES")
+    en.add_argument("--denylist", help=DENYLIST_HELP)
+    en.add_argument("--denylist-sha256", help=PIN_HELP)
 
     rd = sub.add_parser(
         "round", help="record a round findings started, on a job bound to a campaign; at the cap the root parks"
@@ -795,6 +836,7 @@ def main(argv=None):
             "fix": cmd_fix,
             "findings": cmd_findings,
             "campaign-bind": cmd_campaign_bind,
+            "entry": cmd_entry,
             "round": cmd_round,
             "render-stage": cmd_render_stage,
             "preflight": cmd_preflight,
