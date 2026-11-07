@@ -37,9 +37,9 @@ from ..adapters import InputError
 from ..config import LEXICAL_ENV
 from ..ir import canonical, sha256_file
 from ..normalise import NormaliseError, Normaliser
+from . import bed_select, private_terms, visible_text
 from . import claims as gate
 from . import findings as typed
-from . import private_terms, visible_text
 from .admit import admit, port
 from .job import DEFAULTS, ID, RECORD_FILES, SHA256, JobError, check_shape, load_records
 from .store import tree_sha256
@@ -760,12 +760,13 @@ def pronunciation_check(b, records, template):
     }
 
 
-def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None):
+def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None, bed=None):
     """(NarratedVideo record, {beat id: (narrate Job record, Markdown bytes)}).
 
     One segment per beat, anchored at the beat's start: beats run back to back from 0, each target_s long. A PNG beat
     shows its picture as a Full slide page over the beat's span; an MP4 beat shows the base, which is that MP4. With
-    no MP4 the base is the default card. Edition Internal; the avatar is on with persona, off without it."""
+    no MP4 the base is the default card. Edition Internal; the avatar is on with persona, off without it. bed names a
+    music bed record, with the default music settings; a job with none has no music stage."""
     if not ID.match(job_id):
         raise BundleError("job_invalid", "the job id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'")
     jobs = narrate_jobs(b, records, job_id, template, voice, engine)
@@ -805,7 +806,7 @@ def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s
         "segments": segments,
         "avatar": copy.deepcopy(d["avatar"]) | {"boxExempt": exempt} if persona else None,
         "slides": slides,
-        "music": None,
+        "music": copy.deepcopy(d["music"]) | {"bed": bed} if bed else None,
         "tighten": copy.deepcopy(d["tighten"]),
         "captions": copy.deepcopy(d["captions"]),
         "labels": copy.deepcopy(d["labels"]) | {"persona": persona},
@@ -910,9 +911,9 @@ def make_dirs(path):
     return list(reversed(missing))
 
 
-def merged_records(records_dir, new_jobs):
-    """{file name: rows} for the output records directory: the input renders, with the new narrate jobs in jobs.json.
-    A new id that the input already holds must be the same record."""
+def merged_records(records_dir, new_jobs, bed=None):
+    """{file name: rows} for the output records directory: the input renders, with the new narrate jobs in jobs.json
+    and a selected bed in music-beds.json. A new id that the input already holds must be the same record."""
     tables = {}
     for name in RECORD_FILES.values():
         path = Path(records_dir) / name
@@ -928,12 +929,21 @@ def merged_records(records_dir, new_jobs):
             continue
         jobs.append(record)
     tables["jobs.json"] = jobs
+    if bed is not None:
+        beds = tables.get(RECORD_FILES["music_beds"], [])
+        beds = [beds] if isinstance(beds, dict) else list(beds)
+        same = [row for row in beds if row["id"] == bed["id"]]
+        if not same:
+            beds.append(bed)
+        elif any(bed_select.bound_id(row) != bed["id"] for row in same):  # its licence results may differ, nothing else
+            raise BundleError("bed_selection_invalid", "the records hold another bed under this selection's id")
+        tables[RECORD_FILES["music_beds"]] = beds
     return tables
 
 
 def intake(
     bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None,
-    denylist=None, pin=None, replace=False,
+    denylist=None, pin=None, replace=False, bed_selection=None, campaign=None,
 ):  # fmt: skip
     """Read, gate, convert, check and write one bundle. Returns the intake manifest written to out/intake.json.
 
@@ -942,13 +952,39 @@ def intake(
     current. out receives narrated-video.json (the NarratedVideo record), records/ (the input
     renders with one narrate job per beat added to jobs.json) and intake.json; store (default out/store) receives
     each beat's Markdown and each used asset as <sha256><suffix>. denylist is the private denylist file that a
-    manifest declaring never_name binds by digest, and pin the operator's pinned digest of it. Nothing
-    is written when any check refuses, and a refusal whose detail says a private term is withheld."""
+    manifest declaring never_name binds by digest, and pin the operator's pinned digest of it. bed_selection is a file
+    bed_select wrote for campaign: a selected bed joins the job and records once its loops check in store, and a bedless
+    one leaves the job with no music. Nothing is written when any check refuses, and a refusal whose detail says a
+    private term is withheld."""
     state = {"entries": private_terms.preload(denylist), "pinned": private_terms.pinned(pin)}
     with withheld(state):
         return guarded_intake(bundle, out, records_dir, state, job_id=job_id, template=template, voice=voice,
                               engine=engine, persona=persona, tail_s=tail_s, store=store, denylist=denylist,
-                              pin=pin, replace=replace)  # fmt: skip
+                              pin=pin, replace=replace, bed_selection=bed_selection, campaign=campaign)  # fmt: skip
+
+
+def selected_bed(path, campaign, store):
+    """(the selected bed record or None, the manifest's row or None) of a bed selection file. Its loops must be in
+    store by digest and byte count. A file with no campaign refuses, because an agent's bed holds only on one."""
+    if path is None:
+        if campaign is not None:
+            raise BundleError("bed_selection_invalid", "--campaign goes with --bed-selection")
+        return None, None
+    try:
+        selection, digest = bed_select.read_selection(path, campaign)
+        bed = selection["bed"]
+        if bed is not None:
+            bed_select.check_loops(bed, store)
+    except JobError as exc:
+        raise BundleError(exc.code, exc.detail) from None
+    layers = [] if bed is None else [layer["sha256"] for layer in bed["layers"]]
+    return bed, {
+        "campaign": campaign,
+        "outcome": selection["outcome"],
+        "selection_sha256": digest,
+        "bed": None if bed is None else bed["id"],
+        "layers": layers,
+    }
 
 
 def earlier_intake(out):
@@ -979,7 +1015,8 @@ def retire_intake(out):
 
 
 def guarded_intake(
-    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace
+    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace,
+    bed_selection=None, campaign=None,
 ):  # fmt: skip
     out = Path(out)
     if out.is_symlink() or (
@@ -1002,20 +1039,24 @@ def guarded_intake(
         raise refused
     records = load_records(records_dir, marker_optional=True)
     b["records_sha256"] = records_tree(records_dir)
+    bed, b["bed_selection"] = selected_bed(bed_selection, campaign, store)
     job, jobs = convert(
-        b, records, job_id=job_id, template=template, voice=voice, engine=engine, persona=persona, tail_s=tail_s
-    )
+        b, records, job_id=job_id, template=template, voice=voice, engine=engine, persona=persona, tail_s=tail_s,
+        bed=None if bed is None else bed["id"],
+    )  # fmt: skip
     new_jobs = [record for record, _ in jobs.values()]
-    tables = merged_records(records_dir, new_jobs)
+    tables = merged_records(records_dir, new_jobs, bed)
     checked = copy.deepcopy(records)
     checked["jobs"] = {j["id"]: j for j in tables["jobs.json"]}
+    if bed is not None:
+        checked["music_beds"] = {row["id"]: row for row in tables[RECORD_FILES["music_beds"]]}
     # The marker this intake writes holds this summary, so admit reads it here too: intake.json's
     # admit.pending_operator then lists visible_text_unread exactly when states.visible_text is partial. The input
     # records' own marker (an earlier intake) never stands in for it.
     stored = visible_source(b)
     b["visible_source"] = None if stored is None else hashlib.sha256(stored).hexdigest()
     checked["visible_text"] = visible_record(b)
-    verdict = admit(job, checked)
+    verdict = admit(job, checked, None, campaign)
     if verdict["verdict"] != "Admitted":
         first = verdict["refusals"][0]
         rows = [typed.finding(row["code"], gate=typed.INTAKE) for row in verdict["refusals"]]
@@ -1148,6 +1189,7 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         "segments": segments,
         "unused_assets": sorted(set(b["assets"]) - used),
         "sources": sorted({digest for digest, _, _ in sources.values()}),
+        **({"bed_selection": b["bed_selection"]} if b.get("bed_selection") else {}),
         "outputs": outputs,
         "admit": {"verdict": verdict["verdict"], "pending_operator": [p["gate"] for p in verdict["pending_operator"]]},
         "private_terms": b["private"],

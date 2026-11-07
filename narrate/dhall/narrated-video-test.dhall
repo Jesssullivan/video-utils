@@ -195,6 +195,14 @@ let bed
         }
       }
 
+let agentAcquired =
+      bed
+      with acquisition.acquiredBy
+           = MusicBed.Acquirer.Agent { agent = "probe-campaign" }
+
+let agentAcquisitionMovesNoLicenceGate =
+      assert : MusicBed.licenceCleared agentAcquired === False
+
 let pdf = Some "probe-pdf-digest"
 
 let clear = MusicBed.ContentId.Clear { clear = "probe-receipt" }

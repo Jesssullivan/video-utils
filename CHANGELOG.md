@@ -12,6 +12,13 @@
   no Softproxy decision, on a job bound to a campaign only, holding the stages its
   fix may run (`graph.reach`). At the cap the root records `parked`. A client
   edition, and any job with no binding, keeps its decision. Nothing calls these yet.
+- `narrate video bed-select`, `narrate/video/bed_select.py`: on a campaign job an
+  agent judges whether a backing bed is wanted. A wanted bed goes through a catalog
+  port and a monthly credit guard, and binds by digest with its licence record.
+  `MusicBed.Acquirer` gains `Agent`, `intake` gains `--bed-selection` and `--campaign`
+  and `init` gains `--campaign`. NV-3 stands off a campaign, a client edition refuses
+  an agent's bed and no catalog adapter ships (TIN-7788, ruling TIN-7125 `e552e569`).
+  Splice's terms are read in `docs/research/2026-11-07-splice-terms-campaign-beds.md`.
 - `narrate video fix --extend`: one more FIX round per decision past the cap, each
   recorded (TIN-7788, rulings TIN-7125 `0690fe88`, `11296de3`).
 - `narrate/serve/modal_batch.py`: a draft sealed Modal app for a

@@ -1,5 +1,5 @@
-"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,fix,
-render-stage,preflight,subject,cut}.
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,bed-select,intake,claims,accept,
+fix,render-stage,preflight,subject,cut}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -56,6 +56,11 @@ a check fails. Both run the private-terms guard first: a manifest that declares 
 --denylist (or NARRATED_VIDEO_DENYLIST), the private denylist it binds by digest. --denylist-sha256 (or
 NARRATED_VIDEO_DENYLIST_SHA256) pins that digest outside the bundle and marks the lane private. fixture --bundle
 also writes a synthetic bundle.
+
+bed-select records a campaign's backing bed decision (narrate/video/bed_select.py, docs/spec/NARRATED_VIDEO.md, "Bed
+selection"): a decision that wants no bed spends nothing, and a wanted one goes through a catalog port and the monthly
+credit guard. No catalog adapter ships, so a wanted bed refuses bed_catalog_unconfigured. intake --bed-selection reads
+the result, and init --campaign binds the job root the bed needs.
 """
 
 import argparse
@@ -71,6 +76,7 @@ from .. import policy
 from ..ir import sha256_file
 from . import (
     accept,
+    bed_select,
     bundle,
     findings,
     fixture,
@@ -87,10 +93,20 @@ from . import (
 )
 from . import run as runner
 from .common import Env
-from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
+from .job import (
+    CLIENT_DEFAULT_EDITION,
+    CLIENT_EDITIONS,
+    EDITIONS,
+    JobError,
+    check_shape,
+    init_job,
+    load_records,
+    read_json,
+)
 
 RECORDS_ENV = "NARRATED_VIDEO_RECORDS"
 DENYLIST_ENV = "NARRATED_VIDEO_DENYLIST"
+BED_CREDITS_ENV = "NARRATED_VIDEO_BED_CREDITS"
 PIN_HELP = (
     "the operator's pinned sha256 of the denylist, instead of NARRATED_VIDEO_DENYLIST_SHA256: the lane is private, so"
     " an undeclared bundle refuses and the file must hash to it, whatever the manifest says"
@@ -214,6 +230,11 @@ def cmd_init(a):
     records = records_for(a, job)
     s = job_store(a, a.job)
     ctx = context(a)
+    if a.campaign and job["edition"] in CLIENT_EDITIONS:
+        return refusal("campaign_client_job", f"edition {job['edition']} keeps the operator's decision")
+    if job["music"] is not None:
+        ctx["campaign"] = a.campaign or bed_select.bound_campaign(s)
+        ctx["bed_root"] = s.root
     g = graph.plan(job, records, None, ctx)
     if g["admit"]["verdict"] != "Admitted":
         first = g["admit"]["refusals"][0]
@@ -222,6 +243,8 @@ def cmd_init(a):
             detail += "; the avatar is on by default (NV-8): pass --persona P, or --no-avatar"
         return refusal(first["code"], detail)
     s.write_job(job, replace=a.replace)
+    if a.campaign:  # a refusal here leaves the job unbound, and an agent's bed then refuses at every later plan
+        rerun.bind_campaign(s, a.campaign)
     g = graph.public(graph.plan(job, records, s, ctx))
     s.write_graph(g)
     if a.json:
@@ -361,6 +384,36 @@ def cmd_fixture(a):
     return 0
 
 
+def bed_catalog(a):
+    """The catalog port of a wanted bed. No adapter ships, so a wanted bed refuses bed_catalog_unconfigured."""
+    return None
+
+
+def cmd_bed_select(a):
+    if os.path.lexists(a.out):  # before any spend, so a credit never buys a selection that cannot be written
+        return refusal("out_exists", "--out already holds a selection")
+    if not Path(a.out).parent.is_dir():
+        return refusal("out_parent_missing", "--out names a directory that does not exist")
+    budget = a.monthly_credits
+    # The variable is the worker's ceiling: an argument can lower it and cannot raise it.
+    if os.environ.get(BED_CREDITS_ENV, "").isdecimal():
+        ceiling = int(os.environ[BED_CREDITS_ENV])
+        budget = ceiling if budget is None else min(budget, ceiling)
+    selection = bed_select.select_bed(
+        None,
+        bed_select.FileJudge(a.decision),
+        bed_catalog(a),
+        campaign=a.campaign,
+        budget=budget,
+        root=a.root or os.environ.get(store.ROOT_ENV) or store.DEFAULT_ROOT,
+        store_dir=a.store or os.environ.get("NARRATE_STORE"),
+        job=a.job,
+    )
+    bed_select.write_selection(a.out, selection)
+    emit(bed_select.summary(selection))
+    return 0
+
+
 def cmd_intake(a):
     records_dir = a.records or os.environ.get(RECORDS_ENV)
     if not records_dir:
@@ -383,6 +436,8 @@ def cmd_intake(a):
         denylist=denylist(a),
         pin=a.denylist_sha256,
         replace=a.replace,
+        bed_selection=a.bed_selection,
+        campaign=a.campaign,
     )
     summary = {
         "ok": True,
@@ -586,6 +641,7 @@ def main(argv=None):
     picture.add_argument("--still", help="the still's SHA-256 in the private store")
     picture.add_argument("--card", help="a #rrggbb colour card (default #101820)")
     i.add_argument("--bed", help="a music bed record id")
+    i.add_argument("--campaign", help="bind the job root to this campaign, which an agent-acquired bed needs")
     i.add_argument("--edition", choices=EDITIONS, help="the edition (default Internal, NV-2)")
     i.add_argument(
         "--client",
@@ -654,6 +710,8 @@ def main(argv=None):
     avatar.add_argument("--no-avatar", action="store_true", help="no kitpip avatar")
     t.add_argument("--tail-s", type=float, help="seconds a card base holds after the last narration (default 1)")
     t.add_argument("--json", action="store_true", help="print the whole intake manifest")
+    t.add_argument("--bed-selection", help="a file bed-select wrote; a selected bed's loops must be in --store")
+    t.add_argument("--campaign", help="the campaign the bed selection names")
     t.add_argument("--denylist", help=DENYLIST_HELP)
     t.add_argument("--denylist-sha256", help=PIN_HELP)
     t.add_argument(
@@ -661,6 +719,20 @@ def main(argv=None):
         action="store_true",
         help="a rerun event: replace the earlier intake at --out once this one passes, moving it to history/",
     )
+
+    bs = sub.add_parser(
+        "bed-select", help="a campaign's backing bed: bedless when the decision wants none, or a pick behind the guard"
+    )
+    bs.add_argument("--campaign", required=True, help="the campaign id the bed's record names")
+    bs.add_argument("--decision", required=True, help="the agent's decision, JSON: wanted, reason, query, layers")
+    bs.add_argument("--out", required=True, help="a new file: the selection, which intake --bed-selection reads")
+    bs.add_argument("--job", help="the job id the ledger row names")
+    bs.add_argument("--root", help="the store root holding the credit ledger, instead of NARRATED_VIDEO_ROOT")
+    bs.add_argument("--store", help="the private store for selected loops, instead of NARRATE_STORE")
+    bs.add_argument(
+        "--monthly-credits", type=int, help=f"the month's credit budget, at most {BED_CREDITS_ENV} when set; no default"
+    )
+    bs.add_argument("--json", action="store_true", help="print JSON (bed-select always does)")
 
     c = sub.add_parser("claims", help="the spoken-number claims gate of a demo bundle, alone")
     c.add_argument("bundle", help="the bundle directory (script.md, claims.json and the manifest's privacy are read)")
@@ -789,6 +861,7 @@ def main(argv=None):
             "explain": cmd_explain,
             "verify": cmd_verify,
             "pin-check": cmd_pin_check,
+            "bed-select": cmd_bed_select,
             "intake": cmd_intake,
             "claims": cmd_claims,
             "accept": cmd_accept,

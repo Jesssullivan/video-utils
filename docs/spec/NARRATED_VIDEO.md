@@ -26,6 +26,7 @@ source media.
 | NV-2 | Simple-job defaults: edition `Internal` until a first listening receipt. A mono mix when a bed is present, until an A/B. No music bed in a client delivery until the licence PDF, the Content ID check and a voice-only listen pass. Tighten off for synthetic narration. These are defaults: a project may override tighten (see "Tighten") |
 | NV-3 | An agent may read and summarise a vendor's public licence terms. The operator downloads the certified licence PDF, and its digest goes into the private `MusicBed` record. Agents never purchase |
 | NV-4 | The no-avatar half starts now: L2 spec and types, L3 graph core, L4 simple path with voice and music bed. kitpip plugs in after its procedural-geometry release (KP-12) merges |
+| NV-3, campaign jobs | Superseded for campaign jobs only (TIN-7125 `e552e569`). The agent judges whether a backing bed is wanted, and Splice credits inside the subscription are agent-spendable. Each bed's licence record stays bound by digest. See "Bed selection". NV-3 stands for client and every other job |
 | KP-7, KP-14 | The overlay shows the narrator mark with no visible "AI persona" badge. Client deliveries stay voice-only with picture-in-picture off, except where 59(d) applies |
 | 59(d) | The deck project's ship cut carries the kitpip avatar. Its "picture-in-picture off" meant no camera of the operator, not the avatar. For that video this supersedes the voice-only part of KP-14. The `ClientNarrated` edition carries it |
 | KP-15 | No visible synthetic or AI-persona label is required in captions, descriptions or on-frame marks. Manifest metadata (`synthetic: true`, consent ids, persona) stays. This supersedes KP-7's "labels in captions and description" |
@@ -418,7 +419,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | Command | Recipe | Effect |
 | --- | --- | --- |
 | `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--client] [--persona P \| --no-avatar]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`, with the avatar on where the edition allows one (NV-8). `--client` makes a client delivery: `ClientNarrated` (NV-6); another edition refuses `edition_not_client`. The defaults voice a synthetic segment, so `--edition ClientVoiceOnly` refuses `edition_voice_refused`: a voice-only job comes through `--from` (the deck example). admit refuses (a voice without consent, an avatar without a persona) before anything is written |
-| `init --job ID --from FILE` | | writes a rendered record, or the one with that id in a list of them |
+| `init --job ID --from FILE [--campaign ID]` | | writes a rendered record, or the one with that id in a list of them. `--campaign` also binds the job root, which an agent-acquired bed needs |
 | `plan JOB [--record] [--json]` | `just nv-plan` | keys every node and prints its state, reason and key. Read-only. `--record` writes `graph.json`. Exit 1 when admit refuses |
 | `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates. Refuses `graph_stale` when it lists an acceptance `acceptance.json` does not hold |
 | `explain JOB STAGE [--segment ID]` | `just nv-explain` | prints the key document and each field that changed since the stage's last run |
@@ -429,7 +430,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `stage JOB voice --from-run RUN_DIR [--segment ID] [--replace]` | `just nv-stage-voice-from-run JOB RUN_DIR` | adopts a narrate run already rendered and verified elsewhere (`narrate render --prerendered` for an `AudioCppBatch` engine) as the voice node instead of voicing it. See "Adopting a rendered run" |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
-| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX] [--replace]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal. `--replace` lets a rerun event replace an earlier intake at `--out`, which moves to `history/` beside it once the new one passes |
+| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX] [--replace] [--bed-selection FILE --campaign ID]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal. `--replace` lets a rerun event replace an earlier intake at `--out`, which moves to `history/` beside it once the new one passes |
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `preflight JOB` | `just nv-preflight` | the frame gates a job can fail before any voice spend (see "Frame gates"). Exit 1 on a finding. Writes nothing |
@@ -437,6 +438,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `fix JOB --decision ID --video-sha256 HEX [--extend]` | `just nv-fix JOB DECISION VIDEO` | records the operator's FIX of the current cut against the job root's 3 rounds. The fourth refuses `fix_cap_reached` without `--extend`, which adds one round for that decision. See "Reruns" in `docs/spec/RENDER_STAGE.md` |
 | `findings JOB` | `just nv-findings JOB` | prints every finding the job root holds as one typed report. Writes nothing. See "Findings" |
 | `campaign-bind JOB --campaign ID` | `just nv-campaign-bind JOB CAMPAIGN` | binds a job root to a campaign. A client edition refuses. See "Machine rounds" in `docs/spec/RENDER_STAGE.md` |
+| `bed-select --campaign ID --decision FILE --out FILE [--job ID] [--root DIR] [--store DIR] [--monthly-credits N]` | `just nv-bed-select` | records a campaign's bed decision. See "Bed selection". No catalog adapter ships, so a wanted bed refuses `bed_catalog_unconfigured` |
 | `round JOB --findings FILE [--video-sha256 HEX]` | `just nv-round JOB FINDINGS` | records a round those findings started, with no decision, on a job bound to a campaign. At the cap it prints `result: parked` and exits 0 |
 | `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken, each shown asset's stored text, and `shown_unread`, the kinds of asset it shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard. On a guarded intake's `never_name` marker it refuses `shown_text_unread` when any shown text is unreadable. See "Guard subject and cut" |
 | `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the pages no frame gate read, the operator gates still pending and the gates an acceptance of that render closed. Digests, gate names and page ids only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
@@ -558,8 +560,8 @@ never paths. The executor reads the `dhall-to-json` render.
 - **`MusicBed`**: 2 or 3 layers, each a loop by SHA-256 with bytes, rate,
   channels, source, tempo factor (0.5 to 2.0) and gain. A licence block holds the
   terms reference, the certified PDF digest and the Content ID state. The
-  acquisition block's `acquiredBy` has one constructor, `Operator`, so a record
-  that says an agent acquired the bed cannot type-check.
+  acquisition block's `acquiredBy` is `Operator`, or `Agent { agent = "<campaign id>" }`
+  on a campaign job, so an agent's record cannot leave its campaign out.
 - **`Edition`**: the four editions, the three points, the refusal codes and
   `check`.
 - **`Consent.persona`** (NV-1): `Optional Text`, `None` by default
@@ -622,7 +624,7 @@ mutation to be refused.
 | `truePeakDbtp` | at most -1.5 | hard gate |
 | bed layers | 2 or 3 distinct loops | `bed_layers_invalid` |
 | bed layer `tempoFactor` | 0.5 to 2.0 | out of bounds |
-| `acquiredBy` | `Operator` | `bed_acquisition_agent` |
+| `acquiredBy` | `Operator`, or a campaign's `Agent` on a non-client job root bound to that campaign | `bed_acquisition_agent` |
 | tighten edits on narrate segments | only with `tighten.enabled` | `tighten_on_synthetic` |
 | `avatar.fadeS` | 0 to 2.0 | out of bounds |
 | `avatar.avatarOff` | ids of the job's pages | `page_unknown` |
@@ -634,15 +636,70 @@ mutation to be refused.
 
 ## Music bed
 
-- An agent never purchases, searches for or downloads a loop, and spends no
-  credits. The operator acquires every loop, and the record names the ruling
-  that allowed it.
+- Outside a campaign job, an agent never purchases, searches for or downloads
+  a loop, and spends no credits. The operator acquires every loop, and the
+  record names the ruling that allowed it. A campaign job takes "Bed selection".
 - No tool takes a URL. Loops are found by SHA-256 in the private store.
 - No public upload until the record holds the certified licence PDF digest and
   a Content ID result: `delivery_gate.public_upload_allowed` stays false
   until both exist. A client edition also needs the voice-only listen pass.
 - One limiter, in `mix`. The sidechain keys on the whole foreground, voice and
   kept clip sound alike.
+
+## Bed selection
+
+A campaign's agent judges whether a job wants a backing bed, and Splice credits
+inside the subscription are agent-spendable (TIN-7125 `e552e569`, supersedes
+NV-3 for campaign jobs only). `narrate/video/bed_select.py` is the stage, and
+`docs/research/2026-11-07-splice-terms-campaign-beds.md` is the terms reading it
+builds to. It runs before a job exists, because a job names its bed when it is
+written, so it is no row of the render graph and moves no task digest.
+
+| Step | What happens | Refusal |
+| --- | --- | --- |
+| Judge | A port returns `{wanted, reason, query, layers, bpm_min, bpm_max}`. `bed-select --decision` reads one an agent wrote. A job that wants none spends nothing | `bed_decision_invalid` |
+| Search | A catalog port returns rows `{asset_id, type, bpm, key, preview}` | `bed_catalog_unconfigured`, `bed_licence_missing`, `bed_catalog_failed` |
+| Pick | Loops only, each row saying `preview` false, the first usable row's key, each tempo factor 0.5 to 2.0, in catalog order, up to `layers`. Fewer than 2 gives `bedless` with no spend | none |
+| Guard | Counts new sounds against the month's budget before any download. There is no default budget. `NARRATED_VIDEO_BED_CREDITS` is a ceiling that `--monthly-credits` can lower and not raise. A sound the ledger holds costs nothing, because a repeat download is free | `bed_credit_budget_missing`, `bed_credit_budget` |
+| Fetch | Each purchased file enters the private store by SHA-256 with its byte count, rate and channels | `bed_loop_unreadable`, `bed_layers_invalid`, `store_conflict` |
+| Record | A `MusicBed` record with `acquiredBy = Agent`, every layer's source `Splice`, the terms and read date, and an id that binds its digests (`bound_id`). The licence PDF and Content ID results are left out of the id, because they arrive later | none |
+
+`bed-credits.json`, under the store root, is the guard's ledger. It counts by UTC
+calendar month and sees only this stage's spend, so it holds a project budget
+and not the account's balance. A spend row is written before its download, and a
+failed download stays counted, because the port cannot say whether the vendor
+charged. It is the one file that names a vendor asset id, so a licence can be
+found later. It stays in the private root.
+
+`intake --bed-selection FILE --campaign ID` reads the selection. A selected bed
+joins the job and `music-beds.json` once each loop checks in `--store`
+(`bed_loop_missing`, `bed_digest_mismatch`). A bedless one leaves `music` null.
+A file for another campaign refuses `bed_selection_campaign`. A hand-edited one,
+one short of a layer field or one that arrives with a licence gate set refuses
+`bed_selection_invalid`, and so do records holding another bed under its id.
+`init --from FILE --campaign ID` binds the job root. `admit` and the `music` stage
+both refuse an agent's bed on a client edition, on a root that campaign does not
+hold or with a source other than Splice (`bed_acquisition_agent`). They also
+refuse a loop the root's ledger never counted (`bed_unledgered`), so a job lives
+on the root whose ledger bought its bed. Intake has no root, so `init`, `plan` and
+the stage hold that check.
+
+The id is computed from the record, so it shows no edit by itself. The ledger and
+the store are what a forged record cannot match, and a process that can rewrite
+the ledger can defeat both. The budget and the root come from the caller, so a
+row must pin them: a second root starts a second count.
+
+A refusal stops no video. A new selection with a bedless decision gives a job
+that passes, so a loop can route a budget or catalog refusal there.
+
+Selection closes no licence gate. `deliver_check` still holds
+`public_upload_allowed` false for a bed with no PDF digest and no clear Content
+ID result. Neither has an agent route yet, and the campaign edition owns that
+decision. Those two results are unverified fields of the record: `deliver_check`
+reads a non-empty digest and a `clear` key, and reads no PDF and no receipt. An
+agent that can write the record can set both, so a public path must not take them
+as proof on an agent's bed. The catalog port has no share method and no stack
+export, and no real adapter ships here.
 
 ## Tighten
 
@@ -1685,7 +1742,7 @@ deck's private repository.
 | kitpip is never a flake input and never vendored | `program/externals.json` registers the shape with no pin value; the private pin record holds digests and ids only, checked before spawn |
 | No `.vrm` model, VRM texture, rendered frame, face timeline of a real narration or renderer build enters git. The VRM renderer is pinned like kitpip, with its engine lock hash-bound. CI never downloads a browser | the synthetic GLB and stub renderer in `narrate/tests/fixtures/narrated-video/`, and `program/externals.json` with no pin value |
 | A VRM overlay needs the model's likeness consent (SP-R13) and appearance approval (TIN-7130). Only the Internal edition carries one until a ruling | `vrm.gates` at admit, and again before the renderer spawns |
-| Agents never acquire music | `acquiredBy : < Operator >` |
+| Agents acquire music only on a campaign job, under a monthly credit guard (TIN-7125 `e552e569`). A client edition keeps the operator's acquisition | `MusicBed.Acquirer`, `bed_select.acquisition_problems` at admit and in `music`, `BedCredits` |
 | Client deliveries default to `ClientNarrated`: the synthetic narrator and kitpip avatar, no camera picture-in-picture (NV-6). `ClientVoiceOnly` stays available per project. Every client delivery gates the bed | `Edition.check` at Plan, Place and DeliverCheck |
 | Never loudness-normalise the mix. One limiter at -1.5 dBTP. Drift over 0.5 LU fails | `Delivery` bounds, `loudness_drift`, `true_peak_exceeded` |
 | Never write under `artifacts/runs/` or inside a narrate run | the store layout, `avatar_outside_store` |

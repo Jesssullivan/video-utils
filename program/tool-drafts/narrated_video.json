@@ -4,7 +4,7 @@
  "lane": "W8 (L3, L4, L5, L6); VRM renderer draft (SPR-128, TIN-7084)",
  "linear": "TIN-7476",
  "spec": "docs/spec/NARRATED_VIDEO.md",
- "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims}",
+ "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,bed-select,intake,claims}",
  "skill": ".agents/skills/narrated-video/SKILL.md",
  "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, avatar_overlay as 66, avatar_verify as 67, narrated_video_mix as 68, narrated_video_compose as 69 and narrated_video_verify as 70. avatar_overlay and avatar_verify are neutral: the job's avatar.external picks kitpip (the current implementation) or the vrm renderer draft (SPR-128), so they replace the earlier drafts kitpip_overlay, kitpip_verify, vrm_overlay and vrm_verify (TIN-7788). None of those was admitted, so no alias is kept. Root admits them in program/tools.json in lane L7. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string. narrated_video_intake and narrated_video_claims (TIN-7735) carry no proposed number yet; root assigns them at admission. Their skill is .agents/skills/narrated-video-intake/SKILL.md.",
  "tools": [
@@ -323,8 +323,8 @@
   {
    "name": "music_bed_build",
    "title": "Arrange a music bed",
-   "description": "Run the music stage of one job (`python -m narrate video stage JOB music --json`): read the operator-acquired MusicBed record, find each loop in the private store by SHA-256, check its byte count, convert it to 48 kHz mono with its gain and, only when its tempo factor is not 1, one FFmpeg atempo. Sum the layers into one cycle (the least common multiple of their lengths up to 120 s, else the longest) and measure its integrated loudness. Writes bed.wav and bed.json with layer digests only, never a loop name or vendor id. Refuses a record that an agent acquired (bed_acquisition_agent) and a loop off its record (bed_digest_mismatch). Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
-   "intent": "Let an agent build the bed an operator acquired, reproducibly, without ever fetching, searching for or buying a loop.",
+   "description": "Run the music stage of one job (`python -m narrate video stage JOB music --json`): read the MusicBed record, find each loop in the private store by SHA-256, check its byte count, convert it to 48 kHz mono with its gain and, only when its tempo factor is not 1, one FFmpeg atempo. Sum the layers into one cycle (the least common multiple of their lengths up to 120 s, else the longest) and measure its integrated loudness. Writes bed.wav and bed.json with layer digests only, never a loop name or vendor id. Refuses a record an agent acquired on a client edition or on a job root its campaign does not hold (bed_acquisition_agent) and a loop off its record (bed_digest_mismatch). Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent build a job's bed reproducibly from the loops its record names, by digest.",
    "inputSchema": {
     "type": "object",
     "properties": {
@@ -379,7 +379,7 @@
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
     "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
-    "Agents never purchase, search for or download a loop; acquiredBy has one constructor, Operator.",
+    "This stage never purchases, searches for or downloads a loop. Only bed selection on a campaign job acquires one (music_bed_select).",
     "No public upload until the record holds a certified licence PDF digest and a clear Content ID result. music records no licence state; plan and status list the open gates under pending_operator, and deliver_check decides them."
    ],
    "annotations": {
@@ -393,13 +393,99 @@
      "narrated_video_plan"
     ],
     "enforced": false,
-    "note": "The bed record comes from the operator's private store (MusicBed.dhall)."
+    "note": "The bed record comes from the private store (MusicBed.dhall): the operator's, or a campaign's selection."
    },
    "agent_workflow": {
     "identify": "Read cycle_s, cycle_rule, headroom_gain_db and integrated_lufs.",
     "research": "docs/spec/NARRATED_VIDEO.md \"Music bed\" and \"Simple path (lane L4)\".",
     "iterate": "Change one layer's gain or tempo factor in the private record, run music and compare the two cycles' loudness.",
     "acceptance": "A fresh stage is evidence that it ran on these inputs. Listening, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "music_bed_select",
+   "title": "Select a campaign's music bed",
+   "description": "Run `python -m narrate video bed-select --json` for one campaign: read the agent's decision on whether a backing bed is wanted and write one selection file. A decision that wants none spends nothing and gives a bedless job. A wanted bed goes through a catalog port, picks 2 or 3 loops by rule, counts credits against the month's budget before any download (bed_credit_budget) and binds each loop by SHA-256 with its licence record. No catalog adapter ships yet, so a wanted bed refuses bed_catalog_unconfigured. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply.",
+   "intent": "Let an agent decide whether a campaign video wants a bed and, when it does, spend credits inside a monthly budget with the bed bound by digest (TIN-7125 e552e569).",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "campaign": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The campaign id the bed's record names: 1 to 64 of a-z, 0-9, '.', '_' and '-'."
+     },
+     "decision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A JSON file holding wanted and reason, with query, layers, bpm_min and bpm_max on a wanted bed."
+     },
+     "out": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A new file for the selection, which intake --bed-selection reads. An existing file refuses out_exists."
+     },
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id the ledger row names."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The store root holding the credit ledger (default artifacts/narrated, or NARRATED_VIDEO_ROOT)."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store selected loops enter by SHA-256. Required on a wanted bed."
+     },
+     "monthly_credits": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The month's credit budget, at most NARRATED_VIDEO_BED_CREDITS when that is set. There is no default, and a wanted bed without one refuses bed_credit_budget_missing."
+     }
+    },
+    "required": [
+     "campaign",
+     "decision",
+     "out"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/music-bed/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "music_bed_selection",
+   "limitations": [
+    "Campaign jobs only. A client edition and any root its campaign does not hold refuse the record at admit and in the music stage.",
+    "No catalog adapter ships, so no search, download or credit spend happens through this draft yet.",
+    "The ledger sees only this stage's spend and counts by UTC calendar month, so it holds a project budget and not the account's balance.",
+    "Selection closes no licence gate. A public cut with a bed stays refused while the record has no certified licence PDF digest and no clear Content ID result.",
+    "Splice's terms refuse a shared stack, a loop or bed published alone, raw loops on a third party's machine, preview audio, a creator's name and model training on a cut with a bed. See docs/research/2026-11-07-splice-terms-campaign-beds.md."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true
+   },
+   "dependencies": {
+    "recommended_prior_tools": [],
+    "enforced": false,
+    "note": "The result goes to narrated_video_intake, and the job root is bound with init --campaign."
+   },
+   "agent_workflow": {
+    "identify": "Read outcome, bedless_reason, bed, layers and credits.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Bed selection\" and docs/research/2026-11-07-splice-terms-campaign-beds.md.",
+    "iterate": "On a refusal, write a bedless decision and select again, so a video never waits on a bed.",
+    "acceptance": "A selection is evidence of a decision and a digest binding. Listening, Content ID and delivery are separate states.",
     "max_comparison_candidates_default": 2
    }
   },
@@ -959,6 +1045,18 @@
       "maximum": 900,
       "default": 300,
       "description": "Outer deadline for the whole call in seconds (at most 900). A timed-out intake has written nothing, or only its complete output; call it again with a new out directory."
+     },
+     "bed_selection": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A file bed-select wrote. A selected bed joins the job once each loop checks in store by SHA-256, and a bedless one leaves music null. Needs campaign."
+     },
+     "campaign": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The campaign the bed selection names. Any other refuses bed_selection_campaign."
      }
     },
     "required": [

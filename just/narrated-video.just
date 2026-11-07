@@ -123,6 +123,12 @@ nv-findings job *args:
 nv-campaign-bind job campaign *args:
     python3 -m narrate video campaign-bind {{quote(job)}} --campaign {{quote(campaign)}} {{args}}
 
+# Record a campaign's bed decision (docs/spec/NARRATED_VIDEO.md, "Bed selection"). DECISION is the agent's JSON, and OUT
+# a new file intake --bed-selection reads. A decision that wants no bed spends nothing. ARGS: --job, --root, --store,
+# --monthly-credits N. No catalog adapter ships, so a wanted bed refuses bed_catalog_unconfigured.
+nv-bed-select campaign decision out *args:
+    python3 -m narrate video bed-select --campaign {{quote(campaign)}} --decision {{quote(decision)}} --out {{quote(out)}} {{args}}
+
 # Record a round a findings report started, on a job bound to a campaign. Every other job refuses round_needs_decision.
 # At the cap it prints result parked and exits 0, and asks nobody. ARGS: --video-sha256 HEX, --root DIR.
 nv-round job findings *args:
