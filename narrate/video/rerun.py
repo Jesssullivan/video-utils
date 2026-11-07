@@ -15,9 +15,11 @@ fresh and only what changed runs again. rerun.json, beside job.json, records eac
 - machine_round records a round a gate's findings started, with no Softproxy decision, on a job bound to a campaign
   (rulings TIN-7125 52ca88bf, 0690fe88). bind_campaign is the one write that binds it, and it refuses a client edition
   and a root that already holds an operator's decision, so every other job keeps its fix or accept. The row holds the
-  findings by digest and code count and the stages their fix may run (graph.reach), and the render that answers it
-  refuses round_out_of_reach when anything else ran, so a slide fix cannot re-voice. At the cap the root parks: a
-  parked record and the result parked, which asks nobody. A later round on that root reads parked again.
+  findings by digest and code count, the stages their fix may run (graph.reach) and the store's commit counter, and the
+  render that answers it refuses round_out_of_reach when anything else ran since, so a slide fix cannot re-voice. A
+  report that names its job or cut binds them, so findings of another job or an older job.json start nothing, and
+  findings of a cut name that cut. At the cap the root parks: a parked record and the result parked, which asks nobody.
+  A later round on that root reads parked again.
 
 A decision binds one cut of one job, whether it was a GO or a FIX: accept.bound_elsewhere reads every job's rerun.json
 under the store root, under the root lock. A round binds its cut for good: accept refuses that cut and a later result
@@ -55,7 +57,7 @@ RENDER_FIELDS = {
 }
 FIX_FIELDS = {"round", "decision", "resolution", "video_sha256", "job_sha256", "deliver_check", "recorded_utc"}
 MACHINE = "machine"  # a machine round's resolution, where a FIX holds form_only
-ROUND_FIELDS = FIX_FIELDS | {"campaign", "findings_sha256", "codes", "reach"}
+ROUND_FIELDS = FIX_FIELDS | {"campaign", "findings_sha256", "codes", "reach", "seq"}
 CAMPAIGN_FIELDS = {"id", "resolution", "recorded_utc"}
 PARKED_FIELDS = {"round", "findings_sha256", "codes", "video_sha256", "job_sha256", "recorded_utc"}
 
@@ -95,6 +97,7 @@ def valid_round(row, position):
         and accept.sha256(row["findings_sha256"])
         and isinstance(row["codes"], dict)
         and isinstance(row["reach"], list)
+        and type(row["seq"]) is int
         and accept.sha256(row["job_sha256"])
         and (row["video_sha256"] is None or accept.sha256(row["video_sha256"]))
         and (
@@ -221,13 +224,16 @@ def proof(previous, stages):
     }
 
 
-def check_reach(ledger, answers, previous, shown):
-    """Refuse a render that answers a machine round and ran a stage that round's fix may not. A first render has
-    nothing to compare: what ran since no render is the whole job."""
+def check_reach(ledger, answers, previous, stages):
+    """Refuse a render that answers a machine round when a stage that round's fix may not run committed after the round.
+    The row holds the store's commit counter, so what ran before it counts for nothing, and a cut with no render row is
+    still checked. A round that named no cut, on a root with no render, has nothing to compare: what runs next is the
+    whole job."""
     row = ledger["fixes"][answers - 1] if answers is not None else None
-    if row is None or row["resolution"] != MACHINE or previous is None:
+    if row is None or row["resolution"] != MACHINE or (previous is None and row["video_sha256"] is None):
         return
-    others = [n for n in shown["ran"] if n.partition("/")[0] not in row["reach"]]
+    since = sorted((n for n, r in stages.items() if r.get("seq", 0) > row["seq"]), key=lambda n: stages[n]["seq"])
+    others = [n for n in since if n.partition("/")[0] not in row["reach"]]
     if others:
         raise JobError("round_out_of_reach", f"round {answers} reaches no {others[0]}; {len(others)} such nodes ran")
 
@@ -274,7 +280,7 @@ def record_render(store, job, request, render, stages, seq, now=utc_now):
         if fix_of(ledger, video) is not None:
             raise JobError("fix_unchanged_cut", "the rerun made a cut a FIX round sent back")
         answers = unanswered(ledger)
-        check_reach(ledger, answers, previous, shown)
+        check_reach(ledger, answers, previous, stages)
         rows.append(
             {
                 "run_id": request["run_id"],
@@ -399,13 +405,26 @@ def round_result(store, ledger, row, recorded):
     }
 
 
+def named_video(report, video_sha256):
+    """The cut a round names: the caller's, or the one its report read. Refuses video_mismatch when they differ, because
+    a round that dropped the report's cut would bind none, and an unchanged cut could answer it."""
+    named = report.get("video_sha256")
+    if named is None:
+        return video_sha256
+    accept.check_video(named)
+    if video_sha256 not in (None, named):
+        raise JobError("video_mismatch", "the report read another cut than --video-sha256 names")
+    return named
+
+
 def machine_round(store, report, video_sha256=None, now=utc_now):
     """Record a round that report (narrate/video/findings.py) started, on a job bound to a campaign. video_sha256 names
     the cut those findings read, and a report only a cut can give must name one. Returns {ok, result, ...}: result is
     round with its number and reach, or parked at the cap with the rounds used. Refusals: findings_invalid,
-    round_needs_decision (a client edition, or no campaign bound), round_no_findings (no blocking row),
-    round_video_missing, the video forms, video_mismatch, cut_accepted and fix_already_recorded. Parking writes the
-    parked record, a refusal writes nothing, and the same findings on the same cut again is a no-op."""
+    round_needs_decision (a client edition, or no campaign bound), round_no_findings (no blocking row), findings_stale
+    (the report names another job or job.json), round_video_missing, the video forms, video_mismatch, cut_accepted and
+    fix_already_recorded. Parking writes the parked record, a refusal writes nothing, and the same findings on the same
+    cut again is a no-op."""
     shown = typed.check(report)
     rows = [row for row in shown["findings"] if row["blocking"]]
     job = store.read_job()
@@ -418,6 +437,9 @@ def machine_round(store, report, video_sha256=None, now=utc_now):
             raise JobError("round_needs_decision", "only a job bound to a campaign starts a round with no decision")
         if not rows:
             raise JobError("round_no_findings", "the report holds no blocking finding, so nothing starts a round")
+        if report.get("job_id", store.job_id) != store.job_id or report.get("job_sha256", job_sha256) != job_sha256:
+            raise JobError("findings_stale", "the report read another job or job.json than the root holds")
+        video_sha256 = named_video(report, video_sha256)
         render = None
         if video_sha256 is not None:
             accept.check_video(video_sha256)
@@ -426,7 +448,7 @@ def machine_round(store, report, video_sha256=None, now=utc_now):
                 raise JobError("video_mismatch", "the findings name another cut than the current composed video")
             if any(r["video_sha256"] == video_sha256 for r in accept.read(store)["acceptances"]):
                 raise JobError("cut_accepted", "the operator already accepted a gate of this cut")
-        elif any(row["gate"] in typed.CUT_GATES or row["code"] in typed.CUT_CODES for row in rows):
+        elif any(typed.reads_cut(row) for row in rows):
             raise JobError("round_video_missing", "these findings read a composed cut, so the round names it")
         if ledger.get("parked") is not None:
             return parked_result(store, ledger, recorded=False)
@@ -453,6 +475,7 @@ def machine_round(store, report, video_sha256=None, now=utc_now):
             "findings_sha256": findings_sha256,
             "codes": codes,
             "reach": graph.reach({row["stage"] for row in rows}),
+            "seq": store.current().get("seq", 0),
             "video_sha256": video_sha256,
             "job_sha256": job_sha256,
             "deliver_check": None if render is None else render["deliver_check"],

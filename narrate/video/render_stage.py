@@ -512,35 +512,50 @@ def preflight(request, store, media, env=None):
 
 
 def job_findings(store):
-    """Every finding this job root holds, as one typed report (narrate/video/findings.py): the last preflight, each
-    script stage's lexical findings, each stage refusal the store holds and the current deliver_check's failed gates.
-    Read only, so it moves no key. video_sha256 is the composed cut those last findings read, or None."""
+    """Every finding this job root holds, as one typed report (narrate/video/findings.py): the last preflight of this
+    job.json, each script stage's lexical findings, each stage refusal the store holds and the current deliver_check's
+    failed gates. Read only, so it moves no key. A deliver_check of an older job.json or compose read a cut this job no
+    longer is, so its rows are left out: deliver_check says current, stale or missing, and video_sha256 is the cut a
+    current one read, or None. ok speaks for these rows only: a job with no current deliver_check has passed nothing."""
     job = store.read_job()
+    job_sha256 = keys.digest(job)
     current = store.current()
     rows = []
-    preflight_path = store.dir / INTAKE_DIR / PREFLIGHT_FILE
-    if preflight_path.is_file() and not preflight_path.is_symlink():
-        rows += frames.typed_rows(_intake_json(preflight_path).get("findings") or [])
-    for node_id, entry in sorted(current["stages"].items()):
-        stage, _, segment = node_id.partition("/")
-        path = store.dir / entry["dir"] / "lexical.json"
-        if stage == "script" and path.is_file():
-            rows += speech.lexical_rows(load_store_json(path), segment)
-    for node_id, refusal in sorted(current["refusals"].items()):
-        stage, _, segment = node_id.partition("/")
-        if stage == "voice_qa":
-            rows += speech.qa_rows(segment, refusal)
-        else:
-            rows.append(typed.finding(refusal["code"], gate=stage, stage=stage, segment=segment or None))
-    entry = current["stages"].get("deliver_check")
-    path = store.dir / entry["dir"] / "deliver_check.json" if entry is not None else None
-    if path is not None and path.is_file():
-        try:
+    try:
+        render, _ = accept.render_of(store, job)
+        state = "current"
+    except JobError as exc:
+        if exc.code not in ("deliver_check_missing", "deliver_check_stale"):
+            raise
+        render, state = None, "missing" if exc.code == "deliver_check_missing" else "stale"
+    try:
+        preflight_path = store.dir / INTAKE_DIR / PREFLIGHT_FILE
+        if preflight_path.is_file() and not preflight_path.is_symlink():
+            held = _intake_json(preflight_path)
+            if held.get("job_sha256") == job_sha256:
+                rows += frames.typed_rows(held.get("findings") or [])
+        for node_id, entry in sorted(current["stages"].items()):
+            stage, _, segment = node_id.partition("/")
+            path = store.dir / entry["dir"] / "lexical.json"
+            if stage == "script" and path.is_file():
+                rows += speech.lexical_rows(load_store_json(path), segment)
+        for node_id, refusal in sorted(current["refusals"].items()):
+            stage, _, segment = node_id.partition("/")
+            if stage == "voice_qa":
+                rows += speech.qa_rows(segment, refusal)
+            else:
+                rows.append(typed.finding(refusal["code"], gate=stage, stage=stage, segment=segment or None))
+        if render is not None:
+            path = store.dir / current["stages"]["deliver_check"]["dir"] / "deliver_check.json"
             rows += deliver.typed_findings(load_store_json(path), job)
-        except (KeyError, TypeError) as exc:
-            raise JobError("store_invalid", "deliver_check.json is not a deliver_check report") from exc
-    video = (store.manifest("compose") or {}).get("outputs", {}).get("video.mp4") if entry is not None else None
-    return typed.report(rows) | {"job_id": store.job_id, "job_sha256": keys.digest(job), "video_sha256": video}
+    except (AttributeError, KeyError, TypeError) as exc:
+        raise JobError("store_invalid", "a report this job root holds is not the report its stage writes") from exc
+    return typed.report(rows) | {
+        "job_id": store.job_id,
+        "job_sha256": job_sha256,
+        "deliver_check": state,
+        "video_sha256": None if render is None else render["video_sha256"],
+    }
 
 
 def preflight_binding(store, job, intake_sha256):

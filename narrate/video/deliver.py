@@ -147,8 +147,13 @@ def page_at(pages, at_s):
     return next((p["id"] for p in pages if p["endS"] == at_s), None)
 
 
+MACHINE_GATES = (typed.PROFILE, typed.LOUDNESS, typed.FLASH, typed.CAPTIONS, typed.AVATAR_BOX, typed.SLIDE_MATCH)
+
+
 def typed_findings(report, job):
-    """Every failed machine gate of a deliver_check.json as typed findings. A gate that passed gives none."""
+    """Every failed machine gate of a deliver_check.json as typed findings. A gate that passed gives none, and a gate
+    that failed always gives one: a measure no limit can read, such as NaN, fails its gate and is over no limit, so that
+    gate gives gate_failed, which no stage bounds."""
     gates, pages = report["gates"], (job["slides"] or {}).get("pages") or []
     rows = [typed.finding(f"profile_{k}", **v) for k, v in report["profile"]["findings"].items()]
     if gates["loudness"] == "failed":
@@ -163,7 +168,11 @@ def typed_findings(report, job):
         if change["max_jump"] > flash["max"]:
             rows.append(typed.finding("flash_jump", page=page_at(pages, change["at_s"]), limit=flash["max"], **change))
     rows += [typed.finding(CAPTION_CODES[text]) for text in report["captions"]["findings"]]
-    return rows + typed_rows(report["avatar_box"]["findings"]) + typed_rows(report["slide_match"]["findings"])
+    rows += typed_rows(report["avatar_box"]["findings"]) + typed_rows(report["slide_match"]["findings"])
+    named = {row["gate"] for row in rows}
+    return rows + [
+        typed.finding(typed.GATE_FAILED, gate=g) for g in MACHINE_GATES if gates[g] == "failed" and g not in named
+    ]
 
 
 def delivery_gate(job, bed, machine, operator):
