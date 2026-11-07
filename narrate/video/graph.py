@@ -28,6 +28,9 @@ it keys each node in topological order from the store's current.json and reports
 The graph also lists the operator's acceptances (`accept`, narrate/video/accept.py) that bind the fresh deliver_check
 render under accepted, and drops the gates they close (listening and lip sync) from pending_operator. Every other
 operator gate, visible_text_unread among them, stays listed.
+
+reach answers which stages a fix may run: where it enters and every stage that reads that one. A machine-started round
+holds it (narrate/video/rerun.py), so a slide fix that entered at compose cannot re-voice.
 """
 
 from collections import namedtuple
@@ -183,12 +186,26 @@ def toposort(stages):
 ORDER = toposort(STAGES)
 
 
+def reach(entries):
+    """Every stage a fix entering at entries may run, in graph order: each entry and all that depend on it, an order
+    edge included. An entry that is None or names no stage bounds nothing, so it reaches the whole graph."""
+    entries = set(entries)
+    if None in entries or entries - set(BY_ID):
+        return list(ORDER)
+    found = set(entries)
+    for stage_id in ORDER:
+        if {up for up, _ in BY_ID[stage_id].depends_on} & found:
+            found.add(stage_id)
+    return [stage_id for stage_id in ORDER if stage_id in found]
+
+
 def row_tasks(dag):
     """The Hatchet task list of the published DAG's row, in row order. One stage is one task. A task's parents are its
     stage's depends_on, each root stage takes the gate as a parent, and a render task lists the guard as a direct
-    parent. The guard follows the gate, and the operator tasks close the list."""
+    parent. A stage task adds its row.task_limits. The guard follows the gate, and the operator tasks close the list."""
     row = dag["row"]
     guard = row["guard"]
+    limits = row["task_limits"]
     tasks = []
     for stage in dag["stages"]:
         parents = list(dict.fromkeys(edge["stage"] for edge in stage["depends_on"]))
@@ -204,6 +221,7 @@ def row_tasks(dag):
                 "source_tool": stage["tool"],
                 "optional": stage["optional"],
                 "effect": effect,
+                **limits.get(stage["id"], {}),
             }
         )
         if stage["id"] == dag["gated_by"]:

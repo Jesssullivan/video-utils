@@ -4,6 +4,19 @@
 
 ### Added
 
+- `row.task_limits` in `program/dags/narrated-video.json`: bounded `retries` and
+  `timeout` for each stage task of the render row, which `graph.row_tasks` adds.
+  `row.tasks_sha256` moves to `de6c1042`. The row stays off (TIN-7788).
+- `narrate/video/findings.py`: one typed record per gate code and page, read from
+  intake, claims, preflight, `deliver_check.json` and the script and `voice_qa`
+  stages, and `narrate video findings JOB`. A gate's exit code and first code stay,
+  and no stage key moves.
+- `narrate video round` and `campaign-bind`: a round a gate's findings start with
+  no Softproxy decision, on a job bound to a campaign only, holding the stages its
+  fix may run (`graph.reach`). At the cap the root records `parked`. A client
+  edition, and any job with no binding, keeps its decision. Nothing calls these yet.
+- `narrate video fix --extend`: one more FIX round per decision past the cap, each
+  recorded (TIN-7788, rulings TIN-7125 `0690fe88`, `11296de3`).
 - `narrate/serve/modal_batch.py`: a draft sealed Modal app for a
   `RentedAudioCppBatch` VoxCPM2 run, its host side `run_plan`, the
   `voxcpm2-batch-modal` record, and `just narrate-modal-dry-run`, which plays it

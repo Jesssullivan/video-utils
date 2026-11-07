@@ -182,6 +182,7 @@ root. Cade's own cap counts FIX cuts per packet (`docs/DEMO_DELIVERY.md`). The r
 | --- | --- |
 | `video_mismatch` | the decision names another cut than the current composed video |
 | `fix_already_recorded` | this cut's round holds another decision. The same decision is a no-op, `recorded: false`, and that holds at the cap |
+| `fix_extend_unneeded` | `--extend` on a job root that still has rounds left |
 | `decision_bound_elsewhere` | the decision already held a round on any job under the store root, or accepted a gate of another cut or job |
 | `cut_accepted` | the operator already accepted a gate of this cut |
 
@@ -192,6 +193,47 @@ A round binds its cut for good. `nv accept` refuses that cut with `cut_sent_back
 when the decision is the FIX itself. `result` refuses `fix_unchanged_cut` for a cut any round sent back, not only the
 last one, so the cut never records. A FIX needs no render row, because it binds the current composed video, so the same
 holds on a job root with no render recorded. `result` reports in `answers_round` the last round no render has answered.
+
+The operator's answer at the cap extends the job root by one round per decision, each recorded (TIN-7125 `11296de3`).
+`fix --extend` takes that decision: it adds the one round it uses, and its row says `extended: true`, so a grant cannot
+wait for a later cut. A fourth FIX without `--extend` still refuses `fix_cap_reached`.
+
+### Machine rounds
+
+A round can also start from a gate's findings, with no Softproxy decision, on a job bound to a campaign (TIN-7125
+`52ca88bf`, `0690fe88`). Nothing calls this yet, and no Hatchet row runs it.
+
+`narrate video campaign-bind JOB --campaign ID` writes the binding into `rerun.json`. Its id's form is checked here, and
+that a signed campaign record holds it is the caller's check. It refuses `campaign_client_job` for a client edition and
+`campaign_after_decision` for a root that holds an operator's FIX or acceptance. A job with no binding keeps its
+decision, whatever its edition, because a demo bundle's job is `Internal`.
+
+`narrate video round JOB --findings FILE [--video-sha256 V]` reads a typed report (`docs/spec/NARRATED_VIDEO.md`,
+"Findings") and returns one of two results:
+
+| `result` | Means |
+| --- | --- |
+| `round` | a row in `fixes` with `decision: null`, `resolution: machine`, the campaign, the findings by digest and code count, `reach` and `seq`, the store's commit counter |
+| `parked` | the job root used its 3 rounds. A `parked` record holds the last findings by digest, the exit code is 0 and nobody is asked. Every later `round` on that root returns `parked`, and a person may still `fix --extend` it |
+
+A machine round counts against the same 3 rounds and binds its cut the same way, so `nv accept` and `result` refuse a cut
+it sent back. `reach` is `graph.reach` of the stages the findings' codes enter at. The render that answers the round
+refuses `round_out_of_reach` when any other stage committed after `seq`, so a fix of a slide, which enters at `compose`,
+cannot re-voice. That holds on a cut with no render row. A round that named no cut, on a root with no render, has nothing
+to compare, because the next run is the whole job.
+
+| Refusal | When |
+| --- | --- |
+| `findings_invalid` | the file is not a typed report, or a row's code, gate or stage is not one short token |
+| `round_needs_decision` | a client edition, or a job root with no campaign bound |
+| `round_no_findings` | no row blocks. A lexical finding alone is advisory |
+| `findings_stale` | the report names another job or an older `job.json` |
+| `round_video_missing` | a finding only a composed cut can show names no cut: profile, loudness, flash, captions, an avatar frame or a slide's layer or shown share |
+| `video_mismatch` | as for `fix`, or `--video-sha256` names another cut than the report read |
+| `cut_accepted`, `fix_already_recorded` | as for `fix` |
+
+A report that names `job_id`, `job_sha256` or `video_sha256`, as `narrate video findings` does, binds them. The same
+findings on the same cut again are a no-op, `recorded: false`. A machine round closes no operator gate.
 
 ### Mixed takes
 
@@ -366,7 +408,6 @@ re-hashed, and other content refuses `export_conflict`. A second export of the s
 | R8 | Whether `intake` should also record the engine record and kitpip digests it read, so that they are bound like the bundle. Today they are `mount_only` | this repository |
 | R4 | Where the hash-pinned VoxCPM2 batch body and its weights live for Cade's worker (P7) | the kit owner |
 | R5 | Multi-clip bundles. Intake refuses a second MP4 until P18 | this repository |
-| R9 | What the operator's answer does after `fix_cap_reached`. The ruling says stop and ask, and names no way to continue on the same root. `rerun.json` has no extension row | the operator |
 | R10 | Whether Cade's FIX cap moves from per packet to the job root's count, and when Cade calls `nv fix`. The Cade side is not wired | Cade |
 
 ## Limits
@@ -374,7 +415,8 @@ re-hashed, and other content refuses `export_conflict`. A second export of the s
 - No test runs a GPU window, the lease helper, FFmpeg or a model. The tests use a fake stage runner, as the accept
   tests do.
 - `rerun.json` carries no signature. A hand edit or a deleted file resets the FIX count on this side, so a reader that
-  needs the count to hold compares it with its own ledger.
+  needs the count to hold compares it with its own ledger. A hand edit can also add a campaign binding, so a caller
+  that starts a round checks the campaign against its own signed record first.
 - `nv accept` does not read `rerun.json`, so a FIX does not stop a later accept of the same cut. `nv fix` refuses a cut
   with an acceptance, but only one direction is checked.
 - `result` refuses a `mixed` request until the Lease gaps close, so a real mixed run has no result yet. The tests prove

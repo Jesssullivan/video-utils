@@ -186,6 +186,25 @@ ROW_GRAPH = [
 ]
 
 
+# The engine limits a stage task adds. The guard and the operator tasks declare none, so their entries stay exact.
+ROW_TIMEOUT = "3h"
+ROW_LIMITS = {
+    "admit": {"timeout": "10m"},
+    "script": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "voice": {"retries": 1, "timeout": ROW_TIMEOUT},
+    "voice_qa": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "base": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "place": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "avatar": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "avatar_check": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "music": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "mix": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "compose": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "deliver_check": {"retries": 2, "timeout": ROW_TIMEOUT},
+    "handoff": {"retries": 2, "timeout": ROW_TIMEOUT},
+}
+
+
 def published_dag():
     return json.loads(DAG.read_text())
 
@@ -195,6 +214,8 @@ def test_the_row_task_graph_is_the_published_dag_and_its_digest_is_recorded():
     tasks = graph.row_tasks(dag)
     rows = [(t["name"], t["parents"], t.get("source_tool"), t["optional"], t["effect"]) for t in tasks]
     assert rows == ROW_GRAPH
+    limits = {t["name"]: {k: t[k] for k in ("retries", "timeout") if k in t} for t in tasks}
+    assert {name: held for name, held in limits.items() if held} == ROW_LIMITS
     assert dag["row"]["name"] == "client-video-narrated-render"
     assert dag["row"]["tasks_sha256"] == graph.row_tasks_sha256(tasks), (
         "the row's task graph changed: record the new tasks_sha256 and re-pin the catalog row and the pinned graph"
@@ -226,13 +247,52 @@ def operator_task_edge(dag):
     dag["row"]["operator_tasks"][1]["parents"].remove("handoff")
 
 
+def limit_flip(dag):
+    dag["row"]["task_limits"]["compose"]["timeout"] = "4h"
+
+
+def retry_flip(dag):
+    dag["row"]["task_limits"]["voice"]["retries"] = 2
+
+
+def limit_dropped(dag):
+    del dag["row"]["task_limits"]["deliver_check"]
+
+
 @pytest.mark.parametrize(
-    "drift", [drop_order_edge, stale_tool, optional_flip, effect_flip, extra_stage, operator_task_edge]
+    "drift",
+    [
+        drop_order_edge,
+        stale_tool,
+        optional_flip,
+        effect_flip,
+        extra_stage,
+        operator_task_edge,
+        limit_flip,
+        retry_flip,
+        limit_dropped,
+    ],
 )
 def test_any_drift_in_the_row_task_graph_changes_its_digest(drift):
     dag = published_dag()
     drift(dag)
     assert graph.row_tasks_sha256(graph.row_tasks(dag)) != dag["row"]["tasks_sha256"]
+
+
+def test_the_row_limits_stay_inside_the_gate_bounds_and_name_stages_only():
+    # The bounds the cade gate holds: 0 to 2 retries, one whole number and one unit up to 4h. The guard and the operator
+    # tasks are not stages, so no limit reaches them, and outbox_post cannot repeat an ask.
+    dag = published_dag()
+    limits = dag["row"]["task_limits"]
+    assert set(limits) <= {stage["id"] for stage in dag["stages"]}
+    seconds = {"s": 1, "m": 60, "h": 3600}
+    for name, limit in limits.items():
+        assert set(limit) <= {"retries", "timeout"}, name
+        assert 0 <= limit.get("retries", 0) <= 2, name
+        assert 1 <= int(limit["timeout"][:-1]) * seconds[limit["timeout"][-1]] <= 4 * 3600, name
+    by_name = {task["name"]: task for task in graph.row_tasks(dag)}
+    for name in (dag["row"]["guard"]["name"], "quiet_window_check", "outbox_post"):
+        assert "retries" not in by_name[name] and "timeout" not in by_name[name], name
 
 
 def test_the_row_digest_ignores_parent_order():
