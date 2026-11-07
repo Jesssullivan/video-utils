@@ -22,8 +22,8 @@ Knobs live in the private record: each layer's `gainDb` and `tempoFactor` (0.5 t
 Ruling TIN-7125 `e552e569` lets the agent judge the need and spend Splice credits inside the subscription, on campaign jobs only.
 
 1. Write the decision as JSON: `{"wanted": false, "reason": "..."}`, or `{"wanted": true, "reason": "...", "query": "...", "layers": 2}`. Bedless is a normal outcome and spends nothing.
-2. `just nv-bed-select CAMPAIGN DECISION OUT` writes the selection, with `--monthly-credits N` or `NARRATED_VIDEO_BED_CREDITS` on a wanted bed. No default budget exists. No catalog adapter ships, so a wanted bed refuses `bed_catalog_unconfigured` today.
-3. `intake --bed-selection OUT --campaign CAMPAIGN --store STORE` carries it into the job, and `init --from FILE --campaign CAMPAIGN` binds the job root.
+2. `just nv-bed-select CAMPAIGN DECISION OUT` writes the selection, with `--monthly-credits N` or `NARRATED_VIDEO_BED_CREDITS` on a wanted bed. The variable is a ceiling the argument cannot raise. No default budget exists. No catalog adapter ships, so a wanted bed refuses `bed_catalog_unconfigured` today.
+3. `intake --bed-selection OUT --campaign CAMPAIGN --store STORE` carries it into the job, and `init --from FILE --campaign CAMPAIGN` binds the job root. Use the root `bed-select` counted on, because a loop that root's ledger never counted refuses `bed_unledgered`.
 
 A refusal stops no video: write a bedless decision and select again. Read `docs/research/2026-11-07-splice-terms-campaign-beds.md` before any adapter work.
 

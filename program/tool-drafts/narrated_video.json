@@ -450,7 +450,7 @@
      "monthly_credits": {
       "type": "integer",
       "minimum": 1,
-      "description": "The month's credit budget, or NARRATED_VIDEO_BED_CREDITS. There is no default, and a wanted bed without one refuses bed_credit_budget_missing."
+      "description": "The month's credit budget, at most NARRATED_VIDEO_BED_CREDITS when that is set. There is no default, and a wanted bed without one refuses bed_credit_budget_missing."
      }
     },
     "required": [

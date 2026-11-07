@@ -30,6 +30,17 @@ The judge and catalog are fakes and the loops are generated sines. Local and non
 - `deliver_check` is unchanged. A public cut with a bed stays refused while the record has no licence PDF digest and no clear Content ID result. Neither has an agent route, so item 2.6 or a ruling has to settle it.
 - The account question under Splice Terms 2.12 (n) is open for Jess. See the research file.
 
+## Review, November 7
+
+An adversarial read with fake ports found these, each fixed with a test: a row that did not say `preview` false was picked, a selection could arrive with its licence gates set, a selection's loops needed no ledger row, a selection could omit layer fields or name another source, records holding another bed under the id won over the selection, `--monthly-credits` raised the variable's budget, and an `--out` with no directory crashed after the spend.
+
+Open, not fixed here:
+
+- `deliver_check` reads a non-empty PDF digest and a `clear` key as passed, and an agent that can write the record can set both. The listening gate still holds public shut on this branch, with `test_a_record_cleared_by_hand_with_upload_set_still_allows_no_public_upload`. The campaign edition (#102) reads `upload_gates_closed` in its verdict, so the two together need a rule for an agent's bed before any public run.
+- The budget and the root come from the caller, so a second root starts a second count. A row must pin both.
+- The decision's query goes to the vendor once an adapter exists, and neither the private-terms guard nor BS-21 reads it. The adapter must.
+- `init --replace --campaign` on a root another campaign holds overwrites the job and then refuses `campaign_bound`.
+
 ## For the adapter
 
 The real port must call Splice's MCP server and nothing else, skip previews and stacks, and map a row to `{asset_id, type, bpm, key, preview}`. How a real row marks preview audio is unknown here, because no search ran. The ledger counts by UTC calendar month, and the subscription's month may start on another day.

@@ -475,13 +475,15 @@ def plan(job, records, store, ctx):
     ctx: {"kitpip": kitpip.resolve() result or None, "pin": the kitpip pin or None, "vrm": vrm.resolve() result
     or None, "vrm_pin": the vrm pin or None, "ffmpeg": FFmpeg identity or None, "sources": set of SHA-256 digests
     in the private store, or None when no store is configured}. The avatar stages use the pin and resolution of
-    the job's avatar.external. With no store yet, ctx["campaign"] names the campaign the caller is about to bind.
+    the job's avatar.external. With no store yet, ctx["campaign"] names the campaign the caller is about to bind and
+    ctx["bed_root"] the store root the job will live on.
     """
     avatar_state = (avatar_resolution(job, ctx) or {}).get("state")
-    campaign = None
+    campaign, root = None, None
     if job["music"] is not None:
         campaign = ctx.get("campaign") if store is None else bed_select.bound_campaign(store)
-    gate = admit_stage.admit(job, records, avatar_state if job["avatar"] is not None else None, campaign)
+        root = ctx.get("bed_root") if store is None else store.root
+    gate = admit_stage.admit(job, records, avatar_state if job["avatar"] is not None else None, campaign, root)
     nodes = nodes_for(job)
     by_stage = {}
     for node in nodes:

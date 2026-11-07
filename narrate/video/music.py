@@ -60,7 +60,8 @@ def arrange(layers, total):
 
 def run_music(rc, row, partial):
     bed = rc.records["music_beds"][rc.job["music"]["bed"]]
-    problems = bed_select.acquisition_problems(bed, rc.job["edition"], bed_select.bound_campaign(rc.store))
+    campaign = bed_select.bound_campaign(rc.store)
+    problems = bed_select.acquisition_problems(bed, rc.job["edition"], campaign, rc.store.root)
     if problems:
         raise StageRefused(*problems[0])
     rows, pcms = [], []

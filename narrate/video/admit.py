@@ -93,14 +93,14 @@ def bounds(job, refusals):
         refusals.append(refusal("knob_out_of_bounds", "delivery.truePeakDbtp is above -1.5"))
 
 
-def bed_record(job, records, refusals, campaign=None):
+def bed_record(job, records, refusals, campaign=None, root=None):
     if job["music"] is None:
         return None
     bed = records["music_beds"].get(job["music"]["bed"])
     if bed is None:
         refusals.append(refusal("bed_record_missing", f"music bed {job['music']['bed']} has no record"))
         return None
-    problems = bed_select.acquisition_problems(bed, job["edition"], campaign)
+    problems = bed_select.acquisition_problems(bed, job["edition"], campaign, root)
     refusals.extend(refusal(code, detail) for code, detail in problems)
     layers = bed["layers"]
     if not 2 <= len(layers) <= 3 or len({layer["sha256"] for layer in layers}) != len(layers):
@@ -178,11 +178,12 @@ def pending_operator(job, bed, visible=None):
     return items
 
 
-def admit(job, records, avatar_state=None, campaign=None):
+def admit(job, records, avatar_state=None, campaign=None, root=None):
     """{verdict, refusals, edition, labels, pending_operator}. avatar_state is the resolve() state of the job's
     avatar external (kitpip or vrm), or None when no avatar is on. Only a digest mismatch refuses here; a missing
     binary blocks the avatar stages. A VRM avatar also refuses on its gates (vrm.gates). campaign is the campaign
-    holding the job root, which an agent-acquired bed needs."""
+    holding the job root, which an agent-acquired bed needs, and root that job's store root, whose credit ledger must
+    hold its loops. Intake has no root yet."""
     check = port()
     refusals = []
     consent_ids, voice_ids, personas = segment_labels(job, records, refusals)
@@ -191,7 +192,7 @@ def admit(job, records, avatar_state=None, campaign=None):
     for persona in sorted(personas):
         if job["labels"]["persona"] != persona:
             refusals.append(refusal("persona_label_missing", "a voice's consent names a persona the labels lack"))
-    bed = bed_record(job, records, refusals, campaign)
+    bed = bed_record(job, records, refusals, campaign, root)
     deck = job["base"].get("deck")
     edits = deck is not None and deck["tightenEditsSha256"] is not None
     if edits and job["segments"] and not job["tighten"]["enabled"]:

@@ -234,6 +234,7 @@ def cmd_init(a):
         return refusal("campaign_client_job", f"edition {job['edition']} keeps the operator's decision")
     if job["music"] is not None:
         ctx["campaign"] = a.campaign or bed_select.bound_campaign(s)
+        ctx["bed_root"] = s.root
     g = graph.plan(job, records, None, ctx)
     if g["admit"]["verdict"] != "Admitted":
         first = g["admit"]["refusals"][0]
@@ -391,9 +392,13 @@ def bed_catalog(a):
 def cmd_bed_select(a):
     if os.path.lexists(a.out):  # before any spend, so a credit never buys a selection that cannot be written
         return refusal("out_exists", "--out already holds a selection")
+    if not Path(a.out).parent.is_dir():
+        return refusal("out_parent_missing", "--out names a directory that does not exist")
     budget = a.monthly_credits
-    if budget is None and os.environ.get(BED_CREDITS_ENV, "").isdigit():
-        budget = int(os.environ[BED_CREDITS_ENV])
+    # The variable is the worker's ceiling: an argument can lower it and cannot raise it.
+    if os.environ.get(BED_CREDITS_ENV, "").isdecimal():
+        ceiling = int(os.environ[BED_CREDITS_ENV])
+        budget = ceiling if budget is None else min(budget, ceiling)
     selection = bed_select.select_bed(
         None,
         bed_select.FileJudge(a.decision),
@@ -725,7 +730,7 @@ def main(argv=None):
     bs.add_argument("--root", help="the store root holding the credit ledger, instead of NARRATED_VIDEO_ROOT")
     bs.add_argument("--store", help="the private store for selected loops, instead of NARRATE_STORE")
     bs.add_argument(
-        "--monthly-credits", type=int, help=f"the month's credit budget, instead of {BED_CREDITS_ENV}; no default"
+        "--monthly-credits", type=int, help=f"the month's credit budget, at most {BED_CREDITS_ENV} when set; no default"
     )
     bs.add_argument("--json", action="store_true", help="print JSON (bed-select always does)")
 

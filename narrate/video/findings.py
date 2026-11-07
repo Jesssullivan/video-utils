@@ -92,7 +92,9 @@ INTAKE_CODES = (
 )  # fmt: skip
 CODES |= {code: (INTAKE, None) for code in INTAKE_CODES}
 # A bed selection refuses before a job exists too. Its fix is a new selection, which a bedless decision always meets.
-BED_SELECTION_CODES = ("bed_digest_mismatch", "bed_loop_missing", "bed_selection_campaign", "bed_selection_invalid")
+BED_SELECTION_CODES = (
+    "bed_digest_mismatch", "bed_loop_missing", "bed_selection_campaign", "bed_selection_invalid", "bed_unledgered",
+)  # fmt: skip
 CODES |= {code: (INTAKE, None) for code in BED_SELECTION_CODES}
 
 

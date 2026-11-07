@@ -38,6 +38,7 @@ import fcntl
 import hashlib
 import json
 import os
+import re
 import shutil
 import tempfile
 from contextlib import contextmanager
@@ -61,7 +62,9 @@ UPPER_LAYER_GAIN_DB = -6.0  # the first loop leads and the rest sit under it; mi
 MAX_LOOP_BYTES = 256 * 1024 * 1024
 MAX_REASON = 200
 AUDIO_SUFFIXES = (".wav", ".aif", ".aiff", ".flac", ".mp3")
-SOURCES = ("Splice", "YoutubeAudioLibrary", "SelfMade", "Fixture")  # MusicBed.Source
+AGENT_SOURCES = ("Splice",)  # the ruling spends Splice credits, and attributionRequired below is Splice's answer only
+LAYER_FIELDS = {"sha256", "bytes", "rateHz", "channels", "source", "bpm", "key", "tempoFactor", "gainDb"}
+MONTH = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")
 LEDGER_ROW = {"month", "asset_id", "credits", "campaign", "job", "recorded_utc", "sha256"}
 DECISION_FIELDS = {"wanted", "reason", "query", "layers", "bpm_min", "bpm_max"}
 GATE_FIELDS = ("certifiedPdfSha256", "contentIdCheck")  # recorded after selection, so the id does not bind them
@@ -90,9 +93,11 @@ def bound_id(bed):
     return f"bed-{hashlib.sha256(canonical(body).encode()).hexdigest()[:32]}"
 
 
-def acquisition_problems(bed, edition, campaign):
+def acquisition_problems(bed, edition, campaign, root=None):
     """[(code, detail)] of a record's acquisition on this job. campaign is the campaign holding the job root, or None.
-    An operator's record has none. An agent's holds only on a non-client job root bound to the campaign it names."""
+    An operator's record has none. An agent's holds only on a non-client job root bound to the campaign it names, and
+    with root, the store root of the job, only when that root's ledger counted every loop. Intake has no root yet, so
+    its caller passes none and plan, init and the music stage read the ledger."""
     if bed["acquisition"]["acquiredBy"] == "Operator":
         return []
     named = agent_campaign(bed)
@@ -107,6 +112,10 @@ def acquisition_problems(bed, edition, campaign):
         problems.append(("bed_digest_mismatch", "the bed record is not the one its id binds"))
     if not bed["licence"]["termsRef"] or not bed["licence"]["termsReadOn"]:
         problems.append(("bed_licence_missing", "an agent-acquired bed names the terms it read and the date"))
+    if any(layer.get("source") not in AGENT_SOURCES for layer in bed["layers"]):
+        problems.append(("bed_acquisition_agent", "the ruling lets an agent spend Splice credits and no other source"))
+    if root is not None and not {layer["sha256"] for layer in bed["layers"]} <= BedCredits(root).digests():
+        problems.append(("bed_unledgered", "a loop of this agent-acquired bed is not in this root's credit ledger"))
     return problems
 
 
@@ -183,6 +192,11 @@ class BedCredits:
                 write_atomic(self.path, ledger)
         return {"month": month, "credits": credits, "spent_month": spent + credits, "budget": budget}
 
+    def digests(self):
+        """The digest of every counted sound that arrived."""
+        with self.locked():
+            return {row["sha256"] for row in self.read()["rows"] if row["sha256"] is not None}
+
     def bind(self, asset_id, sha256):
         """Name the digest a counted sound arrived as, so a licence claim can find it from a layer."""
         with self.locked():
@@ -199,7 +213,9 @@ def valid_row(row):
         isinstance(row, dict)
         and set(row) == LEDGER_ROW
         and isinstance(row["month"], str)
+        and MONTH.fullmatch(row["month"]) is not None  # a month no stamp can match would never count against a budget
         and isinstance(row["asset_id"], str)
+        and bool(row["asset_id"])
         and isinstance(row["credits"], int)
         and not isinstance(row["credits"], bool)
         and row["credits"] >= 0
@@ -244,13 +260,14 @@ def check_decision(value):
 
 def usable(row):
     """A loop of known tempo and key that a purchase, not a preview, supplies. A preview may not leave the vendor's
-    service, and a stack is no Creative Work on its own (Splice Terms 2.3.1.4 (f), 2.5)."""
+    service, and a stack is no Creative Work on its own (Splice Terms 2.3.1.4 (f), 2.5). A row must say it is no
+    preview: an absent or unclear mark is not usable, because the terms refuse the other reading."""
     return (
         isinstance(row, dict)
         and isinstance(row.get("asset_id"), str)
         and bool(row["asset_id"])
         and row.get("type") == "loop"
-        and row.get("preview") is not True
+        and row.get("preview") is False
         and isinstance(row.get("bpm"), (int, float))
         and not isinstance(row.get("bpm"), bool)
         and row["bpm"] > 0
@@ -350,8 +367,8 @@ def select_bed(brief, judge, catalog, *, campaign, budget, root, store_dir, job=
     check_budget(budget)
     if not store_dir or not Path(store_dir).is_dir():
         raise JobError("store_missing", "a selected loop goes into the private store: pass --store or NARRATE_STORE")
-    if catalog.source not in SOURCES or not catalog.terms_ref or not catalog.terms_read_on:
-        raise JobError("bed_licence_missing", "the catalog names no source, terms and read date for the record to hold")
+    if catalog.source not in AGENT_SOURCES or not catalog.terms_ref or not catalog.terms_read_on:
+        raise JobError("bed_licence_missing", "the catalog names no ruled source, terms and read date for the record")
     rows = port_call(catalog.search, decision["query"], decision.get("bpm_min"), decision.get("bpm_max"))
     picked = pick(rows, decision["layers"])
     if picked is None:
@@ -425,7 +442,8 @@ def summary(selection):
 
 def read_selection(path, campaign):
     """(selection, its file's sha256), checked for the campaign intake was given. An agent's record must be the one its
-    id binds and name this campaign."""
+    id binds, name this campaign, hold every layer field and arrive with its licence gates open: select_bed writes them
+    open, and the id leaves them out, so a file that says clear has been edited and nothing else would show it."""
     value = read_json(path, "bed selection")
     invalid = JobError("bed_selection_invalid", "the file is not a bed selection this stage wrote")
     if not isinstance(value, dict) or value.get("kind") != KIND or value.get("schema_version") != SCHEMA_VERSION:
@@ -441,13 +459,15 @@ def read_selection(path, campaign):
         digests = [layer["sha256"] for layer in bed["layers"]]
         sizes = [layer["bytes"] for layer in bed["layers"]]
         bound = bed["id"] == bound_id(bed) and agent_campaign(bed) == campaign
+        open_gates = bed["licence"]["certifiedPdfSha256"] is None and bed["licence"]["contentIdCheck"] == "NotRun"
+        shaped = all(set(layer) == LAYER_FIELDS for layer in bed["layers"])
     except (AttributeError, KeyError, TypeError):
         raise invalid from None
     # The id is computed from the record, so it shows no edit by itself. check_loops reads each digest's store file.
     well_formed = all(isinstance(d, str) and SHA256.fullmatch(d) for d in digests) and all(
         isinstance(n, int) and not isinstance(n, bool) for n in sizes
     )
-    if not bound or not well_formed:
+    if not bound or not well_formed or not open_gates or not shaped:
         raise invalid
     return value, sha256_file(path)
 

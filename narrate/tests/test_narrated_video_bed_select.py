@@ -143,6 +143,12 @@ def ledger_rows(ws):
     return json.loads(path.read_text())["rows"] if path.exists() else []
 
 
+def ledger_row(**fields):
+    row = {"month": "2026-11", "asset_id": "asset-0", "credits": 1, "campaign": CAMPAIGN, "job": None,
+           "recorded_utc": "2026-11-07T12:00:00Z", "sha256": None}  # fmt: skip
+    return row | fields
+
+
 def bed_job(edition="Internal", bed_id="bed-x"):
     """The shape admit needs: the fixture job's records with a bed named and one edition."""
     job = fixture_job()
@@ -444,6 +450,9 @@ def test_the_ledger_binds_each_sound_to_the_digest_it_arrived_as(ws):
     [
         {"kind": "other", "schema_version": 1, "rows": []},
         {"kind": bed_select.LEDGER_KIND, "schema_version": 1, "rows": [{"month": "2026-11"}]},
+        {"kind": bed_select.LEDGER_KIND, "schema_version": 1, "rows": [ledger_row(month="not-a-month")]},
+        {"kind": bed_select.LEDGER_KIND, "schema_version": 1, "rows": [ledger_row(month="2026-13")]},
+        {"kind": bed_select.LEDGER_KIND, "schema_version": 1, "rows": [ledger_row(asset_id="")]},
         {"kind": bed_select.LEDGER_KIND, "schema_version": 2, "rows": []},
         [],
     ],
@@ -555,6 +564,16 @@ def test_preview_audio_and_one_shots_are_never_picked(ws):
     assert catalog.downloads == ["asset-2", "asset-3"]
 
 
+@pytest.mark.parametrize("mark", [1, "true", "false", None, "absent"])
+def test_a_row_that_does_not_say_it_is_no_preview_is_not_picked(mark):
+    rows = loops(2)
+    for row in rows:
+        row.pop("preview")
+        if mark != "absent":
+            row["preview"] = mark
+    assert pick(rows, 2) is None
+
+
 def test_the_pick_keeps_the_first_rows_key_and_the_tempo_bound():
     rows = loops(5)
     rows[1]["key"] = "A minor"
@@ -630,6 +649,161 @@ def test_a_campaign_id_keeps_its_form(ws):
     assert refused_code(select, ws, campaign="two words") == "campaign_id_invalid"
 
 
+@pytest.mark.parametrize("source", ["YoutubeAudioLibrary", "SelfMade", "Fixture"])
+def test_a_catalog_off_the_ruling_refuses_before_any_search(ws, source):
+    catalog = FakeCatalog()
+    catalog.source = source
+    assert refused_code(select, ws, catalog=catalog) == "bed_licence_missing"
+    assert catalog.searches == []
+
+
+@pytest.mark.parametrize("source", ["YoutubeAudioLibrary", "SelfMade", "Fixture", "scraped"])
+def test_an_agents_record_naming_another_source_refuses(ws, source):
+    bed = agent_bed(ws)
+    bed["layers"][0]["source"] = source
+    bed["id"] = bed_select.bound_id(bed)
+    assert bed_codes(bed) == ["bed_acquisition_agent"]
+
+
+# A record no one bought --------------------------------------------------------------------------------------------
+def forged(ws, tmp_path):
+    """A selection the stage never wrote: other files from the store under a recomputed id, with no credit counted."""
+    bed = select(ws)["bed"]
+    made = tmp_path / "made"
+    made.mkdir()
+    for i, layer in enumerate(bed["layers"]):
+        loop = sine_wav(made / f"{i}.wav", 150 + 20 * i)
+        layer.update(sha256=sha(loop), bytes=loop.stat().st_size)
+        shutil.copy(loop, Path(ws["store"]) / f"{sha(loop)}.wav")
+    bed["acquisition"]["creditsSpent"] = 0
+    bed["id"] = bed_select.bound_id(bed)
+    return {"kind": bed_select.KIND, "schema_version": 1, "campaign": CAMPAIGN, "outcome": "selected", "bed": bed}
+
+
+def test_a_loop_the_ledger_never_counted_refuses_at_init_and_in_the_stage(ws, tmp_path, capsys):
+    out = tmp_path / "out"
+    run_intake(ws, out, saved(tmp_path, forged(ws, tmp_path)))  # intake has no root, so plan and the stage hold this
+    common = ["--root", str(ws["root"]), "--records", str(out / "records"), "--store", str(ws["store"])]
+    from_file = ["--job", JOB, "--from", str(out / "narrated-video.json"), "--campaign", CAMPAIGN]
+    assert cli.main(["init", *from_file, *common]) == 1
+    assert "bed_unledgered" in capsys.readouterr().err
+    assert not (ws["root"] / JOB / "job.json").exists()
+
+    s = store.JobStore(ws["root"], JOB)
+    job = json.loads((out / "narrated-video.json").read_text())
+    s.write_job(job)  # a job written around admit still meets the stage's own check
+    rerun.bind_campaign(s, CAMPAIGN)
+    records = load_records(out / "records")
+
+    class Context:
+        store = s
+        env = Env(out / "records", records, ws["store"], None)
+
+    Context.job, Context.records = job, records
+    with pytest.raises(StageRefused) as error:
+        music.run_music(Context, None, tmp_path)
+    assert error.value.code == "bed_unledgered"
+
+
+def test_a_bed_counted_under_another_root_refuses_on_this_one(ws, tmp_path, capsys):
+    selection = select({**ws, "root": tmp_path / "other-root"})
+    out = tmp_path / "out"
+    run_intake(ws, out, saved(tmp_path, selection))
+    common = ["--root", str(ws["root"]), "--records", str(out / "records"), "--store", str(ws["store"])]
+    code = cli.main(["init", "--job", JOB, "--from", str(out / "narrated-video.json"), "--campaign", CAMPAIGN, *common])
+    assert code == 1 and "bed_unledgered" in capsys.readouterr().err
+
+
+def test_an_operators_bed_never_reads_the_ledger(ws, tmp_path):
+    (ws["root"]).mkdir(parents=True, exist_ok=True)
+    (ws["root"] / bed_select.LEDGER).write_text("not json")
+    bed = json.loads((ws["records"] / "music-beds.json").read_text())[0]
+    assert bed_select.acquisition_problems(bed, "Internal", None, ws["root"]) == []
+
+
+@pytest.mark.parametrize(
+    "gates",
+    [
+        {"certifiedPdfSha256": "f" * 64},
+        {"contentIdCheck": {"clear": "probe"}},
+        {"contentIdCheck": {"claimed": "probe"}},
+    ],
+)
+def test_a_selection_that_arrives_with_a_gate_set_refuses(ws, tmp_path, gates):
+    selection = select(ws)
+    selection["bed"]["licence"].update(gates)
+    out = tmp_path / "out"
+    assert refused_code(run_intake, ws, out, saved(tmp_path, selection)) == "bed_selection_invalid"
+    assert not out.exists()
+
+
+@pytest.mark.parametrize("field", sorted(bed_select.LAYER_FIELDS - {"sha256", "bytes"}))
+def test_a_selection_short_of_a_layer_field_refuses(ws, tmp_path, field):
+    selection = select(ws)
+    selection["bed"]["layers"][0].pop(field)
+    selection["bed"]["id"] = bed_select.bound_id(selection["bed"])
+    assert refused_code(run_intake, ws, tmp_path / "out", saved(tmp_path, selection)) == "bed_selection_invalid"
+
+
+def records_with(ws, tmp_path, row):
+    records = tmp_path / "records"
+    shutil.copytree(ws["records"], records)
+    rows = json.loads((records / "music-beds.json").read_text())
+    (records / "music-beds.json").write_text(json.dumps(rows + [row]))
+    return records
+
+
+def intake_on(ws, out, records, path):
+    return bundle.intake(
+        ws["bundle"], out, records, template=TEMPLATE, voice=VOICE, engine=ENGINE, store=ws["store"],
+        bed_selection=path, campaign=CAMPAIGN,
+    )  # fmt: skip
+
+
+def test_records_holding_another_bed_under_the_selections_id_refuse(ws, tmp_path):
+    selection = select(ws)
+    other = json.loads((ws["records"] / "music-beds.json").read_text())[0] | {"id": selection["bed"]["id"]}
+    records = records_with(ws, tmp_path, other)
+    out = tmp_path / "out"
+    assert refused_code(intake_on, ws, out, records, saved(tmp_path, selection)) == "bed_selection_invalid"
+    assert not out.exists()
+
+
+def test_records_holding_this_bed_with_a_later_result_keep_it(ws, tmp_path):
+    selection = select(ws)
+    later = copy.deepcopy(selection["bed"])
+    later["licence"]["contentIdCheck"] = {"claimed": "probe"}
+    records = records_with(ws, tmp_path, later)
+    out = tmp_path / "out"
+    intake_on(ws, out, records, saved(tmp_path, selection))
+    assert load_records(out / "records")["music_beds"][later["id"]] == later
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="FFmpeg is not on PATH")
+def test_a_record_cleared_by_hand_with_upload_set_still_allows_no_public_upload(ws, tmp_path, capsys):
+    """The id leaves the licence results out, so an edit to them shows nowhere. Listening still holds public shut."""
+    selection = select(ws)
+    out = tmp_path / "out"
+    run_intake(ws, out, saved(tmp_path, selection))
+    beds = json.loads((out / "records" / "music-beds.json").read_text())
+    for row in beds:
+        if row["id"] == selection["bed"]["id"]:
+            row["licence"].update(certifiedPdfSha256="f" * 64, contentIdCheck={"clear": "probe"})
+    (out / "records" / "music-beds.json").write_text(json.dumps(beds))
+    job = json.loads((out / "narrated-video.json").read_text())
+    job["delivery"]["upload"] = True
+    (out / "narrated-video.json").write_text(json.dumps(job))
+    common = ["--root", str(ws["root"]), "--records", str(out / "records"), "--store", str(ws["store"]),
+              "--lexical", str(ws["lexical"])]  # fmt: skip
+    from_file = ["--job", JOB, "--from", str(out / "narrated-video.json"), "--campaign", CAMPAIGN]
+    assert cli.main(["init", *from_file, *common]) == 0
+    assert cli.main(["run", JOB, *common]) == 0
+    deliver = stage_manifest(store.JobStore(ws["root"], JOB), "deliver_check")["measurements"]
+    assert deliver["delivery_gate"]["upload_gates_closed"] is True  # the bed gates alone do not say public
+    assert deliver["delivery_gate"]["public_upload_allowed"] is False
+    assert "listening" in deliver["delivery_gate"]["operator_states_open"]
+
+
 # The command --------------------------------------------------------------------------------------------------------
 def decision_file(tmp_path, decision):
     path = tmp_path / "decision.json"
@@ -691,6 +865,36 @@ def test_the_command_refuses_an_out_already_there_before_any_spend(ws, tmp_path,
                      "--monthly-credits", "10"])  # fmt: skip
     assert code == 1 and "out_exists" in capsys.readouterr().err
     assert catalog.downloads == [] and ledger_rows(ws) == [] and out.read_text() == "held"
+
+
+def test_the_command_refuses_an_out_with_no_directory_before_any_spend(ws, tmp_path, capsys, monkeypatch):
+    catalog = FakeCatalog()
+    monkeypatch.setattr(cli, "bed_catalog", lambda a: catalog)
+    code = cli.main(["bed-select", "--campaign", CAMPAIGN, "--decision", str(decision_file(tmp_path, PLAN)),
+                     "--out", str(tmp_path / "no" / "such" / "s.json"), "--root", str(ws["root"]),
+                     "--store", str(ws["store"]), "--monthly-credits", "10"])  # fmt: skip
+    assert code == 1 and "out_parent_missing" in capsys.readouterr().err
+    assert catalog.searches == [] and catalog.downloads == [] and ledger_rows(ws) == []
+
+
+@pytest.mark.parametrize(
+    ("ceiling", "asked", "spent"),
+    [("1", "1000", None), ("10", "1", None), ("10", "2", 2), ("2", "10", 2)],
+)
+def test_an_argument_lowers_the_workers_ceiling_and_never_raises_it(
+    ws, tmp_path, capsys, monkeypatch, ceiling, asked, spent
+):
+    catalog = FakeCatalog()
+    monkeypatch.setattr(cli, "bed_catalog", lambda a: catalog)
+    monkeypatch.setenv(cli.BED_CREDITS_ENV, ceiling)
+    code = cli.main(["bed-select", "--campaign", CAMPAIGN, "--decision", str(decision_file(tmp_path, PLAN)),
+                     "--out", str(tmp_path / "s.json"), "--root", str(ws["root"]), "--store", str(ws["store"]),
+                     "--monthly-credits", asked])  # fmt: skip
+    if spent is None:
+        assert code == 1 and "bed_credit_budget" in capsys.readouterr().err
+        assert catalog.downloads == [] and ledger_rows(ws) == []
+    else:
+        assert code == 0 and json.loads(capsys.readouterr().out)["credits"]["spent_month"] == spent
 
 
 def test_a_selection_file_is_written_once(ws, tmp_path):

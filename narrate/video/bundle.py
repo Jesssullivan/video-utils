@@ -932,8 +932,11 @@ def merged_records(records_dir, new_jobs, bed=None):
     if bed is not None:
         beds = tables.get(RECORD_FILES["music_beds"], [])
         beds = [beds] if isinstance(beds, dict) else list(beds)
-        if bed["id"] not in {row["id"] for row in beds}:
+        same = [row for row in beds if row["id"] == bed["id"]]
+        if not same:
             beds.append(bed)
+        elif any(bed_select.bound_id(row) != bed["id"] for row in same):  # its licence results may differ, nothing else
+            raise BundleError("bed_selection_invalid", "the records hold another bed under this selection's id")
         tables[RECORD_FILES["music_beds"]] = beds
     return tables
 

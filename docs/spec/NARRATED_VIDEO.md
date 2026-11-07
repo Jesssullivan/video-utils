@@ -659,10 +659,10 @@ written, so it is no row of the render graph and moves no task digest.
 | --- | --- | --- |
 | Judge | A port returns `{wanted, reason, query, layers, bpm_min, bpm_max}`. `bed-select --decision` reads one an agent wrote. A job that wants none spends nothing | `bed_decision_invalid` |
 | Search | A catalog port returns rows `{asset_id, type, bpm, key, preview}` | `bed_catalog_unconfigured`, `bed_licence_missing`, `bed_catalog_failed` |
-| Pick | Loops only, no preview audio, the first usable row's key, each tempo factor 0.5 to 2.0, in catalog order, up to `layers`. Fewer than 2 gives `bedless` with no spend | none |
-| Guard | Counts new sounds against the month's budget before any download. There is no default budget. A sound the ledger holds costs nothing, because a repeat download is free | `bed_credit_budget_missing`, `bed_credit_budget` |
+| Pick | Loops only, each row saying `preview` false, the first usable row's key, each tempo factor 0.5 to 2.0, in catalog order, up to `layers`. Fewer than 2 gives `bedless` with no spend | none |
+| Guard | Counts new sounds against the month's budget before any download. There is no default budget. `NARRATED_VIDEO_BED_CREDITS` is a ceiling that `--monthly-credits` can lower and not raise. A sound the ledger holds costs nothing, because a repeat download is free | `bed_credit_budget_missing`, `bed_credit_budget` |
 | Fetch | Each purchased file enters the private store by SHA-256 with its byte count, rate and channels | `bed_loop_unreadable`, `bed_layers_invalid`, `store_conflict` |
-| Record | A `MusicBed` record with `acquiredBy = Agent`, the terms and read date, and an id that binds its digests (`bound_id`). The licence PDF and Content ID results are left out of the id, because they arrive later | none |
+| Record | A `MusicBed` record with `acquiredBy = Agent`, every layer's source `Splice`, the terms and read date, and an id that binds its digests (`bound_id`). The licence PDF and Content ID results are left out of the id, because they arrive later | none |
 
 `bed-credits.json`, under the store root, is the guard's ledger. It counts by UTC
 calendar month and sees only this stage's spend, so it holds a project budget
@@ -674,10 +674,20 @@ found later. It stays in the private root.
 `intake --bed-selection FILE --campaign ID` reads the selection. A selected bed
 joins the job and `music-beds.json` once each loop checks in `--store`
 (`bed_loop_missing`, `bed_digest_mismatch`). A bedless one leaves `music` null.
-A file for another campaign refuses `bed_selection_campaign`, and a hand-edited
-one `bed_selection_invalid`. `init --from FILE --campaign ID` binds the job root.
-`admit` and the `music` stage both refuse an agent's bed on a client edition or
-on a root that campaign does not hold (`bed_acquisition_agent`).
+A file for another campaign refuses `bed_selection_campaign`. A hand-edited one,
+one short of a layer field or one that arrives with a licence gate set refuses
+`bed_selection_invalid`, and so do records holding another bed under its id.
+`init --from FILE --campaign ID` binds the job root. `admit` and the `music` stage
+both refuse an agent's bed on a client edition, on a root that campaign does not
+hold or with a source other than Splice (`bed_acquisition_agent`). They also
+refuse a loop the root's ledger never counted (`bed_unledgered`), so a job lives
+on the root whose ledger bought its bed. Intake has no root, so `init`, `plan` and
+the stage hold that check.
+
+The id is computed from the record, so it shows no edit by itself. The ledger and
+the store are what a forged record cannot match, and a process that can rewrite
+the ledger can defeat both. The budget and the root come from the caller, so a
+row must pin them: a second root starts a second count.
 
 A refusal stops no video. A new selection with a bedless decision gives a job
 that passes, so a loop can route a budget or catalog refusal there.
@@ -685,8 +695,11 @@ that passes, so a loop can route a budget or catalog refusal there.
 Selection closes no licence gate. `deliver_check` still holds
 `public_upload_allowed` false for a bed with no PDF digest and no clear Content
 ID result. Neither has an agent route yet, and the campaign edition owns that
-decision. The catalog port has no share method and no stack export, and no real
-adapter ships here.
+decision. Those two results are unverified fields of the record: `deliver_check`
+reads a non-empty digest and a `clear` key, and reads no PDF and no receipt. An
+agent that can write the record can set both, so a public path must not take them
+as proof on an agent's bed. The catalog port has no share method and no stack
+export, and no real adapter ships here.
 
 ## Tighten
 
