@@ -285,7 +285,7 @@
  "row": {
   "name": "client-video-narrated-render",
   "ruling": "TIN-7125 3672cb05: one general row with one pinned graph for client, internal and hardware jobs",
-  "mapping": "graph.row_tasks: one stage is one task, parents are the stage depends_on, each root stage takes the gate as a parent and every render task lists the guard as a direct parent. A consumer pins this file by commit and blob and compares tasks_sha256 with its own task list (graph.row_tasks_sha256).",
+  "mapping": "graph.row_tasks: one stage is one task, parents are the stage depends_on, each root stage takes the gate as a parent and every render task lists the guard as a direct parent. A stage task adds its row.task_limits. A consumer pins this file by commit and blob and compares tasks_sha256 with its own task list (graph.row_tasks_sha256).",
   "guard": {
    "name": "bs21_privacy_guard",
    "parents": [
@@ -320,7 +320,61 @@
     "effect": "none"
    }
   ],
-  "tasks_sha256": "c0be61edb1d38a42d49a37789f4e5c65c3f6fa9c370f7ff8342f872fbf1dc21b"
+  "task_limits": {
+    "admit": {
+      "timeout": "10m"
+    },
+    "script": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "voice": {
+      "retries": 1,
+      "timeout": "3h"
+    },
+    "voice_qa": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "base": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "place": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "avatar": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "avatar_check": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "music": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "mix": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "compose": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "deliver_check": {
+      "retries": 2,
+      "timeout": "3h"
+    },
+    "handoff": {
+      "retries": 2,
+      "timeout": "3h"
+    }
+  },
+  "task_limits_note": "A stage task's engine limits, the bounds the cade gate holds (0 to 2 retries, 1s to 4h). 3h clears the 2 hour child limit in cade nvJustPort and leaves room for the findings, the round, the fix and the event, which run inside the failed task's limit. Retries repeat a stage only on a failure with no verdict, because a refused verdict stays refused until its key changes. voice takes 1, because a repeat can spend on a GPU. The guard and the operator tasks keep the SDK default and no retry, so outbox_post cannot ask twice.",
+  "tasks_sha256": "de6c1042009da0a60198ce0cfc2a0ff18ebd9b53447bb1ddae5975edcecc62a7"
  },
  "execution_policy": "narrate/video/graph.py holds the same table, a test keeps them equal, and narrate/dhall/check.py holds selected_by and edition_point to the Dhall job and Edition types. plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6. avatar_overlay and avatar_verify are neutral: dispatch.by names the job field (avatar.external) that picks the implementation, kitpip by default or the vrm draft, so the stage tool names stay the same when a job moves from one to the other. An order edge carries no input: handoff waits on deliver_check and its key stays the same."
 }

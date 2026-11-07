@@ -101,6 +101,15 @@ canonical JSON of the ordered task list, each task's parents sorted. The
 catalog row and the pinned graph pin the file by commit and blob and hold the
 same digest. A test fails when the table moves and the digest does not.
 
+`row.task_limits` gives a stage task its engine limits, and they count in the
+digest. A stage task takes `timeout: 3h`, which clears the 2 hour child limit in
+cade's `nvJustPort` and leaves room for the findings, the round, the fix and the
+event, because those run inside the failed task's limit. `admit` takes `10m`. A
+stage task takes `retries: 2`, the design's failure model, and `voice` takes 1,
+because a repeat can spend on a GPU. A verdict stays refused until its key
+changes, so a retry repeats only a failure with no verdict. The guard and the
+operator tasks declare neither key, so `outbox_post` cannot ask twice.
+
 `selected_by` names the job fields that select an optional stage, and
 `edition_point` names the stage that runs each `Edition.Point`.
 `narrate/dhall/check.py` holds both to the Dhall types. No task graph lives in

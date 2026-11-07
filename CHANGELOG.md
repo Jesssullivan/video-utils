@@ -4,6 +4,9 @@
 
 ### Added
 
+- `row.task_limits` in `program/dags/narrated-video.json`: bounded `retries` and
+  `timeout` for each stage task of the render row, which `graph.row_tasks` adds.
+  `row.tasks_sha256` moves to `de6c1042`. The row stays off (TIN-7788).
 - `narrate/video/findings.py`: one typed record per gate code and page, read from
   intake, claims, preflight, `deliver_check.json` and the script and `voice_qa`
   stages, and `narrate video findings JOB`. A gate's exit code and first code stay,

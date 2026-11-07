@@ -202,9 +202,10 @@ def reach(entries):
 def row_tasks(dag):
     """The Hatchet task list of the published DAG's row, in row order. One stage is one task. A task's parents are its
     stage's depends_on, each root stage takes the gate as a parent, and a render task lists the guard as a direct
-    parent. The guard follows the gate, and the operator tasks close the list."""
+    parent. A stage task adds its row.task_limits. The guard follows the gate, and the operator tasks close the list."""
     row = dag["row"]
     guard = row["guard"]
+    limits = row["task_limits"]
     tasks = []
     for stage in dag["stages"]:
         parents = list(dict.fromkeys(edge["stage"] for edge in stage["depends_on"]))
@@ -220,6 +221,7 @@ def row_tasks(dag):
                 "source_tool": stage["tool"],
                 "optional": stage["optional"],
                 "effect": effect,
+                **limits.get(stage["id"], {}),
             }
         )
         if stage["id"] == dag["gated_by"]:
