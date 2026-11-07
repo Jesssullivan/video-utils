@@ -32,7 +32,7 @@ The judge and catalog are fakes and the loops are generated sines. Local and non
 
 ## Review, November 7
 
-An adversarial read with fake ports found these, each fixed with a test: a row that did not say `preview` false was picked, a selection could arrive with its licence gates set, a selection's loops needed no ledger row, a selection could omit layer fields or name another source, records holding another bed under the id won over the selection, `--monthly-credits` raised the variable's budget, and an `--out` with no directory crashed after the spend.
+An adversarial read with fake ports found these, each fixed with a test: a row that did not say `preview` false was picked, a selection could arrive with its licence gates set, a selection's loops needed no ledger row, a selection could omit layer fields or name another source, records holding another bed under the id won over the selection, `--monthly-credits` raised the variable's budget, an `--out` with no directory crashed after the spend, a ledger row with a month no stamp can match went uncounted, and the vendor query had no length bound. Mutants of the guard, the record checks and the delivery gate ran on a scratch copy with no signal path touched. Two survived the first pass: the same-size swap of a loop, which now has a test, and the root binding, which a slower test already kills.
 
 Open, not fixed here:
 

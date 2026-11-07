@@ -301,6 +301,7 @@ def test_intake_carries_the_bed_into_the_job_and_its_records(ws, tmp_path):
     [
         (lambda p: p.unlink(), "bed_loop_missing"),
         (lambda p: p.write_bytes(p.read_bytes() + b"\0"), "bed_digest_mismatch"),
+        (lambda p: p.write_bytes(p.read_bytes()[:-1] + bytes([p.read_bytes()[-1] ^ 1])), "bed_digest_mismatch"),
     ],
 )
 def test_intake_refuses_a_loop_off_its_digest_and_writes_nothing(ws, tmp_path, damage, code):
@@ -605,6 +606,7 @@ def test_three_layers_on_request(ws):
         {"wanted": "yes", "reason": "x", "query": "y"},
         {"wanted": True, "reason": "", "query": "y"},
         {"wanted": True, "reason": "x"},
+        {"wanted": True, "reason": "x", "query": "y" * 201},
         {"wanted": True, "reason": "x", "query": "y", "layers": 4},
         {"wanted": True, "reason": "x", "query": "y", "layers": True},
         {"wanted": True, "reason": "x", "query": "y", "bpm_min": "fast"},

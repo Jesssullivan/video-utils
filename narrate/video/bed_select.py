@@ -250,6 +250,7 @@ def check_decision(value):
     if value["wanted"] and (
         not isinstance(query, str)
         or not query.strip()
+        or len(query) > MAX_REASON  # the query is the one text that reaches the vendor
         or layers not in LAYERS
         or isinstance(layers, bool)
         or not all(b is None or (isinstance(b, int) and not isinstance(b, bool) and b > 0) for b in bpm)
