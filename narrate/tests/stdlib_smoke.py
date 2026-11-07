@@ -52,6 +52,7 @@ VIDEO_MODULES = (
     "compose",
     "deliver",
     "face",
+    "findings",
     "fixture",
     "frames",
     "graph",
