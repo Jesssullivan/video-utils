@@ -39,9 +39,10 @@ import shutil
 from pathlib import Path
 
 from ..ir import sha256_file
-from . import accept, frames, keys, rerun
+from . import accept, campaign, deliver, frames, keys, rerun, speech
+from . import findings as typed
 from .job import ID, SHA256, JobError, check_shape
-from .store import StoreError, verify_stage_dir, write_atomic
+from .store import StoreError, load_store_json, verify_stage_dir, write_atomic
 from .store import tree_sha256 as store_tree_sha256
 
 REQUEST_KIND = "narrate_render_stage_request"
@@ -58,7 +59,8 @@ HOLDER = re.compile(r"^narrate-bench-[0-9]{8}-s[0-9]{6}$")
 LEASE_NAME = "gpu-lease"  # the one GPU Lease; its cluster name stays outside this public repository
 NOTICE_TICKET = "TIN-5397"
 WINDOW_MAX_S = 1800  # docs/spec/NARRATE.md, "GPU use": attended or unattended windows of 30 minutes or less
-EDITIONS_V1 = ("Internal",)  # T1 renders Internal demos only; a client edition needs its own tenant (T4)
+# T1 renders Internal demos and Campaign video only; a client edition needs its own tenant (T4)
+EDITIONS_V1 = ("Internal", "Campaign")
 UNTIL = ("deliver_check",)
 VOICE_MODES = ("gpu_window", "from_run", "mixed")
 WINDOW_MODES = ("gpu_window", "mixed")  # the modes that voice a take, so they name a Lease and a spend cap
@@ -508,6 +510,54 @@ def preflight(request, store, media, env=None):
         first = report["findings"][0]
         _refuse(first["code"], f"preflight holds {len(report['findings'])} findings; page {first['page']} is the first")
     return report | {"preflight_sha256": sha256_file(target)}
+
+
+def job_findings(store):
+    """Every finding this job root holds, as one typed report (narrate/video/findings.py): the last preflight of this
+    job.json, each script stage's lexical findings, each stage refusal the store holds and the current deliver_check's
+    failed gates. Read only, so it moves no key. A deliver_check of an older job.json or compose read a cut this job no
+    longer is, so its rows are left out: deliver_check says current, stale or missing, and video_sha256 is the cut a
+    current one read, or None. ok speaks for these rows only: a job with no current deliver_check has passed nothing."""
+    job = store.read_job()
+    job_sha256 = keys.digest(job)
+    current = store.current()
+    rows = []
+    try:
+        render, _ = accept.render_of(store, job)
+        state = "current"
+    except JobError as exc:
+        if exc.code not in ("deliver_check_missing", "deliver_check_stale"):
+            raise
+        render, state = None, "missing" if exc.code == "deliver_check_missing" else "stale"
+    try:
+        preflight_path = store.dir / INTAKE_DIR / PREFLIGHT_FILE
+        if preflight_path.is_file() and not preflight_path.is_symlink():
+            held = _intake_json(preflight_path)
+            if held.get("job_sha256") == job_sha256:
+                rows += frames.typed_rows(held.get("findings") or [])
+        for node_id, entry in sorted(current["stages"].items()):
+            stage, _, segment = node_id.partition("/")
+            path = store.dir / entry["dir"] / "lexical.json"
+            if stage == "script" and path.is_file():
+                rows += speech.lexical_rows(load_store_json(path), segment)
+        for node_id, refusal in sorted(current["refusals"].items()):
+            stage, _, segment = node_id.partition("/")
+            if stage == "voice_qa":
+                rows += speech.qa_rows(segment, refusal)
+            else:
+                rows.append(typed.finding(refusal["code"], gate=stage, stage=stage, segment=segment or None))
+        if render is not None:
+            path = store.dir / current["stages"]["deliver_check"]["dir"] / "deliver_check.json"
+            rows += deliver.typed_findings(load_store_json(path), job)
+            rows += campaign.held_rows(store, job_sha256, render["video_sha256"])
+    except (AttributeError, KeyError, TypeError) as exc:
+        raise JobError("store_invalid", "a report this job root holds is not the report its stage writes") from exc
+    return typed.report(rows) | {
+        "job_id": store.job_id,
+        "job_sha256": job_sha256,
+        "deliver_check": state,
+        "video_sha256": None if render is None else render["video_sha256"],
+    }
 
 
 def preflight_binding(store, job, intake_sha256):

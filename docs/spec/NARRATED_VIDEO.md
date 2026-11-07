@@ -76,7 +76,7 @@ music -------------------------------------------+-----------> mix -------------
 | 3 | `voice_qa` | segment | narrate verify and evaluate receipt | none | no |
 | 4 | `base` | none | conformed `base.mp4` and `base.json` (fps, size, length, clip sound if kept) | none | no |
 | 5 | `place` | none | `placements.json`, `voice.wav` and `clips.wav` on the base clock. Edition check at Place | `narrated_video_v1` | no |
-| 6 | `avatar` | segment | `overlay.mov` (ProRes 4444) and its manifest, drawn by the job's avatar external (kitpip or vrm). Tool `avatar_overlay` | `avatar_overlay_v1` | edition-gated |
+| 6 | `avatar` | segment | `overlay.mov` (ProRes 4444) and its manifest, drawn by the job's avatar external (kitpip, vrm or look). Tool `avatar_overlay` | `avatar_overlay_v1` | edition-gated |
 | 7 | `avatar_check` | segment | label-chain result. Tool `avatar_verify` | none | with avatar |
 | 8 | `music` | none | `bed.wav` (48 kHz) and the bed manifest | `music_bed_v1` | yes |
 | 9 | `mix` | none | `mix.wav`, ducked bed stem, measured loudness, true peak and duck depth | `narrated_video_v1` | no |
@@ -310,6 +310,31 @@ external.
 stays fresh. The kitpip registration lists both schemas (`manifest_schemas`), and a kitpip pin may name
 either. kitpip's stage keys do not change.
 
+### Look external (draft)
+
+`avatar.external: look` is a Campaign job's overlay (`narrate/video/look.py`). `avatar.rig` names a record in the private
+`avatars.json`:
+
+| Field | Holds |
+| --- | --- |
+| `kind` | `look` |
+| `anchors` | the look's anchor digests. A campaign record names the same digests |
+| `likenessConsent` | `{id, ruling}`, resolved in `consents.json` as for a VRM model |
+| `renderer` | `{name, version}` of what drew the clips |
+| `clips` | `{narrate content sha256: {sha256, bytes}}`, one ProRes 4444 clip with alpha per voice take |
+
+The stage draws nothing and calls no engine. It binds the clip of the take by digest and checks the codec, alpha, size,
+rate and frame count. The clips are made outside this repository, and they stay in the private store.
+
+| Code | When |
+| --- | --- |
+| `look_edition_unruled` | the edition is not `Campaign` |
+| `look_missing`, `look_invalid` | `avatar.rig` names no look record, or the record does not read |
+| `look_digest_mismatch` | `avatar.rigRevisionSha256` is not the digest of the anchors |
+| `look_consent_missing`, `look_consent_revoked` | the likeness consent does not hold |
+| `look_clip_missing` | the record holds no clip for this take, so a new take never shows an old face |
+| `look_clip_mismatch`, `look_clip_invalid` | the stored clip is not its record's, or is not a fit for this take |
+
 ### VRM external (draft)
 
 `program/externals.json` registers `vrm` with no pin value: the record shape, the manifest schema
@@ -434,7 +459,10 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `preflight JOB` | `just nv-preflight` | the frame gates a job can fail before any voice spend (see "Frame gates"). Exit 1 on a finding. Writes nothing |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
-| `fix JOB --decision ID --video-sha256 HEX` | `just nv-fix JOB DECISION VIDEO` | records the operator's FIX of the current cut against the job root's 3 rounds. The fourth refuses `fix_cap_reached`. See "Reruns" in `docs/spec/RENDER_STAGE.md` |
+| `fix JOB --decision ID --video-sha256 HEX [--extend]` | `just nv-fix JOB DECISION VIDEO` | records the operator's FIX of the current cut against the job root's 3 rounds. The fourth refuses `fix_cap_reached` without `--extend`, which adds one round for that decision. See "Reruns" in `docs/spec/RENDER_STAGE.md` |
+| `findings JOB` | `just nv-findings JOB` | prints every finding the job root holds as one typed report. Writes nothing. See "Findings" |
+| `campaign-bind JOB --campaign ID` | `just nv-campaign-bind JOB CAMPAIGN` | binds a job root to a campaign. A client edition refuses. See "Machine rounds" in `docs/spec/RENDER_STAGE.md` |
+| `round JOB --findings FILE [--video-sha256 HEX]` | `just nv-round JOB FINDINGS` | records a round those findings started, with no decision, on a job bound to a campaign. At the cap it prints `result: parked` and exits 0 |
 | `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken, each shown asset's stored text, and `shown_unread`, the kinds of asset it shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard. On a guarded intake's `never_name` marker it refuses `shown_text_unread` when any shown text is unreadable. See "Guard subject and cut" |
 | `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the pages no frame gate read, the operator gates still pending and the gates an acceptance of that render closed. Digests, gate names and page ids only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
@@ -512,6 +540,9 @@ missing or unreadable.
 | `OwnContent` | yes | yes | yes | yes |
 | `ClientNarrated` (default for a client delivery, NV-6) | yes | yes | refused | only when cleared |
 | `ClientVoiceOnly` (per project) | refused | refused | refused | only when cleared |
+| `Campaign` | yes | refused, a campaign look only | yes | yes, its upload gates stay |
+
+`Campaign` is public marketing video under a signed campaign rule. See "Campaign verdict".
 
 Every client edition gates the bed. A bed is cleared when its private record
 holds a certified licence PDF digest and a clear Content ID result
@@ -992,7 +1023,7 @@ uploading, sending and Content ID stay operator actions.
 
 `handoff` runs when `delivery.handoff` is set, after `deliver_check`. `layers/` holds `base.mp4` (the
 base at the profile, no overlay, slide, caption or sound),
-`avatar-<segment>.mov` (each overlay as its external, kitpip or vrm, wrote it),
+`avatar-<segment>.mov` (each overlay as its external, kitpip, vrm or look, wrote it),
 `avatar-<segment>.manifest.json` (that overlay's manifest),
 `slide-<page>.png` (each slide picture with its metadata stripped), `voice.wav`, `clips.wav`
 (when the base kept its sound), `bed-ducked.wav` (with a bed, before the
@@ -1201,6 +1232,84 @@ cut that failed `flash`, a photosensitivity risk, or `loudness`, `profile` or
 `captions` therefore never reaches Jess as a request for a decision. A
 `deliver_check` with no machine gate state or no `delivery_gate` refuses
 `deliver_check_invalid`.
+
+## Campaign verdict
+
+The operator's signed campaign rule lets Cade or an agent publish inside a named campaign with no per-video decision, on
+the condition that every automated check passes (TIN-7125 `52ca88bf`, `0690fe88`). Nobody reviews each video first. A
+takedown stays the operator's act in the platform's console after a seat flags it, and no agent holds that grant. `narrate video campaign-verdict JOB --evidence FILE` is
+the verdict. It runs no stage, moves no key and publishes nothing, and no Hatchet row runs it yet.
+
+| Edition | `listening`, `lip_sync` | `public_upload_allowed` |
+| --- | --- | --- |
+| `Internal`, `OwnContent`, `ClientNarrated`, `ClientVoiceOnly` | `pending_operator`, closed by `accept` | false, in `deliver_check` and in the verdict (`campaign_edition_required`), even bound to a campaign with every check passed |
+| `Campaign` | `not_applicable`, named in `delivery_gate.lifted`. `accept` refuses them | false in `deliver_check`. True in the verdict only when no row below applies |
+
+The evidence is a file the caller writes: `{kind: nv_campaign_evidence, schema_version, campaign, record_sha256,
+consent_record, look: {anchors}, job_sha256, video_sha256, checks}`. This repository holds no signing key, so the caller
+verifies the campaign record's signature and the verdict's `resolution` reads `caller_checked`. `checks` holds the required
+checks of the signed rule by name: `canon_b8_identity`, `claims_allowlist`, `brand_public_gate`, `confidentiality`,
+`ai_disclosure`, `synthetic_metadata` and `manifest`. A check with no result fails, and only `passed` passes. The caller
+writes `stopped` for a check whose refusal no machine may iterate past, such as a failed adult read of `canon_b8_identity`.
+
+`narrate video campaign-manifest JOB --campaign ID --consent-record ID` prints what the `manifest` check reads, before the
+checks run: `{synthetic, campaign, consent_record, video_sha256}` on the current cut. It writes nothing, and it refuses any
+other edition, an unbound root, another campaign and a cut not labelled synthetic.
+
+| Code | When | Stops the loop |
+| --- | --- | --- |
+| `campaign_edition_required` | any other edition | yes |
+| `campaign_evidence_missing` | no evidence | yes |
+| `campaign_unbound`, `campaign_record_mismatch` | no `campaign-bind`, or the evidence names another campaign | yes |
+| `campaign_evidence_stale` | the evidence read another `job.json` or cut | yes |
+| `campaign_consent_missing`, `campaign_consent_revoked` | `consent_record` is no unrevoked `CampaignStandingRule` grant by the operator in `consents.json` | yes |
+| `campaign_check_missing` | a required check has no result | yes |
+| `campaign_brand_gate_closed` | `brand_public_gate` did not pass. A reviewed record opens it | yes |
+| `campaign_manifest_refused` | `manifest` did not pass | yes |
+| `campaign_confidentiality_refused` | `confidentiality` did not pass. The signed record never covers disclosure-hold, client or health content, so no fix rewrites past it | yes |
+| `campaign_check_stopped` | another required check reads `stopped` | yes |
+| `campaign_admit_refused` | admit refuses on the records as they stand now, such as a voice's consent withdrawn or a client consent recorded after the cut. `gate` names admit's code | yes |
+| `campaign_check_failed` | another required check did not pass | no, the row names its fix's stage |
+| `campaign_gate_failed` | a machine gate did not pass. `profile`, `loudness` and `captions` must read `passed` | no, `deliver_check`'s row routes it |
+| `frame_unread` | a page the frame gates left `unchecked` or `exempt`, because nobody else reads it here | no |
+| `visible_text_unread` | a shown asset whose text no guard read | no |
+| `campaign_upload_off`, `campaign_upload_gates_open` | `delivery.upload` is off, or a bed gate leaves upload closed | yes |
+| `campaign_operator_state_open` | any other operator state stays open, such as a bed's licence PDF or Content ID | yes |
+| `campaign_look_mismatch` | an overlay is not the look the campaign record names | yes |
+| `campaign_not_synthetic` | the cut's labels do not say synthetic | yes |
+| `campaign_parked`, `campaign_cut_sent_back` | the root is parked, or a round or FIX sent this cut back | yes |
+
+A true verdict holds `manifest: {synthetic: true, campaign, consent_record, video_sha256}` beside the digests, which a publish step reads.
+The last verdict is `campaign-verdict.json` beside `job.json`, outside every stage directory. `narrate video findings` reads
+its rows while it names the current `job.json` and cut, so a failed check starts a round like a failed machine gate.
+
+A pass says the listed checks passed. Nobody listened to the cut, and lip sync is not measured.
+
+## Findings
+
+A gate refuses on its first code, with the same exit code it always had. So a machine that fixes a job can see the
+rest, every gate also gives a typed record per code and page (`narrate/video/findings.py`, TIN-7125 `0690fe88`):
+
+| Field | Value |
+| --- | --- |
+| `gate`, `code` | the check that found it and what it found. `findings.CODES` lists each code a gate here writes |
+| `stage` | where a fix enters the stage graph, so `graph.reach` gives what that fix may run. Null reaches the whole graph, as a bundle's structure fault does |
+| `blocking` | false only for an advisory lexical finding (R-N12) |
+| `page`, `segment` | where it is, or null |
+| `detail` | counts, measures and short tokens. A record never holds a path or a text, so a token holds no slash except a ratio such as `30000/1001` |
+
+| Source | Gives | How |
+| --- | --- | --- |
+| `narrate video intake`, `claims` | every asset, beat, claim and spoken number at fault, in the `findings` key they print. A fault inside one of those stops that one, a file that does not parse stops that file, and the private-terms guard stops the read at once | `BundleError.findings`, `claims.typed_rows` |
+| `preflight` | every frame finding, under `typed` in the report | `frames.typed_rows` |
+| `deliver_check.json` | every failed machine gate, per field, change, file, code and page. A failed gate no limit explains gives `gate_failed` | `deliver.typed_findings` |
+| `script`, `voice_qa` | each lexical finding without its match, and each measured gate that failed | `speech.lexical_rows`, `speech.qa_rows` |
+| `narrate video findings JOB` | all of the above a job root holds, plus each stage refusal in `current.json`, with the cut they read. A preflight or `deliver_check` of an older `job.json` gives no row, and `deliver_check` in the report says `current`, `stale` or `missing`, because `ok` speaks for the rows alone | `render_stage.job_findings` |
+
+Stage output stays as it was: the readers above only read `deliver_check.json` and `lexical.json`, so no stage key
+moves. A voice key reads the script stage's digest, so a new byte in `lexical.json` would re-voice every segment. An
+unchecked page is no finding, as in "Frame gates". A machine round reads this report ("Machine rounds" in
+`docs/spec/RENDER_STAGE.md`).
 
 ## Demo bundle intake
 

@@ -1,5 +1,5 @@
 """python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,fix,
-render-stage,preflight,subject,cut}.
+render-stage,preflight,subject,cut,campaign-bind,campaign-manifest,campaign-verdict}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -29,7 +29,11 @@ refuse (narrate/video/accept.py).
 
 fix records the operator's FIX of the current cut the same way, by Softproxy decision id and the sha256 of the cut, and
 counts it against the job root's 3 rounds (narrate/video/rerun.py). The fourth FIX refuses fix_cap_reached with nothing
-recorded, so the caller stops and asks the operator.
+recorded, so the caller stops and asks the operator. --extend is that operator's answer: this decision adds one round.
+
+findings prints every finding a job root holds as one typed report (narrate/video/findings.py). round records a round
+those findings started, with no decision, on a job campaign-bind bound to a campaign. Every other job refuses
+round_needs_decision. At the cap round prints result parked and exits 0, and asks nobody.
 
 render-stage is the Cade render stage's task body (narrate/video/render_stage.py, docs/spec/RENDER_STAGE.md): check
 validates a request of ids and digests and prints its phases (with --inputs it also checks the worker's commit and
@@ -68,6 +72,8 @@ from ..ir import sha256_file
 from . import (
     accept,
     bundle,
+    campaign,
+    findings,
     fixture,
     frames,
     graph,
@@ -165,7 +171,7 @@ def cmd_init(a):
     records = load_records(a.records or os.environ.get(RECORDS_ENV))
     defaults_flags = [
         f"--{n.replace('_', '-')}"
-        for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona")
+        for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona", "look")
         if getattr(a, n) is not None
     ]
     switches = [f"--{n.replace('_', '-')}" for n in ("avatar", "no_avatar", "client") if getattr(a, n)]
@@ -205,6 +211,7 @@ def cmd_init(a):
             avatar=True if a.avatar else False if a.no_avatar else None,
             persona=a.persona,
             client=a.client,
+            look=a.look,
         )
     records = records_for(a, job)
     s = job_store(a, a.job)
@@ -378,6 +385,7 @@ def cmd_intake(a):
         denylist=denylist(a),
         pin=a.denylist_sha256,
         replace=a.replace,
+        look=a.look,
     )
     summary = {
         "ok": True,
@@ -430,7 +438,43 @@ def cmd_accept(a):
 
 
 def cmd_fix(a):
-    emit(rerun.fix(job_store(a, a.job), a.decision, a.video_sha256))
+    emit(rerun.fix(job_store(a, a.job), a.decision, a.video_sha256, extend=a.extend))
+    return 0
+
+
+def cmd_findings(a):
+    emit(render_stage.job_findings(job_store(a, a.job)))
+    return 0
+
+
+def cmd_campaign_bind(a):
+    emit(rerun.bind_campaign(job_store(a, a.job), a.campaign))
+    return 0
+
+
+def cmd_campaign_manifest(a):
+    emit(campaign.manifest(job_store(a, a.job), a.campaign, a.consent_record))
+    return 0
+
+
+def cmd_campaign_verdict(a):
+    evidence = None
+    if a.evidence:
+        try:
+            evidence = json.loads(Path(a.evidence).read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return refusal("campaign_evidence_invalid", "--evidence is not a JSON file")
+    s = job_store(a, a.job)
+    emit(campaign.verdict(s, records_for(a, s.read_job()), evidence))
+    return 0
+
+
+def cmd_round(a):
+    try:
+        report = json.loads(Path(a.findings).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return refusal("findings_invalid", "--findings is not a readable JSON report")
+    emit(rerun.machine_round(job_store(a, a.job), report, a.video_sha256))
     return 0
 
 
@@ -574,6 +618,7 @@ def main(argv=None):
     )
     switch.add_argument("--no-avatar", action="store_true", help="turn the kitpip avatar off")
     i.add_argument("--persona", help="labels.persona (required while the avatar is on)")
+    i.add_argument("--look", help="the avatars.json record of a campaign look; only --edition Campaign admits it")
     i.add_argument("--replace", action="store_true", help="replace a different job with the same id")
 
     n = sub.add_parser("plan", help="key every stage and print its state; read-only")
@@ -613,6 +658,7 @@ def main(argv=None):
     t.add_argument("--records", help="the records directory, instead of NARRATED_VIDEO_RECORDS")
     t.add_argument("--store", help="where the beat scripts and assets go by digest (default OUT/store)")
     t.add_argument("--job", help="the job id (default the bundle directory's name)")
+    t.add_argument("--look", help="a campaign look's avatars.json record, which makes this a Campaign job")
     t.add_argument(
         "--narrate-template",
         required=True,
@@ -680,7 +726,41 @@ def main(argv=None):
     fx.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
     fx.add_argument("--decision", help="the Softproxy decision id of the operator's FIX: sp:dec:<ulid>, only")
     fx.add_argument("--video-sha256", help="the sha256 of the cut the decision saw (required)")
+    fx.add_argument("--extend", action="store_true", help="at the cap: this decision adds the one round it takes")
     fx.add_argument("--json", action="store_true", help="print JSON (fix always does)")
+
+    fd = sub.add_parser("findings", help="every finding a job root holds, as one typed report; writes nothing")
+    fd.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    fd.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    fd.add_argument("--json", action="store_true", help="print JSON (findings always does)")
+
+    cb = sub.add_parser("campaign-bind", help="bind a job root to a campaign; a client edition refuses")
+    cb.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    cb.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    cb.add_argument("--campaign", required=True, help="the campaign id, as a signed campaign record holds it")
+    cb.add_argument("--json", action="store_true", help="print JSON (campaign-bind always does)")
+
+    cm = sub.add_parser("campaign-manifest", help="print the render manifest a Campaign cut's checks read")
+    cm.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    cm.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    cm.add_argument("--campaign", required=True, help="the campaign id, as a signed campaign record holds it")
+    cm.add_argument("--consent-record", required=True, help="the id of the signed consent the record names")
+    cm.add_argument("--json", action="store_true", help="print JSON (campaign-manifest always does)")
+
+    cv = sub.add_parser(
+        "campaign-verdict", help="the machine verdict of a Campaign job's cut; every other edition reads not public"
+    )
+    common(cv)
+    cv.add_argument("--evidence", help="the caller's nv_campaign_evidence file: the signed record's id and the checks")
+
+    rd = sub.add_parser(
+        "round", help="record a round findings started, on a job bound to a campaign; at the cap the root parks"
+    )
+    rd.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    rd.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    rd.add_argument("--findings", required=True, help="a typed findings report, as findings or a gate prints it")
+    rd.add_argument("--video-sha256", help="the sha256 of the cut those findings read, when they read one")
+    rd.add_argument("--json", action="store_true", help="print JSON (round always does)")
 
     rs = sub.add_parser("render-stage", help="the Cade render stage's task body: check, preflight, takes or result")
     rs.add_argument(
@@ -748,6 +828,11 @@ def main(argv=None):
             "claims": cmd_claims,
             "accept": cmd_accept,
             "fix": cmd_fix,
+            "findings": cmd_findings,
+            "campaign-bind": cmd_campaign_bind,
+            "campaign-manifest": cmd_campaign_manifest,
+            "campaign-verdict": cmd_campaign_verdict,
+            "round": cmd_round,
             "render-stage": cmd_render_stage,
             "preflight": cmd_preflight,
             "subject": cmd_subject,
@@ -755,10 +840,12 @@ def main(argv=None):
         }
         return commands[a.command](a)
     except bundle.BundleError as exc:
+        shown = {"ok": False, "findings": findings.report(exc.findings)}
         if isinstance(exc.report, dict):
-            emit({"ok": False, "private_terms": exc.report})
+            shown["private_terms"] = exc.report
         elif exc.report is not None:
-            emit({"ok": False, "segments": exc.report})
+            shown["segments"] = exc.report
+        emit(shown)
         return refusal(exc.code, exc.detail)
     except JobError as exc:
         return refusal(exc.code, exc.detail)

@@ -6,9 +6,11 @@
 -- record in the private avatars.json names such a consent by id (likenessConsent.id), and narrate/video/vrm.py
 -- resolves it in this table; grantedBy must be "Operator". It never grants a voice: a voice or job scope of
 -- Likeness refuses consent_scope.
+-- CampaignStandingRule (TIN-7125 52ca88bf): the operator's signed rule for public media inside a named campaign. The
+-- campaign verdict resolves the id its evidence names in this table (narrate/video/campaign.py). It never grants a voice.
 -- hostedAllowed (TIN-7125 af4ceb3b): the speaker's consent to any engine the operator does not run, rented or hosted.
 -- A cloned voice reaches neither without it.
-let Scope = < OwnContent | ClientDisclosed | Likeness >
+let Scope = < OwnContent | ClientDisclosed | Likeness | CampaignStandingRule >
 
 let T =
       { id : Text

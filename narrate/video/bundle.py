@@ -9,6 +9,12 @@ runs the private-terms guard (private_terms.py) on every text it would speak or 
 every store file is checked, copied and hashed first, and the output directory is built as a temporary sibling and
 renamed into place, so a refusal leaves no output and no new store file.
 
+A refusal keeps the code and detail of the first fault, as a read that stops there would give. BundleError.findings
+also holds a typed record (narrate/video/findings.py) of every fault the read could still reach: one per asset, beat,
+claim and spoken number. A fault inside one of those stops that one, and a file that does not parse stops that file.
+The private-terms guard stops the read at once. A row holds no text, and withheld() clears a row whose page may say a
+private term.
+
 Everything here reads and writes local files only. Nothing renders, and nothing is published.
 """
 
@@ -32,9 +38,20 @@ from ..config import LEXICAL_ENV
 from ..ir import canonical, sha256_file
 from ..normalise import NormaliseError, Normaliser
 from . import claims as gate
+from . import findings as typed
 from . import private_terms, visible_text
 from .admit import admit, port
-from .job import DEFAULTS, ID, RECORD_FILES, SHA256, JobError, check_shape, load_records
+from .job import (
+    CAMPAIGN_EDITION,
+    DEFAULTS,
+    ID,
+    RECORD_FILES,
+    SHA256,
+    JobError,
+    check_shape,
+    for_campaign,
+    load_records,
+)
 from .store import tree_sha256
 
 MANIFEST, SCRIPT, CLAIMS = "manifest.json", "script.md", "claims.json"
@@ -65,11 +82,26 @@ SUFFIX = {"png": ".png", "mp4": ".mp4", "gif": ".gif", "md": ".md"}
 
 
 class BundleError(JobError):
-    """A bundle the intake refuses. code is the typed refusal; report is the claims report when the gate refused."""
+    """A bundle the intake refuses. code is the typed refusal; report is the claims report when the gate refused; rows
+    is every typed finding the read reached, this refusal's alone by default."""
 
-    def __init__(self, code, detail, report=None):
+    def __init__(self, code, detail, report=None, rows=None):
         super().__init__(code, detail)
         self.report = report
+        self.findings = [typed.finding(code, gate=typed.INTAKE)] if rows is None else rows
+
+
+def located(error, page=None, segment=None, **detail):
+    """error, with its finding naming the asset, beat or claim it came from."""
+    error.findings = [typed.finding(error.code, gate=typed.INTAKE, page=page, segment=segment, **detail)]
+    return error
+
+
+def refuse_all(errors, extra=()):
+    """Raise the first of errors, carrying the findings of them all and then extra. Returns when there are none."""
+    if errors:
+        rows = [row for error in errors for row in error.findings]
+        raise BundleError(errors[0].code, errors[0].detail, errors[0].report, rows + list(extra))
 
 
 # Reading --------------------------------------------------------------------------------------------------------
@@ -189,45 +221,55 @@ def read_manifest(bundle):
         raise BundleError("bundle_invalid", f"{MANIFEST}: slug is not the bundle directory's name")
     if not isinstance(manifest["assets"], list) or not manifest["assets"]:
         raise BundleError("bundle_invalid", f"{MANIFEST}: assets is not a non-empty list")
-    assets = {}
+    assets, errors = {}, []
     for n, asset in enumerate(manifest["assets"]):
-        where = f"{MANIFEST} assets[{n}]"
-        fields(asset, ASSET_FIELDS, ASSET_OPTIONAL, where)
-        if not isinstance(asset["id"], str) or not ID.match(asset["id"]):
-            raise BundleError("bundle_invalid", f"{where}: id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'")
-        where = f"asset {asset['id']}"
-        if asset["id"] in assets:
-            raise BundleError("bundle_invalid", f"{where}: the id repeats")
-        if asset["kind"] not in ASSET_KINDS:
-            raise BundleError("bundle_invalid", f"{where}: kind is not png, mp4 or gif")
-        if not isinstance(asset["sha256"], str) or not SHA256.match(asset["sha256"]):
-            raise BundleError("bundle_invalid", f"{where}: sha256 is not 64 lowercase hex digits")
-        if not isinstance(asset["receipt"], str) or not asset["receipt"].strip():
-            raise BundleError("asset_unreceipted", f"{where}: receipt is empty; every asset names its source receipt")
-        path = asset["path"]
-        bundle_path(path, where)
-        if not path.lower().endswith(SUFFIX[asset["kind"]]):
-            raise BundleError("asset_kind_mismatch", f"{where}: path does not end in {SUFFIX[asset['kind']]}")
-        if asset.get("avatar_box", "exempt") != "exempt":
-            raise BundleError("bundle_invalid", f"{where}: avatar_box is exempt or absent")
-        for key, names in (("size", ("w", "h")), ("fps", ("num", "den"))):
-            if key in asset:
-                fields(asset[key], set(names), set(), f"{where} {key}")
-                if not all(natural(asset[key][k]) for k in names):
-                    raise BundleError("bundle_invalid", f"{where}: {key} values are not whole numbers above 0")
-        file = regular_file(bundle, path, where)
-        if sha256_file(file) != asset["sha256"]:
-            raise BundleError("asset_digest_mismatch", f"{where}: {path} does not hash to its manifest sha256")
-        problem = kind_problem(file, asset["kind"])
-        if problem:
-            raise BundleError("asset_kind_mismatch", f"{where}: {path} {problem}")
-        if asset["kind"] == "png" and "size" in asset:
-            size = png_size(file)
-            if size != (int(asset["size"]["w"]), int(asset["size"]["h"])):
-                raise BundleError("asset_kind_mismatch", f"{where}: the PNG is {size}, not its manifest size")
-        shown = read_text_source(bundle, asset, where)
-        assets[asset["id"]] = asset | {"file": file, "position": n + 1, "visible": shown}
+        try:
+            row = read_asset(bundle, asset, n, assets)
+            assets[row["id"]] = row
+        except BundleError as exc:
+            errors.append(located(exc, page=asset.get("id") if isinstance(asset, dict) else None, position=n))
+    refuse_all(errors)
     return assets, digest
+
+
+def read_asset(bundle, asset, n, assets):
+    """One manifest row, its file re-hashed and read, as the asset assets will hold. assets are the rows before it."""
+    where = f"{MANIFEST} assets[{n}]"
+    fields(asset, ASSET_FIELDS, ASSET_OPTIONAL, where)
+    if not isinstance(asset["id"], str) or not ID.match(asset["id"]):
+        raise BundleError("bundle_invalid", f"{where}: id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'")
+    where = f"asset {asset['id']}"
+    if asset["id"] in assets:
+        raise BundleError("bundle_invalid", f"{where}: the id repeats")
+    if asset["kind"] not in ASSET_KINDS:
+        raise BundleError("bundle_invalid", f"{where}: kind is not png, mp4 or gif")
+    if not isinstance(asset["sha256"], str) or not SHA256.match(asset["sha256"]):
+        raise BundleError("bundle_invalid", f"{where}: sha256 is not 64 lowercase hex digits")
+    if not isinstance(asset["receipt"], str) or not asset["receipt"].strip():
+        raise BundleError("asset_unreceipted", f"{where}: receipt is empty; every asset names its source receipt")
+    path = asset["path"]
+    bundle_path(path, where)
+    if not path.lower().endswith(SUFFIX[asset["kind"]]):
+        raise BundleError("asset_kind_mismatch", f"{where}: path does not end in {SUFFIX[asset['kind']]}")
+    if asset.get("avatar_box", "exempt") != "exempt":
+        raise BundleError("bundle_invalid", f"{where}: avatar_box is exempt or absent")
+    for key, names in (("size", ("w", "h")), ("fps", ("num", "den"))):
+        if key in asset:
+            fields(asset[key], set(names), set(), f"{where} {key}")
+            if not all(natural(asset[key][k]) for k in names):
+                raise BundleError("bundle_invalid", f"{where}: {key} values are not whole numbers above 0")
+    file = regular_file(bundle, path, where)
+    if sha256_file(file) != asset["sha256"]:
+        raise BundleError("asset_digest_mismatch", f"{where}: {path} does not hash to its manifest sha256")
+    problem = kind_problem(file, asset["kind"])
+    if problem:
+        raise BundleError("asset_kind_mismatch", f"{where}: {path} {problem}")
+    if asset["kind"] == "png" and "size" in asset:
+        size = png_size(file)
+        if size != (int(asset["size"]["w"]), int(asset["size"]["h"])):
+            raise BundleError("asset_kind_mismatch", f"{where}: the PNG is {size}, not its manifest size")
+    shown = read_text_source(bundle, asset, where)
+    return asset | {"file": file, "position": n + 1, "visible": shown}
 
 
 def read_script(bundle):
@@ -246,14 +288,21 @@ def read_script(bundle):
 
 
 def parse_script(text):
-    beats, beat, fence, titled = [], None, None, False
+    beats, beat, fence, titled, errors = [], None, None, False, []
 
     def bad(number, why, code="script_invalid"):
-        raise BundleError(code, f"{SCRIPT} line {number}: {why}")
+        errors.append(located(BundleError(code, f"{SCRIPT} line {number}: {why}"), line=number))
 
     def close(b):
-        if b is None:
+        """Add a finished beat, or record why it is not one. A beat whose heading was refused was never one."""
+        if b is None or b["id"] is None:
             return
+        try:
+            finish(b)
+        except BundleError as exc:
+            errors.append(located(exc, page=b["id"], segment=b["id"], line=b["line"]))
+
+    def finish(b):
         where = f"beat {b['id']} (line {b['line']})"
         for key in META_KEYS:
             if key not in b["meta"]:
@@ -293,25 +342,29 @@ def parse_script(text):
         heading = HEADING.match(line)
         if heading:
             close(beat)
+            beat = {"id": heading["id"], "line": number, "meta": {}, "voiced": None}
             if not ID.match(heading["id"]):
                 bad(number, "the beat id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'", "beat_invalid")
-            if any(b["id"] == heading["id"] for b in beats):
+                beat["id"] = None  # its own lines still belong to it, so they refuse nothing further
+            elif any(b["id"] == heading["id"] for b in beats):
                 bad(number, f"beat id {heading['id']} repeats", "beat_invalid")
-            beat = {"id": heading["id"], "line": number, "meta": {}, "voiced": None}
+                beat["id"] = None
             continue
         if beat is None:
             if line.startswith("# ") and not titled:
                 titled = True
                 continue
             bad(number, "before the first `## beat-id` heading only a `# title` line, notes (`>`) and blank lines")
+            continue
         meta = META.match(line)
         if meta:
             key = meta["key"]
             if key not in META_KEYS:
                 bad(number, f"`- {key}:` is not one of {', '.join(META_KEYS)}", "beat_invalid")
-            if key in beat["meta"]:
+            elif key in beat["meta"]:
                 bad(number, f"`- {key}:` repeats in beat {beat['id']}", "beat_invalid")
-            beat["meta"][key] = meta["value"].strip()
+            else:
+                beat["meta"][key] = meta["value"].strip()
             continue
         if line.rstrip() == VOICED_FENCE:
             if beat["voiced"] is not None:
@@ -320,8 +373,10 @@ def parse_script(text):
             continue
         bad(number, "a beat holds only its three `- key: value` lines, one ```voiced block, notes (`>`) and blanks")
     if fence is not None:
-        raise BundleError("script_invalid", f"{SCRIPT}: the voiced block of beat {beat['id']} is never closed")
-    close(beat)
+        errors.append(BundleError("script_invalid", f"{SCRIPT}: the voiced block of beat {beat['id']} is never closed"))
+    else:
+        close(beat)
+    refuse_all(errors)
     if not beats:
         raise BundleError("script_invalid", f"{SCRIPT} has no `## beat-id` beat")
     return beats
@@ -332,44 +387,56 @@ def read_claims(bundle):
     rows, digest = read_json(bundle, CLAIMS)
     if not isinstance(rows, list):
         raise BundleError("bundle_invalid", f"{CLAIMS} is not a list")
-    out = {}
+    out, errors = {}, []
     for n, claim in enumerate(rows):
-        fields(claim, {"id", "value", "receipt"}, set(), f"{CLAIMS}[{n}]")
-        if not isinstance(claim["id"], str) or not ID.match(claim["id"]) or claim["id"] in out:
-            raise BundleError("claim_invalid", f"{CLAIMS}[{n}]: id is not a new claim id")
-        where = f"claim {claim['id']}"
-        fields(claim["value"], {"spoken", "number", "unit"}, set(), f"{where} value")
-        value = claim["value"]
-        if not isinstance(value["number"], Decimal):
-            raise BundleError("claim_invalid", f"{where}: value.number is not a JSON number")
-        if not isinstance(value["unit"], str) or not gate.unit_valid(value["unit"]):
-            raise BundleError("claim_invalid", f"{where}: value.unit is not a unit the gate reads")
-        if not isinstance(value["spoken"], str) or not value["spoken"].strip():
-            raise BundleError("claim_invalid", f"{where}: value.spoken is empty")
-        if claim["receipt"] is not None and not isinstance(claim["receipt"], str):
-            raise BundleError("claim_invalid", f"{where}: receipt is not text or null")
-        said = gate.extract(value["spoken"])
-        if (
-            len(said) != 1
-            or said[0]["ambiguous"]
-            or said[0]["number"] != value["number"]
-            or said[0]["unit"] != value["unit"]
-        ):
-            reads = [(gate.fmt(m["number"]), m["unit"], m["ambiguous"]) for m in said]
-            raise BundleError(
-                "claim_invalid",
-                f"{where}: value.spoken reads as {reads}, not one number {gate.fmt(value['number'])}"
-                f" {value['unit'] or '(no unit)'}",
-            )
-        out[claim["id"]] = claim
+        try:
+            read_claim(claim, n, out)
+            out[claim["id"]] = claim
+        except BundleError as exc:
+            errors.append(located(exc, claim=claim.get("id") if isinstance(claim, dict) else None, position=n))
+    refuse_all(errors)
     return out, digest
 
 
+def read_claim(claim, n, out):
+    """Refuse one claims.json row that is not a claim. out holds the rows before it."""
+    fields(claim, {"id", "value", "receipt"}, set(), f"{CLAIMS}[{n}]")
+    if not isinstance(claim["id"], str) or not ID.match(claim["id"]) or claim["id"] in out:
+        raise BundleError("claim_invalid", f"{CLAIMS}[{n}]: id is not a new claim id")
+    where = f"claim {claim['id']}"
+    fields(claim["value"], {"spoken", "number", "unit"}, set(), f"{where} value")
+    value = claim["value"]
+    if not isinstance(value["number"], Decimal):
+        raise BundleError("claim_invalid", f"{where}: value.number is not a JSON number")
+    if not isinstance(value["unit"], str) or not gate.unit_valid(value["unit"]):
+        raise BundleError("claim_invalid", f"{where}: value.unit is not a unit the gate reads")
+    if not isinstance(value["spoken"], str) or not value["spoken"].strip():
+        raise BundleError("claim_invalid", f"{where}: value.spoken is empty")
+    if claim["receipt"] is not None and not isinstance(claim["receipt"], str):
+        raise BundleError("claim_invalid", f"{where}: receipt is not text or null")
+    said = gate.extract(value["spoken"])
+    if (
+        len(said) != 1
+        or said[0]["ambiguous"]
+        or said[0]["number"] != value["number"]
+        or said[0]["unit"] != value["unit"]
+    ):
+        reads = [(gate.fmt(m["number"]), m["unit"], m["ambiguous"]) for m in said]
+        raise BundleError(
+            "claim_invalid",
+            f"{where}: value.spoken reads as {reads}, not one number {gate.fmt(value['number'])}"
+            f" {value['unit'] or '(no unit)'}",
+        )
+
+
 def cited_known(beats, claims):
+    errors = []
     for beat in beats:
         unknown = [c for c in beat["claims"] if c not in claims]
         if unknown:
-            raise BundleError("claim_unknown", f"beat {beat['id']} cites claims {unknown} that {CLAIMS} lacks")
+            error = BundleError("claim_unknown", f"beat {beat['id']} cites claims {unknown} that {CLAIMS} lacks")
+            errors.append(located(error, page=beat["id"], segment=beat["id"], count=len(unknown)))
+    refuse_all(errors)
 
 
 def claims_report(beats, claims):
@@ -388,7 +455,7 @@ def gate_refusal(report):
         f"{len(refused)} of {len(report)} segments refused; segment {first['segment']}: {bad['code']} for"
         f" {bad['text']!r}"
     )
-    return BundleError(first["codes"][0], detail, report)
+    return BundleError(first["codes"][0], detail, report, gate.typed_rows(report))
 
 
 def read_privacy(bundle):
@@ -441,10 +508,19 @@ def withheld(state):
         entries = state.get("entries")
         if entries is None and state.get("pinned"):
             entries = False  # a pinned lane is private: with no denylist to test against, withhold every detail
+        exc.findings = [withheld_row(entries, row) for row in exc.findings]
         detail = private_terms.redact(entries, exc.code, exc.detail)
         if detail == exc.detail:
             raise
-        raise BundleError(exc.code, detail) from None
+        raise BundleError(exc.code, detail, rows=exc.findings) from None
+
+
+def withheld_row(entries, row):
+    """row, keeping its code alone when its page, segment or detail may say a private term."""
+    said = json.dumps([row["page"], row["segment"], row["detail"]], sort_keys=True)
+    if private_terms.redact(entries, row["code"], said) == said:
+        return row
+    return row | {"page": None, "segment": None, "detail": {}}
 
 
 def guarded_read(bundle, denylist, pin, state):
@@ -457,8 +533,16 @@ def guarded_read(bundle, denylist, pin, state):
         guard = private_guard(declared, denylist, pin, bundle)
         if guard.entries is not None:
             state["entries"] = guard.entries
-        beats, script_digest = read_script(bundle)
-        claims, claims_digest = read_claims(bundle)
+        errors = []
+        try:
+            beats, script_digest = read_script(bundle)
+        except BundleError as exc:
+            errors.append(exc)
+        try:
+            claims, claims_digest = read_claims(bundle)
+        except BundleError as exc:
+            errors.append(exc)
+        refuse_all(errors)
         cited_known(beats, claims)
         private_check(guard, private_terms.record_texts(manifest, beats, claims))
         private = private_check(guard, private_terms.written_texts(beats, claims))
@@ -488,26 +572,36 @@ def read(bundle, denylist=None, pin=None, state=None):
 
 
 def read_assets(bundle, beats, report, digests, guard, private):
-    assets, manifest_digest = read_manifest(bundle)
-    videos = set()
+    numbers = gate.typed_rows(report)  # intake raises these after the assets pass, so a refusal here carries them too
+    try:
+        assets, manifest_digest = read_manifest(bundle)
+    except BundleError as exc:
+        exc.findings = exc.findings + numbers
+        raise
+    videos, errors = set(), []
     for beat in beats:
         asset = assets.get(beat["asset_id"])
         if asset is None:
-            raise BundleError("asset_unknown", f"beat {beat['id']}: asset {beat['asset_id']} is not in {MANIFEST}")
+            error = BundleError("asset_unknown", f"beat {beat['id']}: asset {beat['asset_id']} is not in {MANIFEST}")
+            errors.append(located(error, page=beat["id"], segment=beat["id"]))
+            continue
         if asset["kind"] == "gif":
-            raise BundleError(
+            error = BundleError(
                 "asset_needs_conversion",
                 f"beat {beat['id']}: asset {asset['id']} is a GIF. No narrated-video stage reads GIF (a slide is a"
                 " still picture and the base is one video): convert it to a PNG still or an MP4 clip in the bundle,"
                 " with its own sha256 and receipt, and cite that asset",
             )
+            errors.append(located(error, page=beat["id"], segment=beat["id"]))
         if asset["kind"] == "mp4":
             videos.add(asset["sha256"])
     if len(videos) > 1:
-        raise BundleError(
+        error = BundleError(
             "asset_video_multiple",
             f"beats use {len(videos)} different MP4 assets; one MP4 becomes the base video and no stage joins clips",
         )
+        errors.append(located(error, count=len(videos)))
+    refuse_all(errors, numbers)
     shown = visible(assets, beats)
     private = private_check(guard, shown["texts"])
     return {
@@ -676,12 +770,13 @@ def pronunciation_check(b, records, template):
     }
 
 
-def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None):
+def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None, look=None):
     """(NarratedVideo record, {beat id: (narrate Job record, Markdown bytes)}).
 
     One segment per beat, anchored at the beat's start: beats run back to back from 0, each target_s long. A PNG beat
     shows its picture as a Full slide page over the beat's span; an MP4 beat shows the base, which is that MP4. With
-    no MP4 the base is the default card. Edition Internal; the avatar is on with persona, off without it."""
+    no MP4 the base is the default card. Edition Internal; the avatar is on with persona, off without it. look names a
+    campaign look's record: the job is then a Campaign job drawn by that look."""
     if not ID.match(job_id):
         raise BundleError("job_invalid", "the job id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'")
     jobs = narrate_jobs(b, records, job_id, template, voice, engine)
@@ -716,7 +811,7 @@ def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s
     exempt = [beat["id"] for beat in b["beats"] if b["assets"][beat["asset_id"]].get("avatar_box")]
     job = {
         "id": job_id,
-        "edition": EDITION,
+        "edition": CAMPAIGN_EDITION if look else EDITION,
         "base": base,
         "segments": segments,
         "avatar": copy.deepcopy(d["avatar"]) | {"boxExempt": exempt} if persona else None,
@@ -727,7 +822,7 @@ def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s
         "labels": copy.deepcopy(d["labels"]) | {"persona": persona},
         "delivery": copy.deepcopy(d["delivery"]),
     }
-    return check_shape(job), jobs
+    return check_shape(for_campaign(job, look)), jobs
 
 
 # Writing --------------------------------------------------------------------------------------------------------
@@ -849,7 +944,7 @@ def merged_records(records_dir, new_jobs):
 
 def intake(
     bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None,
-    denylist=None, pin=None, replace=False,
+    denylist=None, pin=None, replace=False, look=None,
 ):  # fmt: skip
     """Read, gate, convert, check and write one bundle. Returns the intake manifest written to out/intake.json.
 
@@ -864,7 +959,7 @@ def intake(
     with withheld(state):
         return guarded_intake(bundle, out, records_dir, state, job_id=job_id, template=template, voice=voice,
                               engine=engine, persona=persona, tail_s=tail_s, store=store, denylist=denylist,
-                              pin=pin, replace=replace)  # fmt: skip
+                              pin=pin, replace=replace, look=look)  # fmt: skip
 
 
 def earlier_intake(out):
@@ -895,7 +990,8 @@ def retire_intake(out):
 
 
 def guarded_intake(
-    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace
+    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace,
+    look=None,
 ):  # fmt: skip
     out = Path(out)
     if out.is_symlink() or (
@@ -919,7 +1015,15 @@ def guarded_intake(
     records = load_records(records_dir, marker_optional=True)
     b["records_sha256"] = records_tree(records_dir)
     job, jobs = convert(
-        b, records, job_id=job_id, template=template, voice=voice, engine=engine, persona=persona, tail_s=tail_s
+        b,
+        records,
+        job_id=job_id,
+        template=template,
+        voice=voice,
+        engine=engine,
+        persona=persona,
+        tail_s=tail_s,
+        look=look,
     )
     new_jobs = [record for record, _ in jobs.values()]
     tables = merged_records(records_dir, new_jobs)
@@ -934,7 +1038,8 @@ def guarded_intake(
     verdict = admit(job, checked)
     if verdict["verdict"] != "Admitted":
         first = verdict["refusals"][0]
-        raise BundleError(first["code"], f"admit: {first['detail']}")
+        rows = [typed.finding(row["code"], gate=typed.INTAKE) for row in verdict["refusals"]]
+        raise BundleError(first["code"], f"admit: {first['detail']}", rows=rows)
     spoken = pronunciation_check(b, records, template)
     b["private"] = private_check(b["guard"], spoken["said"] + private_terms.joined(spoken["said"]))
 
@@ -1135,4 +1240,10 @@ def claims_only(bundle, denylist=None, pin=None):
     """The claims gate on a bundle's script.md and claims.json, after the private-terms guard:
     {ok, bundle, segments, private_terms}. A private term raises BundleError private_term with the guard's report."""
     _, report, digests, _, private = read_claims_only(bundle, denylist, pin)
-    return {"ok": gate_refusal(report) is None, "bundle": digests, "segments": report, "private_terms": private}
+    return {
+        "ok": gate_refusal(report) is None,
+        "bundle": digests,
+        "segments": report,
+        "private_terms": private,
+        "findings": typed.report(gate.typed_rows(report)),
+    }

@@ -6,7 +6,7 @@ and handoff read kitpip and VRM overlays through one view:
 
   schema           avatar.manifest/v1
   kind             avatar_overlay
-  renderer         {kind: kitpip | vrm, name, version, ...}. A vrm renderer also names its engine {kind,
+  renderer         {kind: kitpip | vrm | look, name, version, ...}. A vrm renderer also names its engine {kind,
                    lock_sha256} as pinned, its frame step {num, den} (1 / rate) as the renderer reported it, and the
                    GPU and driver that rasterised the frames
   synthetic        true. consent_ids and voice_ids are the narration's
@@ -23,6 +23,10 @@ states them), face {schema, sha256, clock, source}, likeness_consent_id, approva
 {burned_in: false, decision: "open"}: whether offline VRM video carries a burned-in badge is not ruled, so no renderer
 draws one and no record may settle it.
 
+A look manifest also holds look {id, anchors, likeness_consent_id, clip_sha256}. Its rig is the look: id and the digest
+of its anchors (narrate/video/look.py). Its frames_sha256 is the clip's digest, because the graph never saw the frames
+drawn.
+
 kitpip.manifest/v0 (kitpip 0.1.0 and the stub) has no renderer kind. view() reads it as renderer kind kitpip with
 frames_identity unstated, so a kitpip overlay rendered before v1 keeps planning fresh.
 """
@@ -37,7 +41,7 @@ from .job import JobError
 SCHEMA_V1 = "avatar.manifest/v1"
 KITPIP_V0 = "kitpip.manifest/v0"
 SCHEMAS = (KITPIP_V0, SCHEMA_V1)
-KINDS = ("kitpip", "vrm")
+KINDS = ("kitpip", "vrm", "look")
 MAPPING = "avatar_overlay_v1"
 CLOCK = "narration_output"
 IDENTITIES = ("bit_exact", "per_host")
@@ -93,6 +97,7 @@ def view(manifest, kind=None):
         "show_badge": manifest.get("show_badge", False),
         "outputs": manifest.get("outputs") or [],
         "vrm": manifest.get("vrm"),
+        "look": manifest.get("look"),
     }
     if schema == SCHEMA_V1:
         check_v1(manifest, out)
@@ -125,6 +130,25 @@ def check_v1(manifest, out):
         refuse(f"timeline is {MAPPING} on the {CLOCK} clock with no_time_stretch false")
     if out["renderer_kind"] == "vrm":
         check_vrm(manifest, out)
+    if out["renderer_kind"] == "look":
+        check_look(out)
+
+
+def check_look(out):
+    look = out["look"] if isinstance(out["look"], dict) else {}
+    anchors = look.get("anchors")
+    if not text(look.get("id")) or look["id"] != out["rig"]["id"]:
+        refuse("look.id is the look's id and equals rig.id")
+    if not isinstance(anchors, list) or not anchors or not all(digest(a) for a in anchors):
+        refuse("look.anchors is a non-empty list of 64-hex digests")
+    if not text(look.get("likeness_consent_id")):
+        refuse("a look overlay names its likeness consent")
+    if not digest(look.get("clip_sha256")) or look["clip_sha256"] != out["frames_sha256"]:
+        refuse("look.clip_sha256 is the clip's digest and equals frames_sha256")
+    if out["frames_identity"] != "bit_exact":
+        refuse("a look overlay is one file, so its frames_identity is bit_exact")
+    if out["show_badge"] not in (None, False):
+        refuse("a look overlay draws no burned-in badge")
 
 
 def check_vrm(manifest, out):

@@ -106,7 +106,8 @@
     "default": "kitpip",
     "externals": [
      "kitpip",
-     "vrm"
+     "vrm",
+     "look"
     ]
    },
    "intent": "overlay.mov (ProRes 4444) per segment, drawn by the job's avatar external",
@@ -137,7 +138,8 @@
     "default": "kitpip",
     "externals": [
      "kitpip",
-     "vrm"
+     "vrm",
+     "look"
     ]
    },
    "intent": "the avatar external's verify and the label chain",
@@ -322,5 +324,5 @@
   ],
   "tasks_sha256": "c0be61edb1d38a42d49a37789f4e5c65c3f6fa9c370f7ff8342f872fbf1dc21b"
  },
- "execution_policy": "narrate/video/graph.py holds the same table, a test keeps them equal, and narrate/dhall/check.py holds selected_by and edition_point to the Dhall job and Edition types. plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6. avatar_overlay and avatar_verify are neutral: dispatch.by names the job field (avatar.external) that picks the implementation, kitpip by default or the vrm draft, so the stage tool names stay the same when a job moves from one to the other. An order edge carries no input: handoff waits on deliver_check and its key stays the same."
+ "execution_policy": "narrate/video/graph.py holds the same table, a test keeps them equal, and narrate/dhall/check.py holds selected_by and edition_point to the Dhall job and Edition types. plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6. avatar_overlay and avatar_verify are neutral: dispatch.by names the job field (avatar.external) that picks the implementation, kitpip by default, the vrm draft or a Campaign job's look, so the stage tool names stay the same when a job moves from one to the other. An order edge carries no input: handoff waits on deliver_check and its key stays the same."
 }

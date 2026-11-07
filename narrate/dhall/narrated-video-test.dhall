@@ -123,6 +123,11 @@ let ownContentAllowsAll =
         assert
       : Edition.check P.DeliverCheck E.OwnContent everything === V.Admitted
 
+let campaignAllowsAll =
+      assert : Edition.check P.DeliverCheck E.Campaign everything === V.Admitted
+
+let campaignIsNoClient = assert : Edition.client E.Campaign === False
+
 let narratedAllowsVoiceAndAvatar =
         assert
       :     Edition.check

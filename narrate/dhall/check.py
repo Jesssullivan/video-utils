@@ -220,6 +220,8 @@ def load_examples() -> dict:
 
 # Consent.Scope.Likeness (SP-R13): an avatar likeness grant a VRM model record names. It never grants a voice.
 LIKENESS_SCOPE = "Likeness"
+# Consent.Scope.CampaignStandingRule: the signed rule a campaign verdict resolves (narrate/video/campaign.py).
+CAMPAIGN_SCOPE = "CampaignStandingRule"
 
 
 def check_voice_for_job(job: dict, voice_id: str, data: dict, engine, errors: list) -> None:
@@ -244,6 +246,8 @@ def check_voice_for_job(job: dict, voice_id: str, data: dict, engine, errors: li
         errors.append(f"{where}: voice scope {voice['scope']} differs from job scope {job['scope']}")
     if LIKENESS_SCOPE in (voice["scope"], job["scope"]):
         errors.append(f"{where}: consent_scope (the {LIKENESS_SCOPE} scope grants an avatar likeness, never a voice)")
+    if CAMPAIGN_SCOPE in (voice["scope"], job["scope"]):
+        errors.append(f"{where}: consent_scope (the {CAMPAIGN_SCOPE} scope grants a campaign rule, never a voice)")
     if job["engine"] not in voice["allowedEngines"]:
         errors.append(f"{where}: engine {job['engine']} is not in the voice's allowedEngines")
     if engine is not None and is_offsite(engine) and consent["hostedAllowed"] is not True:
@@ -309,7 +313,7 @@ def check_examples(data: dict, errors: list) -> None:
 
 
 # Edition.dhall and NarratedVideo.dhall, ported. Keep in step with them and narrated-video-test.dhall.
-EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
+EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated", "Campaign")
 CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
 # Edition.clientDefault and NarratedVideo.defaults.clientEdition: a client delivery is ClientNarrated (NV-6, TIN-7476
 # comment 92605219) unless its project picks ClientVoiceOnly.
@@ -332,8 +336,9 @@ NV_BOUNDS = {"avatar.width": (0.10, 0.30), "music.bedBelowVoiceLu": (10.0, 30.0)
              "slides.dimTo": (0.0, 1.0)}
 SLIDE_LAYOUTS = ("Full", "CardLowerLeft")
 NV_DRIFT_MAX_LU = 0.5
-# NarratedVideo.Avatar.external: kitpip, or the VRM offline renderer (SPR-128; narrate/video/vrm.py gates it at admit).
-AVATAR_EXTERNALS = ("kitpip", "vrm")
+# NarratedVideo.Avatar.external: kitpip, the VRM offline renderer (narrate/video/vrm.py gates it at admit) or a
+# campaign look (narrate/video/look.py gates it at admit).
+AVATAR_EXTERNALS = ("kitpip", "vrm", "look")
 NV_TRUE_PEAK_MAX_DBTP = -1.5
 BED_LAYERS = (2, 3)
 BED_TEMPO_RANGE = (0.5, 2.0)
@@ -772,6 +777,11 @@ def mutations() -> list:
         voice(d)["scope"] = "Likeness"
         job(d)["scope"] = "Likeness"
 
+    def campaign_voice(d, m):
+        consent(d)["scopes"].append("CampaignStandingRule")
+        voice(d)["scope"] = "CampaignStandingRule"
+        job(d)["scope"] = "CampaignStandingRule"
+
     def with_engine(probe):
         def mutate(d, m):
             d["engines"].append({**d["engines"][0], **probe})
@@ -794,6 +804,7 @@ def mutations() -> list:
         ("voice scope not granted", lambda d, m: voice(d).update(scope="ClientDisclosed")),
         ("job scope not granted", lambda d, m: job(d).update(scope="ClientDisclosed")),
         ("voice and job scope Likeness", likeness_voice),
+        ("voice and job scope CampaignStandingRule", campaign_voice),
         ("voice names no consent", lambda d, m: voice(d).update(consentId="no-such-consent")),
         ("voice tempo out of range", lambda d, m: voice(d).update(tempo=0.4)),
         ("unmapped dialog speaker voice", lambda d, m: job(d).update(

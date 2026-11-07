@@ -33,8 +33,11 @@ RECORD_FILES = {
 # missing one when it renders. avatars.json holds the VRM model records a vrm avatar names (narrate/video/vrm.py).
 OPTIONAL_RECORDS = ("music_beds", "engines", "pronunciation", "avatars")
 MAX_RECORD_BYTES = 16 * 1024 * 1024
-EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
+EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated", "Campaign")
 CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
+# Public marketing video under a signed campaign rule (TIN-7125 52ca88bf, 0690fe88). narrate/video/campaign.py is its
+# verdict. Never client content: narrate/video/admit.py refuses a client consent on it.
+CAMPAIGN_EDITION = "Campaign"
 # NV-6 (TIN-7476 comment 92605219): a client delivery is ClientNarrated unless its project picks ClientVoiceOnly.
 # NarratedVideo.defaults.clientEdition (narrate/dhall/NarratedVideo.dhall) holds the same value.
 CLIENT_DEFAULT_EDITION = "ClientNarrated"
@@ -42,7 +45,8 @@ BASE_KINDS = ("still", "card", "video", "deck")
 FIELDS = (
     "id", "edition", "base", "segments", "avatar", "slides", "music", "tighten", "captions", "labels", "delivery",
 )  # fmt: skip
-AVATAR_EDITIONS = ("Internal", "OwnContent", "ClientNarrated")  # Edition.check refuses an avatar in ClientVoiceOnly
+# Edition.check refuses an avatar in ClientVoiceOnly.
+AVATAR_EDITIONS = ("Internal", "OwnContent", "ClientNarrated", "Campaign")
 
 # NarratedVideo.defaults (narrate/dhall/NarratedVideo.dhall). tests/test_narrated_video_graph.py pins init's output
 # to the nv-fixture-card example, which is built from these defaults.
@@ -335,6 +339,7 @@ def init_job(
     avatar=None,
     persona=None,
     client=False,
+    look=None,
 ):
     """A simple job from DEFAULTS. still is a SHA-256 (with the default size, rate and tail); otherwise a card.
 
@@ -343,7 +348,10 @@ def init_job(
     refuses at Plan, so init refuses ClientVoiceOnly up front: that job comes from a render through --from.
 
     avatar None takes the default: on for an edition that allows one (NV-8), off for ClientVoiceOnly. With the
-    avatar on, persona is required (admit refuses persona_label_missing without it). avatar False turns it off."""
+    avatar on, persona is required (admit refuses persona_label_missing without it). avatar False turns it off.
+
+    look: the avatars.json record of a campaign look (narrate/video/look.py). It draws the overlay in place of kitpip,
+    which a Campaign job refuses. A Campaign job also turns upload on, since its verdict reads that gate."""
     d = DEFAULTS
     if client:
         if edition is not None and edition not in CLIENT_EDITIONS:
@@ -378,4 +386,13 @@ def init_job(
         "labels": copy.deepcopy(d["labels"]) | ({"persona": persona} if persona else {}),
         "delivery": copy.deepcopy(d["delivery"]),
     }
-    return check_shape(job)
+    return check_shape(for_campaign(job, look))
+
+
+def for_campaign(job, look):
+    """job, drawn by a campaign look when one is named, and with upload on for a Campaign job."""
+    if look is not None and job["avatar"] is not None:
+        job["avatar"] |= {"external": "look", "rig": look}
+    if job["edition"] == CAMPAIGN_EDITION:
+        job["delivery"]["upload"] = True
+    return job

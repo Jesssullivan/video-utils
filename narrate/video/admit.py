@@ -4,10 +4,13 @@ admit resolves what a job names and refuses before any stage runs: an unknown na
 not the narrate job's pinned input, a voice without an active consent, a missing persona label, a bed record that is
 missing or not acquired by the operator, tighten edits on synthetic narration with tighten off, a knob outside its
 bound (a bed layer's tempo factor included), slide pages that break the slide rules (slides_invalid) or an avatarOff
-list naming a page the job does not define (page_unknown), an avatar external other than kitpip or vrm
+list naming a page the job does not define (page_unknown), an avatar external other than kitpip, vrm or look
 (avatar_external_unknown), an avatar binary whose digest differs from its pin (kitpip_pin_mismatch,
 vrm_pin_mismatch), a VRM overlay without its model record, likeness consent (SP-R13), appearance approval (TIN-7130)
-or a ruled edition (the vrm_* codes, narrate/video/vrm.py gates()), and Edition.check at Plan.
+or a ruled edition (the vrm_* codes, narrate/video/vrm.py gates()), a campaign look without its record, likeness
+consent or the Campaign edition (the look_* codes, narrate/video/look.py gates()), a Campaign job's overlay that no
+campaign look draws (campaign_look_required) or a voice it reads under a client consent (campaign_client_consent), and
+Edition.check at Plan.
 
 The edition rule, the plan leaves and the bounds are narrate/dhall/check.py's port of Edition.dhall and
 NarratedVideo.dhall, loaded here so the Plan point and `just narrate-dhall-check` run one rule. Place (L4) and
@@ -20,10 +23,12 @@ persona) and the operator gates still open (pending_operator).
 import importlib.util
 
 from ..config import ROOT
-from . import vrm
+from . import look, vrm
+from .job import CAMPAIGN_EDITION
 
 CHECK = ROOT / "narrate" / "dhall" / "check.py"
-AVATAR_EXTERNALS = ("kitpip", "vrm")
+AVATAR_EXTERNALS = ("kitpip", "vrm", "look")
+CLIENT_CONSENT_SCOPE = "ClientDisclosed"
 MISMATCH = {"kitpip": "kitpip_pin_mismatch", "vrm": "vrm_pin_mismatch"}
 _PORT = None
 
@@ -74,7 +79,7 @@ def bounds(job, refusals):
     check = port()
     if job["avatar"] is not None:
         if job["avatar"]["external"] not in AVATAR_EXTERNALS:
-            refusals.append(refusal("avatar_external_unknown", "avatar.external is not kitpip or vrm"))
+            refusals.append(refusal("avatar_external_unknown", "avatar.external is not kitpip, vrm or look"))
         if not check.within(job["avatar"]["width"], check.NV_BOUNDS["avatar.width"]):
             refusals.append(refusal("knob_out_of_bounds", "avatar.width is not 0.10 to 0.30"))
     music = job["music"]
@@ -114,7 +119,9 @@ def bed_record(job, records, refusals):
 
 def pending_operator(job, bed, visible=None):
     """Gates only the operator closes. admit lists them; nothing here marks one passed. visible is the guarded
-    intake's visible-text summary (job.load_records), which holds deliver_check open when it is not passed."""
+    intake's visible-text summary (job.load_records), which holds deliver_check open when it is not passed. A Campaign
+    job lists no listening or lip sync: the signed campaign rule lifts both, and campaign.py is its verdict."""
+    campaign = job["edition"] == CAMPAIGN_EDITION
     items = [
         {
             "gate": "listening_acceptance",
@@ -123,17 +130,19 @@ def pending_operator(job, bed, visible=None):
             "detail": "a rendered voice is not accepted until the operator's listening receipt",
         }
         for s in job["segments"]
+        if not campaign
     ]
     if job["avatar"] is not None and any(s["avatar"] for s in job["segments"]):
         drawn_by = "VRM" if job["avatar"]["external"] == "vrm" else "kitpip"
-        items.append(
-            {
-                "gate": "lip_sync_acceptance",
-                "stage": "avatar_check",
-                "segment": None,
-                "detail": f"{drawn_by} lip sync is pending the operator's acceptance",
-            }
-        )
+        if not campaign:
+            items.append(
+                {
+                    "gate": "lip_sync_acceptance",
+                    "stage": "avatar_check",
+                    "segment": None,
+                    "detail": f"{drawn_by} lip sync is pending the operator's acceptance",
+                }
+            )
         if job["avatar"]["external"] == "vrm":
             items.append(
                 {
@@ -177,9 +186,26 @@ def pending_operator(job, bed, visible=None):
     return items
 
 
+def campaign_gates(job, records):
+    """[(code, detail)] a Campaign job refuses at admit. Its overlay is a look its campaign can name, and no voice of it
+    reads under a client consent, because client content never reaches a public path."""
+    out = []
+    check = port()
+    if check.avatar_on(job) and job["avatar"]["external"] != look.EXTERNAL:
+        out.append(("campaign_look_required", "a Campaign job's overlay is a campaign look"))
+    for segment in job["segments"]:
+        narrate_job = records["jobs"].get(segment["narrateJob"]) or {}
+        for voice_id in [narrate_job.get("voice")] + [s["voice"] for s in narrate_job.get("speakers", [])]:
+            voice = records["voices"].get(voice_id) or {}
+            consent = records["consents"].get(voice.get("consentId")) or {}
+            if CLIENT_CONSENT_SCOPE in (consent.get("scopes") or []):
+                out.append(("campaign_client_consent", f"segment {segment['id']} reads under a client consent"))
+    return out
+
+
 def admit(job, records, avatar_state=None):
     """{verdict, refusals, edition, labels, pending_operator}. avatar_state is the resolve() state of the job's
-    avatar external (kitpip or vrm), or None when no avatar is on. Only a digest mismatch refuses here; a missing
+    avatar external (kitpip, vrm or look), or None when no avatar is on. Only a digest mismatch refuses here; a missing
     binary blocks the avatar stages. A VRM avatar also refuses on its gates (vrm.gates)."""
     check = port()
     refusals = []
@@ -203,6 +229,10 @@ def admit(job, records, avatar_state=None):
         refusals.append(refusal(MISMATCH.get(external, "kitpip_pin_mismatch"), f"the {what}'s digest is not its pin's"))
     if external == "vrm" and check.avatar_on(job):
         refusals.extend(refusal(code, detail) for code, detail in vrm.gates(job, records))
+    if external == look.EXTERNAL and check.avatar_on(job):
+        refusals.extend(refusal(code, detail) for code, detail in look.gates(job, records))
+    if job["edition"] == CAMPAIGN_EDITION:
+        refusals.extend(refusal(code, detail) for code, detail in campaign_gates(job, records))
     edition = check.edition_check("Plan", job["edition"], check.plan_leaves(job, bed))
     for code in edition.get("codes", []):
         refusals.append(refusal(check.EDITION_REFUSALS[code], f"edition {job['edition']} at Plan"))
