@@ -803,6 +803,17 @@ def test_a_client_job_cannot_be_bound_and_still_needs_its_decision(card, edition
     assert not (s.dir / rerun.LEDGER).exists()
 
 
+def test_a_client_cut_takes_a_round_only_with_its_softproxy_id(card):
+    job, s = card
+    edited(job, s, lambda j: j.update(edition="ClientNarrated", music=None))
+    video = video_of(s)
+    assert refused(rerun.machine_round, s, report_of("slide_not_shown"), video) == "round_needs_decision"
+    assert refused(rerun.fix, s, None, video) == "decision_missing"
+    assert not (s.dir / rerun.LEDGER).exists()
+    assert rerun.fix(s, DECISIONS[0], video)["round"] == 1
+    assert ledger(s)["fixes"][0]["decision"] == DECISIONS[0]
+
+
 def test_a_client_edition_written_after_a_binding_still_needs_its_decision(card):
     job, s = bound(*card)
     s.write_job(copy.deepcopy(job) | {"edition": "ClientNarrated"}, replace=True)
@@ -844,7 +855,7 @@ def test_a_binding_holds_one_campaign_and_one_id_form(card):
     job, s = bound(*card)
     assert rerun.bind_campaign(s, CAMPAIGN)["recorded"] is False
     assert refused(rerun.bind_campaign, s, "another-campaign") == "campaign_bound"
-    for value in ("", "two words", "../up", None):
+    for value in ("", "two words", "../up", "trailing\n", None):
         assert refused(rerun.bind_campaign, s, value) == "campaign_id_invalid"
 
 
@@ -922,6 +933,10 @@ def test_a_ledger_written_before_campaigns_still_reads_and_starts_no_round(card)
         (findings.report([]), None, "round_no_findings"),
         (findings.report([findings.finding("lexical_finding", rule="XL-FIX-001")]), None, "round_no_findings"),
         (report_of("flash_jump"), None, "round_video_missing"),
+        (report_of("slide_not_shown"), None, "round_video_missing"),
+        (report_of("slide_layer_missing"), None, "round_video_missing"),
+        (report_of("slide_layer_mismatch"), None, "round_video_missing"),
+        (report_of("slide_letterbox", "slide_not_shown"), None, "round_video_missing"),
         (report_of("slide_not_shown"), "abc", "video_sha256_invalid"),
         (report_of("slide_not_shown"), "0" * 64, "video_mismatch"),
     ],

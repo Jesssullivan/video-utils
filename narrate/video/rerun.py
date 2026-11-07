@@ -131,7 +131,7 @@ def valid_campaign(value):
         or isinstance(value, dict)
         and set(value) == CAMPAIGN_FIELDS
         and isinstance(value["id"], str)
-        and ID.match(value["id"]) is not None
+        and ID.fullmatch(value["id"]) is not None
         and value["resolution"] == accept.RESOLUTION
     )
 
@@ -354,7 +354,7 @@ def bind_campaign(store, campaign, now=utc_now):
     job_id, campaign, recorded}. Refusals: campaign_id_invalid, campaign_client_job (a client edition), campaign_bound
     (another campaign holds the root) and campaign_after_decision (the root holds an operator's FIX or acceptance, so
     it stays on that path). Nothing is written on a refusal, and binding the same campaign again is a no-op."""
-    if not isinstance(campaign, str) or ID.match(campaign) is None:
+    if not isinstance(campaign, str) or ID.fullmatch(campaign) is None:
         raise JobError("campaign_id_invalid", "a campaign id is 1 to 64 of a-z, 0-9, '.', '_' and '-'")
     job = store.read_job()
     if job["edition"] in CLIENT_EDITIONS:
@@ -426,7 +426,7 @@ def machine_round(store, report, video_sha256=None, now=utc_now):
                 raise JobError("video_mismatch", "the findings name another cut than the current composed video")
             if any(r["video_sha256"] == video_sha256 for r in accept.read(store)["acceptances"]):
                 raise JobError("cut_accepted", "the operator already accepted a gate of this cut")
-        elif any(row["gate"] in typed.CUT_GATES for row in rows):
+        elif any(row["gate"] in typed.CUT_GATES or row["code"] in typed.CUT_CODES for row in rows):
             raise JobError("round_video_missing", "these findings read a composed cut, so the round names it")
         if ledger.get("parked") is not None:
             return parked_result(store, ledger, recorded=False)

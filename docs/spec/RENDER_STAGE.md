@@ -222,10 +222,10 @@ refuses `round_out_of_reach` when any other stage ran, so a fix of a slide, whic
 
 | Refusal | When |
 | --- | --- |
-| `findings_invalid` | the file is not a typed report |
+| `findings_invalid` | the file is not a typed report, or a row's code, gate or stage is not one short token |
 | `round_needs_decision` | a client edition, or a job root with no campaign bound |
 | `round_no_findings` | no row blocks. A lexical finding alone is advisory |
-| `round_video_missing` | a profile, loudness, flash or captions finding names no cut |
+| `round_video_missing` | a finding only a composed cut can show names no cut: profile, loudness, flash, captions or a slide's layer or shown share |
 | `video_mismatch`, `cut_accepted`, `fix_already_recorded` | as for `fix` |
 
 The same findings on the same cut again are a no-op, `recorded: false`. A machine round closes no operator gate.

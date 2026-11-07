@@ -115,6 +115,10 @@ def test_reading_a_report_rebuilds_each_row_so_a_caller_cannot_move_a_known_code
         {"kind": findings.KIND, "schema_version": 1, "findings": ["flash_jump"]},
         findings.report([findings.finding("flash_jump") | {"detail": "words"}]),
         findings.report([findings.finding("flash_jump") | {"stage": 7}]),
+        findings.report([findings.finding("flash_jump") | {"stage": "a sentence with spaces"}]),
+        findings.report([findings.finding("flash_jump") | {"gate": "a sentence with spaces"}]),
+        findings.report([findings.finding("flash_jump") | {"code": "a sentence with spaces"}]),
+        findings.report([findings.finding("flash_jump") | {"code": ""}]),
     ],
 )
 def test_a_report_that_is_not_one_refuses(value):

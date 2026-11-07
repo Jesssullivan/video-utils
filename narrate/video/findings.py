@@ -15,7 +15,8 @@ that fixes a job needs the rest, so every gate also returns one record per code 
 - detail holds counts, measures and tokens. A record never holds a path or a text, because it leaves the private store
   in a machine's hands: plain drops any string that is not one short token.
 
-Reading a report with check rebuilds each row from CODES, so a caller cannot move a known code's stage or blocking.
+Reading a report with check rebuilds each row from CODES, so a caller cannot move a known code's stage or blocking, and
+refuses a code, gate or stage that is not one short token, because a round's ledger row holds the codes as written.
 """
 
 import math
@@ -40,6 +41,8 @@ FLASH = "flash"
 CAPTIONS = "captions"
 # Only a composed cut can show these, so a round on them names that cut. The frame gates also read before any voice.
 CUT_GATES = (PROFILE, LOUDNESS, FLASH, CAPTIONS)
+# The slide gate reads before any voice too, and these three of its codes only read a composed cut.
+CUT_CODES = ("slide_layer_missing", "slide_layer_mismatch", "slide_not_shown")
 PROFILE_FIELDS = (
     "video_codec", "pix_fmt", "size", "fps", "frames", "audio_codec", "audio_rate_hz", "audio_channels",
     "subtitle_tracks",
@@ -137,6 +140,11 @@ def report(rows):
     }
 
 
+def token(value):
+    """value is one short token that says something, as a code, gate or stage is."""
+    return isinstance(value, str) and bool(value) and TOKEN.fullmatch(value) is not None
+
+
 def check(value):
     """The report value holds, each row rebuilt by finding, or JobError findings_invalid."""
     rows = value.get("findings") if isinstance(value, dict) else None
@@ -144,9 +152,9 @@ def check(value):
         not isinstance(rows, list)
         or value.get("kind") != KIND
         or value.get("schema_version") != SCHEMA_VERSION
-        or not all(isinstance(r, dict) and set(r) == FIELDS and isinstance(r["code"], str) for r in rows)
-        or not all(isinstance(r["detail"], dict) and isinstance(r["gate"], str) for r in rows)
-        or not all(r["stage"] is None or isinstance(r["stage"], str) for r in rows)
+        or not all(isinstance(r, dict) and set(r) == FIELDS and token(r["code"]) for r in rows)
+        or not all(isinstance(r["detail"], dict) and token(r["gate"]) for r in rows)
+        or not all(r["stage"] is None or token(r["stage"]) for r in rows)
     ):
         raise JobError("findings_invalid", f"this is not a {KIND} report of schema version {SCHEMA_VERSION}")
     return report(
