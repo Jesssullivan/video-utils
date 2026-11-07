@@ -909,6 +909,7 @@ def test_a_machine_round_past_the_cap_is_store_invalid(card):
         lambda v: v | {"fixes": [v["fixes"][0] | {"decision": DECISIONS[0]}]},
         lambda v: v | {"fixes": [v["fixes"][0] | {"deliver_check": 5}]},
         lambda v: v | {"fixes": [v["fixes"][0] | {"findings_sha256": "short"}]},
+        lambda v: v | {"fixes": [v["fixes"][0] | {"seq": "7"}]},
     ],
 )
 def test_a_forged_campaign_parked_or_round_row_is_store_invalid(card, edit):
@@ -937,6 +938,16 @@ def test_a_ledger_written_before_campaigns_still_reads_and_starts_no_round(card)
         (report_of("slide_layer_missing"), None, "round_video_missing"),
         (report_of("slide_layer_mismatch"), None, "round_video_missing"),
         (report_of("slide_letterbox", "slide_not_shown"), None, "round_video_missing"),
+        (report_of(findings.GATE_FAILED), None, "round_video_missing"),
+        (
+            findings.report([findings.finding("avatar_box_occupied", page="p1", source="frame")]),
+            None,
+            "round_video_missing",
+        ),
+        (report_of("slide_letterbox") | {"job_id": "another-job"}, None, "findings_stale"),
+        (report_of("slide_letterbox") | {"job_sha256": "0" * 64}, None, "findings_stale"),
+        (report_of("slide_letterbox") | {"video_sha256": "abc"}, None, "video_sha256_invalid"),
+        (report_of("slide_letterbox") | {"video_sha256": "0" * 64}, None, "video_mismatch"),
         (report_of("slide_not_shown"), "abc", "video_sha256_invalid"),
         (report_of("slide_not_shown"), "0" * 64, "video_mismatch"),
     ],
@@ -946,6 +957,112 @@ def test_a_round_refuses_with_nothing_recorded(card, report, video, code):
     written = (s.dir / rerun.LEDGER).read_bytes()
     assert refused(rerun.machine_round, s, report, video) == code
     assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_a_round_holds_the_cut_its_report_read_when_the_caller_names_none(card):
+    job, s = bound(*card)
+    cut = video_of(s)
+    assert rerun.machine_round(s, report_of("slide_letterbox") | {"video_sha256": cut})["recorded"] is True
+    assert ledger(s)["fixes"][0]["video_sha256"] == cut
+    assert refused(accept.accept, s, "listening", DECISIONS[0], cut) == "cut_sent_back"
+
+
+def test_a_caller_cannot_name_another_cut_than_the_report_read(card):
+    job, s = bound(*card)
+    written = (s.dir / rerun.LEDGER).read_bytes()
+    report = report_of("slide_letterbox") | {"video_sha256": video_of(s)}
+    assert refused(rerun.machine_round, s, report, "0" * 64) == "video_mismatch"
+    assert (s.dir / rerun.LEDGER).read_bytes() == written
+
+
+def test_a_report_of_this_job_and_job_json_starts_a_round_and_an_older_one_does_not(card):
+    job, s = bound(*card)
+    report = report_of("slide_letterbox") | {"job_id": s.job_id, "job_sha256": keys.digest(job)}
+    edited(job, s, burn)
+    assert refused(rerun.machine_round, s, report) == "findings_stale"
+    assert ledger(s)["fixes"] == []
+    now = report | {"job_sha256": keys.digest(s.read_job())}
+    assert rerun.machine_round(s, now)["recorded"] is True
+
+
+def test_a_picture_finding_needs_no_cut(card):
+    """The avatar gate reads the picture before any voice, so only its frame row names a cut."""
+    job, s = bound(*card)
+    report = findings.report([findings.finding("avatar_box_occupied", page="p1", source="layer")])
+    assert rerun.machine_round(s, report)["recorded"] is True and ledger(s)["fixes"][0]["video_sha256"] is None
+
+
+def test_an_accepted_cut_takes_no_round_from_a_report_that_names_it(card, monkeypatch):
+    monkeypatch.setattr(render_stage.deliver, "typed_findings", lambda report, job: [])
+    job, s = bound(*card)
+    cut = video_of(s)
+    accept.accept(s, "listening", DECISIONS[0], cut)
+    report = render_stage.job_findings(s) | {"findings": report_of("slide_letterbox")["findings"]}
+    assert report["video_sha256"] == cut
+    assert refused(rerun.machine_round, s, report) == "cut_accepted"
+
+
+def failed_gate(monkeypatch):
+    rows = [findings.finding("slide_not_shown", page="p1")]
+    monkeypatch.setattr(render_stage.deliver, "typed_findings", lambda report, job: rows)
+
+
+def test_findings_read_the_current_deliver_check_and_name_its_cut(card, monkeypatch):
+    failed_gate(monkeypatch)
+    _, s = card
+    shown = render_stage.job_findings(s)
+    assert shown["deliver_check"] == "current" and shown["video_sha256"] == video_of(s) and shown["ok"] is False
+    assert [row["code"] for row in shown["findings"]] == ["slide_not_shown"]
+
+
+def test_a_deliver_check_of_an_older_job_gives_no_row_and_no_cut(card, monkeypatch):
+    """A fix wrote the job and a stage refused before deliver_check ran again: the old rows are not this job's."""
+    failed_gate(monkeypatch)
+    job, s = bound(*card)
+    changed = copy.deepcopy(job)
+    burn(changed)
+    s.write_job(changed, replace=True)
+    shown = render_stage.job_findings(s)
+    assert shown["deliver_check"] == "stale" and shown["video_sha256"] is None and shown["findings"] == []
+    assert shown["job_sha256"] == keys.digest(changed)
+
+    s.record_refusal("compose", "0" * 64, "ffmpeg_failed", "the composer failed")
+    shown = json.loads(json.dumps(render_stage.job_findings(s)))
+    assert [row["code"] for row in shown["findings"]] == ["ffmpeg_failed"] and shown["ok"] is False
+    out = rerun.machine_round(s, shown)
+    assert out["recorded"] is True and out["reach"][0] == "compose" and ledger(s)["fixes"][0]["video_sha256"] is None
+
+
+def test_a_job_that_never_ran_deliver_check_says_so_and_names_no_cut(tmp_path):
+    s = new_store(tmp_path, example("nv-fixture-card"))
+    shown = render_stage.job_findings(s)
+    assert shown["deliver_check"] == "missing" and shown["video_sha256"] is None and shown["count"] == 0
+
+
+def test_a_corrupt_deliver_check_refuses_instead_of_reading_clean(card):
+    _, s = card
+    (s.dir / s.entry("deliver_check")["dir"] / "deliver_check.json").write_text("{}\n")
+    assert refused(render_stage.job_findings, s) == "deliver_check_corrupt"
+
+
+def test_a_report_a_stage_never_writes_is_store_invalid(card, monkeypatch):
+    def broken(report, job):
+        raise KeyError("gates")
+
+    monkeypatch.setattr(render_stage.deliver, "typed_findings", broken)
+    assert refused(render_stage.job_findings, card[1]) == "store_invalid"
+
+
+def test_a_preflight_of_an_older_job_gives_no_row(card, monkeypatch):
+    monkeypatch.setattr(render_stage.deliver, "typed_findings", lambda report, job: [])
+    job, s = card
+    path = s.dir / render_stage.INTAKE_DIR / render_stage.PREFLIGHT_FILE
+    path.parent.mkdir(exist_ok=True)
+    row = {"code": "slide_letterbox", "page": "p1"}
+    path.write_text(json.dumps({"job_sha256": "0" * 64, "findings": [row]}))
+    assert render_stage.job_findings(s)["findings"] == []
+    path.write_text(json.dumps({"job_sha256": keys.digest(job), "findings": [row]}))
+    assert [r["code"] for r in render_stage.job_findings(s)["findings"]] == ["slide_letterbox"]
 
 
 def test_an_accepted_cut_takes_no_round(card):
@@ -992,6 +1109,49 @@ def test_a_render_that_re_voices_on_a_slide_round_refuses_and_records_nothing(ca
     before = ledger(s)
     assert refused(render_stage.result, event(job, 2), s, ENV) == "round_out_of_reach"
     assert ledger(s) == before
+
+
+def test_a_re_voice_on_a_slide_round_refuses_on_a_cut_with_no_render_row(card):
+    """A round binds the current cut and needs no render row, so the check reads the round's own commit counter."""
+    job, s = bound(*card)
+    rerun.machine_round(s, report_of("slide_letterbox"), video_of(s))
+    assert ledger(s)["renders"] == [] and ledger(s)["fixes"][0]["seq"] == s.current()["seq"]
+    recs = records()
+    job = edited(job, s, lambda j: new_script(j, recs), recs)
+    before = ledger(s)
+    assert refused(render_stage.result, event(job, 1), s, ENV) == "round_out_of_reach"
+    assert ledger(s) == before
+
+
+def test_a_compose_fix_on_a_cut_with_no_render_row_takes_that_render(card):
+    job, s = bound(*card)
+    rerun.machine_round(s, report_of("slide_letterbox"), video_of(s))
+    job = edited(job, s, burn)
+    assert render_stage.result(event(job, 1), s, ENV)["rerun"]["fix"]["answers_round"] == 1
+
+
+def test_what_ran_before_a_round_is_not_that_rounds_to_answer(card):
+    """Round 1 re-voiced and no render was recorded. Round 2's compose fix answers for what ran since round 2 alone."""
+    job, s = bound(*card)
+    render_stage.result(event(job, 1), s, ENV)
+    rerun.machine_round(s, report_of("voice_qa_failed"), video_of(s))
+    recs = records()
+    job = edited(job, s, lambda j: new_script(j, recs), recs)
+    rerun.machine_round(s, report_of("slide_letterbox"), video_of(s))
+    job = edited(job, s, burn, recs)
+    value = render_stage.result(event(job, 2), s, ENV)
+    assert value["rerun"]["fix"]["answers_round"] == 2
+    assert "voice/" + job["segments"][0]["id"] in value["rerun"]["ran"]
+
+
+def test_a_round_that_named_no_cut_holds_its_reach_once_a_render_exists(card):
+    job, s = bound(*card)
+    render_stage.result(event(job, 1), s, ENV)
+    assert ledger(s)["renders"] and rerun.machine_round(s, report_of("slide_letterbox"))["recorded"] is True
+    assert ledger(s)["fixes"][0]["video_sha256"] is None
+    recs = records()
+    job = edited(job, s, lambda j: new_script(j, recs), recs)
+    assert refused(render_stage.result, event(job, 2), s, ENV) == "round_out_of_reach"
 
 
 def test_a_round_whose_fix_may_re_voice_takes_that_render(card):
@@ -1165,11 +1325,21 @@ def test_the_findings_of_a_real_root_are_typed_and_hold_a_real_lexical_finding(r
     assert root.intake() == 0 and root.init() == 0
     root.run(capsys)
     root.result(1)
-    shown = render_stage.job_findings(store.JobStore(root.root, JOB))
+    s = store.JobStore(root.root, JOB)
+    held = {path: path.read_bytes() for path in s.dir.rglob("*") if path.is_file()}
+    shown = render_stage.job_findings(s)
+    assert {path: path.read_bytes() for path in s.dir.rglob("*") if path.is_file()} == held  # no key can move
     assert findings.check(json.loads(json.dumps(shown)))["codes"] == shown["codes"]
     lexical = [row for row in shown["findings"] if row["code"] == "lexical_finding"]
     assert lexical and all(row["blocking"] is False and row["segment"] for row in lexical)
     assert "delve" not in json.dumps(shown)
+
+    # A real preflight names this job.json as job_findings reads it, so its rows are not dropped as an older job's.
+    path = s.dir / render_stage.INTAKE_DIR / render_stage.PREFLIGHT_FILE
+    report = json.loads(path.read_text())
+    assert report["job_sha256"] == shown["job_sha256"]
+    path.write_text(json.dumps(report | {"findings": [{"code": "slide_letterbox", "page": "intro"}]}))
+    assert "slide_letterbox" in render_stage.job_findings(s)["codes"]
 
 
 def test_a_changed_beat_re_voices_alone_and_the_held_take_stays(root, capsys):

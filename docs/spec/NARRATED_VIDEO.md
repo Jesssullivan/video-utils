@@ -1216,15 +1216,15 @@ rest, every gate also gives a typed record per code and page (`narrate/video/fin
 | `stage` | where a fix enters the stage graph, so `graph.reach` gives what that fix may run. Null reaches the whole graph, as a bundle's structure fault does |
 | `blocking` | false only for an advisory lexical finding (R-N12) |
 | `page`, `segment` | where it is, or null |
-| `detail` | counts, measures and short tokens. A record never holds a path or a text |
+| `detail` | counts, measures and short tokens. A record never holds a path or a text, so a token holds no slash except a ratio such as `30000/1001` |
 
 | Source | Gives | How |
 | --- | --- | --- |
 | `narrate video intake`, `claims` | every asset, beat, claim and spoken number at fault, in the `findings` key they print. A fault inside one of those stops that one, a file that does not parse stops that file, and the private-terms guard stops the read at once | `BundleError.findings`, `claims.typed_rows` |
 | `preflight` | every frame finding, under `typed` in the report | `frames.typed_rows` |
-| `deliver_check.json` | every failed machine gate, per field, change, file, code and page | `deliver.typed_findings` |
+| `deliver_check.json` | every failed machine gate, per field, change, file, code and page. A failed gate no limit explains gives `gate_failed` | `deliver.typed_findings` |
 | `script`, `voice_qa` | each lexical finding without its match, and each measured gate that failed | `speech.lexical_rows`, `speech.qa_rows` |
-| `narrate video findings JOB` | all of the above a job root holds, plus each stage refusal in `current.json`, with the cut they read | `render_stage.job_findings` |
+| `narrate video findings JOB` | all of the above a job root holds, plus each stage refusal in `current.json`, with the cut they read. A preflight or `deliver_check` of an older `job.json` gives no row, and `deliver_check` in the report says `current`, `stale` or `missing`, because `ok` speaks for the rows alone | `render_stage.job_findings` |
 
 Stage output stays as it was: the readers above only read `deliver_check.json` and `lexical.json`, so no stage key
 moves. A voice key reads the script stage's digest, so a new byte in `lexical.json` would re-voice every segment. An

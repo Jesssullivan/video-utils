@@ -13,7 +13,8 @@ that fixes a job needs the rest, so every gate also returns one record per code 
 - blocking is False only for what a gate records and never refuses, the advisory lexical findings (R-N12);
 - page and segment name where it is, and either may be None;
 - detail holds counts, measures and tokens. A record never holds a path or a text, because it leaves the private store
-  in a machine's hands: plain drops any string that is not one short token.
+  in a machine's hands: plain drops any string or key that is not one short token. A token holds no slash, except a
+  ratio such as a frame rate's 30000/1001.
 
 Reading a report with check rebuilds each row from CODES, so a caller cannot move a known code's stage or blocking, and
 refuses a code, gate or stage that is not one short token, because a round's ledger row holds the codes as written.
@@ -27,7 +28,7 @@ from .job import JobError
 KIND = "nv_findings"
 SCHEMA_VERSION = 1
 FIELDS = {"gate", "code", "stage", "blocking", "page", "segment", "detail"}
-TOKEN = re.compile(r"[A-Za-z0-9._:/+-]{0,64}")
+TOKEN = re.compile(r"[A-Za-z0-9._:+-]{0,64}|[0-9]{1,20}/[0-9]{1,20}")
 WITHHELD = "withheld"
 INTAKE = "intake"
 LEXICAL = "lexical"
@@ -41,8 +42,10 @@ FLASH = "flash"
 CAPTIONS = "captions"
 # Only a composed cut can show these, so a round on them names that cut. The frame gates also read before any voice.
 CUT_GATES = (PROFILE, LOUDNESS, FLASH, CAPTIONS)
-# The slide gate reads before any voice too, and these three of its codes only read a composed cut.
-CUT_CODES = ("slide_layer_missing", "slide_layer_mismatch", "slide_not_shown")
+# The slide gate reads before any voice too, and these three of its codes only read a composed cut. So does a failed
+# gate that left no row of its own (deliver.typed_findings).
+GATE_FAILED = "gate_failed"
+CUT_CODES = ("slide_layer_missing", "slide_layer_mismatch", "slide_not_shown", GATE_FAILED)
 PROFILE_FIELDS = (
     "video_codec", "pix_fmt", "size", "fps", "frames", "audio_codec", "audio_rate_hz", "audio_channels",
     "subtitle_tracks",
@@ -95,7 +98,7 @@ def plain(value):
     if isinstance(value, str):
         return value if TOKEN.fullmatch(value) else WITHHELD
     if isinstance(value, dict):
-        return {str(k): plain(v) for k, v in value.items()}
+        return {plain(str(k)): plain(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [plain(v) for v in value]
     if isinstance(value, float) and not math.isfinite(value):
@@ -121,6 +124,12 @@ def finding(code, gate=None, stage=None, page=None, segment=None, **detail):
         "segment": where(segment),
         "detail": plain(detail),
     }
+
+
+def reads_cut(row):
+    """Only a composed cut can show this row. The avatar gate reads a picture before any voice and the frame after it,
+    and its row says which."""
+    return row["gate"] in CUT_GATES or row["code"] in CUT_CODES or row["detail"].get("source") == "frame"
 
 
 def report(rows):

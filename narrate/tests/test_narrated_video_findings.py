@@ -79,12 +79,33 @@ def test_an_unlisted_code_takes_what_its_caller_names():
 
 @pytest.mark.parametrize(
     "text",
-    ["a sentence with spaces", "/" + "x" * 80, "line\nbreak", "étude"],
+    [
+        "a sentence with spaces",
+        "/" + "x" * 80,
+        "line\nbreak",
+        "étude",
+        "/fixture/store/take.mp4",
+        "artifacts/narrated/job/video.mp4",
+        "../up.png",
+        "1/2/3",
+    ],
 )
 def test_a_record_holds_no_text(text):
     row = findings.finding("slide_letterbox", page=text, segment=text, said=text, rows=[{"said": text}])
     assert row["page"] is None and row["segment"] is None
     assert row["detail"] == {"said": findings.WITHHELD, "rows": [{"said": findings.WITHHELD}]}
+
+
+def test_a_key_of_a_record_holds_no_text():
+    row = findings.finding("slide_letterbox", said={"a sentence with spaces": 1, "/fixture/take.mp4": 2, "share": 3})
+    assert row["detail"]["said"] == {findings.WITHHELD: 2, "share": 3}
+    shown = findings.check(findings.report([row | {"detail": {"line\nbreak": 1}}]))
+    assert shown["findings"][0]["detail"] == {findings.WITHHELD: 1}
+
+
+@pytest.mark.parametrize("ratio", ["30/1", "30000/1001", "0/0"])
+def test_a_frame_rate_is_a_token(ratio):
+    assert findings.finding("profile_fps", want="30/1", got=ratio)["detail"] == {"want": "30/1", "got": ratio}
 
 
 def test_a_lexical_finding_alone_does_not_block():
@@ -541,6 +562,34 @@ def test_every_slide_change_over_the_flash_limit_is_a_finding_with_its_page():
     rows = deliver.typed_findings(report, JOB)
     assert codes(rows) == ["flash_jump", "flash_jump"] and [row["page"] for row in rows] == ["p0", "p1"]
     assert rows[1]["detail"]["max_jump"] == 0.9
+
+
+def test_a_loudness_gate_no_limit_explains_is_still_a_finding():
+    """NaN fails the gate and is over no limit, so a limit alone would read this cut as clean."""
+    delivery = JOB["delivery"] | {"targetLufs": -16}
+    gate, measured = deliver.loudness_gate({"integrated_lufs": float("nan"), "true_peak_dbtp": -2.0}, delivery)
+    assert gate == "failed"
+    report = clean_report() | {"loudness": measured}
+    report["gates"]["loudness"] = gate
+    rows = deliver.typed_findings(report, JOB)
+    assert codes(rows) == [findings.GATE_FAILED] and rows[0]["gate"] == "loudness"
+    assert rows[0]["stage"] is None and rows[0]["blocking"] is True and findings.reads_cut(rows[0])
+    assert findings.report(rows)["ok"] is False
+
+
+@pytest.mark.parametrize("gate", deliver.MACHINE_GATES)
+def test_every_failed_gate_gives_a_row(gate):
+    report = clean_report()
+    report["gates"][gate] = "failed"
+    rows = deliver.typed_findings(report, JOB)
+    assert [(row["code"], row["gate"]) for row in rows] == [(findings.GATE_FAILED, gate)]
+
+
+def test_a_gate_that_named_its_fault_adds_no_second_row():
+    report = clean_report()
+    report["gates"]["loudness"] = "failed"
+    report["loudness"]["drift_lu"] = 5
+    assert codes(deliver.typed_findings(report, JOB)) == ["loudness_drift"]
 
 
 def test_a_report_with_a_fault_in_every_gate_returns_them_all():

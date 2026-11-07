@@ -213,22 +213,27 @@ decision, whatever its edition, because a demo bundle's job is `Internal`.
 
 | `result` | Means |
 | --- | --- |
-| `round` | a row in `fixes` with `decision: null`, `resolution: machine`, the campaign, the findings by digest and code count, and `reach` |
+| `round` | a row in `fixes` with `decision: null`, `resolution: machine`, the campaign, the findings by digest and code count, `reach` and `seq`, the store's commit counter |
 | `parked` | the job root used its 3 rounds. A `parked` record holds the last findings by digest, the exit code is 0 and nobody is asked. Every later `round` on that root returns `parked`, and a person may still `fix --extend` it |
 
 A machine round counts against the same 3 rounds and binds its cut the same way, so `nv accept` and `result` refuse a cut
 it sent back. `reach` is `graph.reach` of the stages the findings' codes enter at. The render that answers the round
-refuses `round_out_of_reach` when any other stage ran, so a fix of a slide, which enters at `compose`, cannot re-voice.
+refuses `round_out_of_reach` when any other stage committed after `seq`, so a fix of a slide, which enters at `compose`,
+cannot re-voice. That holds on a cut with no render row. A round that named no cut, on a root with no render, has nothing
+to compare, because the next run is the whole job.
 
 | Refusal | When |
 | --- | --- |
 | `findings_invalid` | the file is not a typed report, or a row's code, gate or stage is not one short token |
 | `round_needs_decision` | a client edition, or a job root with no campaign bound |
 | `round_no_findings` | no row blocks. A lexical finding alone is advisory |
-| `round_video_missing` | a finding only a composed cut can show names no cut: profile, loudness, flash, captions or a slide's layer or shown share |
-| `video_mismatch`, `cut_accepted`, `fix_already_recorded` | as for `fix` |
+| `findings_stale` | the report names another job or an older `job.json` |
+| `round_video_missing` | a finding only a composed cut can show names no cut: profile, loudness, flash, captions, an avatar frame or a slide's layer or shown share |
+| `video_mismatch` | as for `fix`, or `--video-sha256` names another cut than the report read |
+| `cut_accepted`, `fix_already_recorded` | as for `fix` |
 
-The same findings on the same cut again are a no-op, `recorded: false`. A machine round closes no operator gate.
+A report that names `job_id`, `job_sha256` or `video_sha256`, as `narrate video findings` does, binds them. The same
+findings on the same cut again are a no-op, `recorded: false`. A machine round closes no operator gate.
 
 ### Mixed takes
 
