@@ -66,4 +66,4 @@ Inference: a claim can follow a licensed bed, so Content ID is a watch item afte
 
 ## Limitations
 
-Only the five pages above were read, plus the two MCP tool descriptions. No Certified License PDF was opened, so its wording is unverified. No YouTube page was read. F and B are older than T, and T governs where they differ. T may change: "Any changes to the Agreement will be effective ... on the stated Effective Date for existing Users". A bed record names the terms and date it read, so re-read T before a new catalog adapter or a paid delivery.
+The five pages above were read, plus the two MCP tool descriptions, Splice's MCP landing page and its 2019 originality post, which add nothing cited here. No Certified License PDF was opened, so its wording is unverified. No YouTube page was read. F and B are older than T, and T governs where they differ. T may change: "Any changes to the Agreement will be effective ... on the stated Effective Date for existing Users". A bed record names the terms and date it read, so re-read T before a new catalog adapter or a paid delivery.
